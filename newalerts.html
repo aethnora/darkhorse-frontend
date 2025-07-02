@@ -410,7 +410,8 @@
             const info = {
                 'User': appState.currentUser ? `${appState.currentUser.uid} (${appState.currentUser.email})` : 'Not logged in',
                 'Profile': appState.userProfile ? `Plan: ${appState.userProfile.subscription?.planId || 'none'}, Status: ${appState.userProfile.subscription?.status || 'none'}` : 'No profile',
-                'Server Health': 'Checking...'
+                'Server Health': 'Checking...',
+                'Data API': 'Checking...'
             };
 
             debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
@@ -420,6 +421,13 @@
                 info['Server Health'] = response.ok ? '✅ OK' : '❌ Error';
             } catch (error) {
                 info['Server Health'] = '❌ Unreachable';
+            }
+
+            try {
+                const response = await fetchWithCORS(RENDER_DATA_URL);
+                info['Data API'] = response.ok ? '✅ OK' : '❌ Error';
+            } catch (error) {
+                info['Data API'] = '❌ CORS/Unreachable';
             }
 
             debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
@@ -433,6 +441,30 @@
                 refreshDebugInfo();
             }
         };
+
+        // --- CORS-AWARE FETCH FUNCTION ---
+        async function fetchWithCORS(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return response;
+            } catch (error) {
+                log('error', 'CORS fetch failed', { url, error: error.message });
+                throw error;
+            }
+        }
 
         // --- AUTHENTICATION & PAGE LOAD ---
         auth.onAuthStateChanged(user => {
@@ -526,7 +558,6 @@
                 messageBox.addEventListener('transitionend', () => messageBox.remove());
             }, 5000);
         }
-
 
         function handleUserLogin() {
             loggedInView.classList.remove('hidden');
@@ -777,25 +808,65 @@
             for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="10"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
-                const response = await fetch(RENDER_DATA_URL);
-                if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                log('debug', 'Attempting to fetch data from API', { url: RENDER_DATA_URL });
+                const response = await fetchWithCORS(RENDER_DATA_URL);
                 const trades = await response.json();
                 
+                log('success', 'Raw trades data received', { count: trades.length, sample: trades[0] });
+                
+                // Clean and normalize the data from the CSV structure
                 const cleanedTrades = trades.map(trade => {
-                    const cleanedTrade = {};
-                    for (const key in trade) {
-                        const cleanedKey = key.replace(/\u00A0/g, ' ').trim();
-                        cleanedTrade[cleanedKey] = trade[key];
+                    const cleaned = {};
+                    
+                    // Handle different possible column name variations and clean them
+                    for (const [key, value] of Object.entries(trade)) {
+                        let cleanKey = key.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
+                        
+                        // Normalize key names to match expected structure
+                        if (cleanKey.toLowerCase().includes('filing') && cleanKey.toLowerCase().includes('date')) {
+                            cleaned['Filing Date'] = value;
+                        } else if (cleanKey.toLowerCase().includes('trade') && cleanKey.toLowerCase().includes('date')) {
+                            cleaned['Trade Date'] = value;
+                        } else if (cleanKey.toLowerCase().includes('company') && cleanKey.toLowerCase().includes('name')) {
+                            cleaned['Company Name'] = value;
+                        } else if (cleanKey.toLowerCase() === 'ticker') {
+                            cleaned['Ticker'] = value;
+                        } else if (cleanKey.toLowerCase().includes('insider') && cleanKey.toLowerCase().includes('name')) {
+                            cleaned['Insider Name'] = value;
+                        } else if (cleanKey.toLowerCase() === 'title') {
+                            cleaned['Title'] = value;
+                        } else if (cleanKey.toLowerCase().includes('trade') && cleanKey.toLowerCase().includes('type')) {
+                            cleaned['Trade Type'] = value;
+                        } else if (cleanKey.toLowerCase() === 'price') {
+                            cleaned['Price'] = value;
+                        } else if (cleanKey.toLowerCase() === 'qty') {
+                            cleaned['Qty'] = value;
+                        } else if (cleanKey.toLowerCase() === 'owned') {
+                            cleaned['Owned'] = value;
+                        } else if (cleanKey.includes('Own') || cleanKey.includes('Δ') || cleanKey.includes('Delta')) {
+                            cleaned['ΔOwn'] = value;
+                        } else if (cleanKey.toLowerCase() === 'value') {
+                            cleaned['Value'] = value;
+                        } else {
+                            // Keep other fields as-is
+                            cleaned[cleanKey] = value;
+                        }
                     }
-                    return cleanedTrade;
+                    
+                    return cleaned;
                 });
 
+                // Filter for purchase trades only
                 const purchasesTrades = cleanedTrades.filter(trade => {
                     const tradeType = (trade['Trade Type'] || '').toString().toLowerCase().trim();
-                    return tradeType.includes('purchase') || tradeType.startsWith('p');
+                    return tradeType.includes('purchase') || tradeType.startsWith('p') || tradeType === 'p - purchase';
                 });
                 
-                log('success', 'Trades data fetched and cleaned', { total: trades.length, purchases: purchasesTrades.length });
+                log('success', 'Trades data processed', { 
+                    total: trades.length, 
+                    purchases: purchasesTrades.length,
+                    sampleCleaned: purchasesTrades[0]
+                });
                 
                 tbody.innerHTML = '';
                 if (purchasesTrades.length === 0) {
@@ -804,26 +875,33 @@
                 }
 
                 purchasesTrades.slice(0, 50).forEach(trade => {
-                    const tradeId = `${trade.Ticker}-${trade['Trade Date']}`.replace(/[^a-zA-Z0-9]/g, '');
+                    const tradeId = `${trade.Ticker || 'UNKNOWN'}-${trade['Trade Date'] || Date.now()}`.replace(/[^a-zA-Z0-9]/g, '');
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
-                    row.dataset.ticker = trade.Ticker;
+                    row.dataset.ticker = trade.Ticker || 'UNKNOWN';
                     row.dataset.id = tradeId;
                     
                     const filingDateStr = trade['Filing Date'] || '';
                     const tradeDateStr = trade['Trade Date'] || '';
-                    const companyName = trade['Company Name'] || '';
-                    const ticker = trade.Ticker || '';
-                    const insiderName = trade['Insider Name'] || '';
+                    const companyName = trade['Company Name'] || 'Unknown Company';
+                    const ticker = trade.Ticker || 'N/A';
+                    const insiderName = trade['Insider Name'] || 'Unknown';
                     const title = trade.Title || 'N/A';
                     
-                    const price = parseFloat((trade.Price || '0').toString().replace(/[$,]/g, '')) || 0;
-                    const qty = parseInt((trade.Qty || '0').toString().replace(/[,]/g, '')) || 0;
-                    const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || '';
-                    const value = parseInt((trade.Value || '0').toString().replace(/[$,]/g, '')) || 0;
+                    // Clean and parse numeric values
+                    const priceStr = (trade.Price || '0').toString().replace(/[$,]/g, '');
+                    const price = parseFloat(priceStr) || 0;
                     
-                    const filingDateCell = formatDateCell(filingDateStr, true); // Show time for filing
-                    const tradeDateCell = formatDateCell(tradeDateStr, false); // Hide time for trade
+                    const qtyStr = (trade.Qty || '0').toString().replace(/[,]/g, '');
+                    const qty = parseInt(qtyStr) || 0;
+                    
+                    const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || trade['Delta Own'] || 'N/A';
+                    
+                    const valueStr = (trade.Value || '0').toString().replace(/[$,]/g, '');
+                    const value = parseInt(valueStr) || 0;
+                    
+                    const filingDateCell = formatDateCell(filingDateStr, true);
+                    const tradeDateCell = formatDateCell(tradeDateStr, false);
 
                     row.innerHTML = `
                         ${filingDateCell}
@@ -848,7 +926,16 @@
                 });
             } catch (error) {
                 log('error', 'Failed to fetch or process trades', error);
-                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" style="text-align:center; padding: 2rem; color: var(--error-red);">
+                            <div>Could not load trades feed.</div>
+                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                                Error: ${error.message}
+                            </div>
+                            <button class="btn btn-secondary" style="margin-top: 1rem; padding: 0.5rem 1rem;" onclick="location.reload()">Retry</button>
+                        </td>
+                    </tr>`;
             }
         }
         
@@ -942,7 +1029,6 @@
             };
             document.head.appendChild(chartScript);
         }
-
 
         // --- SETTINGS MANAGEMENT ---
         function populateSettingsView() {
