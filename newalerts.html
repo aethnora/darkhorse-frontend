@@ -136,32 +136,32 @@
         .trades-table { 
             width: 100%; 
             border-collapse: collapse; 
-            table-layout: fixed; /* Use fixed table layout for better column width control */
+            table-layout: fixed;
         }
         .trades-table th, .trades-table td { 
-            padding: 1rem; 
+            padding: 0.75rem; 
             border-bottom: 1px solid var(--border-color); 
             vertical-align: middle; 
-            word-break: break-word; /* Allow long words/dates to break */
-            white-space: normal; /* Allow content to wrap */
+            word-break: break-word;
+            white-space: normal;
             text-align: left;
+            font-size: 0.9rem;
         }
 
-        /* Specific widths for date columns to prevent "######" */
+        /* Fixed widths for date columns to prevent "######" and accommodate full datetime */
         .trades-table th:nth-child(1), .trades-table td:nth-child(1) { /* Filing Date */
-            width: 15%; /* Adjust as needed */
-            min-width: 120px;
+            width: 20%;
+            min-width: 200px;
         }
         .trades-table th:nth-child(2), .trades-table td:nth-child(2) { /* Trade Date */
-            width: 15%; /* Adjust as needed */
-            min-width: 120px;
+            width: 20%;
+            min-width: 200px;
         }
-        /* Adjust other column widths if necessary to fit content */
         .trades-table th:nth-child(3), .trades-table td:nth-child(3) { /* Company */
-            width: 15%;
+            width: 14%;
         }
         .trades-table th:nth-child(4), .trades-table td:nth-child(4) { /* Insider */
-            width: 15%;
+            width: 14%;
         }
         .trades-table th:nth-child(5), .trades-table td:nth-child(5) { /* Price */
             width: 8%;
@@ -177,9 +177,8 @@
         }
         .trades-table th:nth-child(9), .trades-table td:nth-child(9) { /* Icon */
             width: 5%;
-            text-align: center; /* Center the icon */
+            text-align: center;
         }
-
 
         .trades-table tbody tr.trade-row { cursor: pointer; transition: background-color 0.2s; }
         .trades-table tbody tr.trade-row:hover { background-color: rgba(0, 198, 255, 0.05); }
@@ -190,29 +189,34 @@
         .trade-details-row.active { display: table-row; }
         .trade-details-cell { padding: 0 !important; }
         
-        /* Changed to grid for better control over widget layout */
+        /* Flexbox layout for TradingView widgets */
         .trade-details-content { 
             background: var(--dark-bg); 
             padding: 1rem; 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); /* Adjusted minmax for wider widgets */
-            gap: 1rem; 
+            display: flex; 
+            gap: 0; 
             animation: slideDown 0.5s ease; 
         }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Adjusted tradingview-widget-container for grid layout */
+        /* TradingView widget containers */
         .tradingview-widget-container { 
-            width: 100%; 
-            height: 450px; /* Increased height for better visibility of the chart */
-            overflow: hidden; /* Keep overflow hidden to prevent scrollbars within the widget */
+            flex: 1;
+            height: 500px;
+            overflow: hidden;
+            background: transparent;
+        }
+        
+        .tradingview-widget-container__widget {
+            height: 100% !important;
+            width: 100% !important;
         }
 
         /* Styles for the dropdown indicator */
         .trade-toggle-icon {
             margin-left: 0.5rem;
             transition: transform 0.3s ease;
-            color: var(--accent-cyan); /* Make the icon more visible */
+            color: var(--accent-cyan);
             font-size: 0.9rem;
         }
         .trade-toggle-icon.rotated {
@@ -408,7 +412,7 @@
         };
         const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOJTMJ8Y86P001uNGik7B';
         const SERVER_URL = 'https://darkhorse-backend.onrender.com';
-        const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders'; // UPDATE THIS WITH YOUR ACTUAL API URL
+        const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
 
         // --- INITIALIZATION ---
         firebase.initializeApp(firebaseConfig);
@@ -500,7 +504,7 @@
                 window.history.replaceState(null, '', window.location.pathname);
                 
                 let attempts = 0;
-                const maxAttempts = 30; // Increased from 15
+                const maxAttempts = 30;
                 if (appState.pollingInterval) clearInterval(appState.pollingInterval);
                 
                 appState.pollingInterval = setInterval(async () => {
@@ -536,14 +540,12 @@
                         appState.pollingInterval = null;
                         processingOverlay.classList.remove('show');
                         processingOverlay.classList.add('hidden');
-                        // Using a custom modal/message box instead of alert()
                         displayMessage('Subscription activation is taking longer than expected. Please refresh the page or contact support if the issue persists.', 'error');
                     }
-                }, 2000); // Check every 2 seconds
+                }, 2000);
             }
             if (urlParams.has('canceled')) {
                 log('info', 'Payment canceled');
-                // Using a custom modal/message box instead of alert()
                 displayMessage('Your payment was canceled. You can choose a plan at any time.', 'info');
                 window.history.replaceState(null, '', window.location.pathname);
             }
@@ -575,7 +577,6 @@
                 messageBox.addEventListener('transitionend', () => messageBox.remove());
             }, 5000);
         }
-
 
         function handleUserLogin() {
             loggedInView.classList.remove('hidden');
@@ -688,7 +689,6 @@
             log('info', 'Creating checkout session', { priceId, planName, userId: appState.currentUser.uid });
 
             try {
-                // Verify user exists in Firebase first
                 log('debug', 'Verifying user profile exists');
                 const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
                 if (!userDoc.exists) {
@@ -730,7 +730,6 @@
                 }
             } catch (error) {
                 log('error', 'Checkout session creation failed', error);
-                // Using a custom modal/message box instead of alert()
                 displayMessage(`Could not initiate payment: ${error.message}`, 'error');
                 checkoutButton.disabled = false;
                 checkoutButton.textContent = originalText;
@@ -797,7 +796,7 @@
             feedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
-                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead> <!-- Added an empty header for the icon column -->
+                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead>
                         <tbody id="trades-tbody"></tbody>
                     </table>
                 </div>`;
@@ -810,7 +809,7 @@
             
             log('debug', 'Populating trades table');
             tbody.innerHTML = '';
-            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; } // Adjusted colspan
+            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
                 log('debug', 'Fetching trades data from API');
@@ -820,18 +819,13 @@
                 
                 log('success', 'Trades data fetched successfully', { count: trades.length });
                 
-                // SUPER DEBUG: Log everything to see what's wrong
+                // Find all trade types to understand the data structure
                 console.log('🔍 FULL DEBUG - First trade object:');
                 console.log(JSON.stringify(trades[0], null, 2));
                 console.log('🔍 All column names:', Object.keys(trades[0]));
-                console.log('🔍 First 5 Trade Type values:', trades.slice(0, 5).map(t => {
-                    const tradeTypeKey = Object.keys(t).find(key => key.toLowerCase().includes('trade') && key.toLowerCase().includes('type'));
-                    return { originalKey: tradeTypeKey, value: t[tradeTypeKey] };
-                }));
                 
-                // MUCH SIMPLER FILTER - catch ANY purchase indication
+                // Filter for purchases - check multiple possible column names for trade type
                 const purchasesTrades = trades.filter(trade => {
-                    // Find the trade type column (might have encoding issues)
                     const tradeTypeKey = Object.keys(trade).find(key => 
                         key.toLowerCase().includes('trade') && key.toLowerCase().includes('type')
                     );
@@ -844,7 +838,6 @@
                     const tradeType = (trade[tradeTypeKey] || '').toString().toLowerCase().trim();
                     console.log(`🔍 Checking trade type: "${tradeType}" from column: "${tradeTypeKey}"`);
                     
-                    // Super simple check - if it contains 'p' and 'purchase' OR just starts with 'p'
                     const isPurchase = (
                         tradeType.includes('purchase') ||
                         tradeType.includes('p - ') ||
@@ -864,13 +857,11 @@
                 
                 tbody.innerHTML = '';
                 if (purchasesTrades.length === 0) {
-                    // Show debug info when no purchases found
                     const uniqueTradeTypes = [...new Set(trades.map(t => t['Trade Type']))];
                     console.log('🚨 No purchases found. All Trade Types:', uniqueTradeTypes);
                     
-                    // Temporarily show ALL trades for debugging (remove this later)
                     tbody.innerHTML = `
-                        <tr><td colspan="9" style="text-align:center; padding: 2rem;"> <!-- Adjusted colspan -->
+                        <tr><td colspan="9" style="text-align:center; padding: 2rem;">
                             No insider purchases found with current filter.<br>
                             <small style="color: var(--text-tertiary); margin-top: 0.5rem; display: block;">
                                 Found ${trades.length} total trades. Trade types: ${uniqueTradeTypes.join(', ')}
@@ -880,14 +871,18 @@
                             </button>
                         </td></tr>`;
                     
-                    // Add debug function to window
                     window.showAllTrades = () => {
                         tbody.innerHTML = '';
                         trades.slice(0, 10).forEach(trade => {
                             const row = document.createElement('tr');
+                            
+                            // Handle date columns properly - they might have different names
+                            const filingDate = trade['Filing Date'] || trade['FilingÂ Date'] || '';
+                            const tradeDate = trade['Trade Date'] || trade['TradeÂ Date'] || '';
+                            
                             row.innerHTML = `
-                                <td>${trade['Filing Date'] || trade['FilingÂ Date'] || ''}</td>
-                                <td>${trade['Trade Date'] || trade['TradeÂ Date'] || ''}</td>
+                                <td>${filingDate}</td>
+                                <td>${tradeDate}</td>
                                 <td>${trade['Company Name'] || trade['CompanyÂ Name'] || ''}<br><small>${trade.Ticker || ''}</small></td>
                                 <td>${trade['Insider Name'] || trade['InsiderÂ Name'] || ''}<br><small>${trade.Title || ''}</small></td>
                                 <td>${trade.Price || ''}</td>
@@ -902,20 +897,14 @@
                 }
 
                 // Show filtered purchase data
-                purchasesTrades.slice(0, 50).forEach(trade => { // Limit to 50 trades
-                    // Find the trade type column dynamically
-                    const tradeTypeKey = Object.keys(trade).find(key => 
-                        key.toLowerCase().includes('trade') && key.toLowerCase().includes('type')
-                    );
-                    
+                purchasesTrades.slice(0, 50).forEach(trade => {
                     const tradeId = `${trade.Ticker}-${trade['Trade Date']}`.replace(/[^a-zA-Z0-9]/g, '');
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
                     row.dataset.ticker = trade.Ticker;
                     row.dataset.id = tradeId;
                     
-                    // Format the data with better cleaning for your CSV format
-                    // Ensure Filing Date and Trade Date are displayed as they are received
+                    // Handle different column name variations for dates
                     const filingDate = trade['Filing Date'] || trade['FilingÂ Date'] || '';
                     const tradeDate = trade['Trade Date'] || trade['TradeÂ Date'] || '';
                     const companyName = trade['Company Name'] || trade['CompanyÂ Name'] || '';
@@ -923,18 +912,15 @@
                     const insiderName = trade['Insider Name'] || trade['InsiderÂ Name'] || '';
                     const title = trade.Title || '';
                     
-                    // Clean price: "$8.82" -> 8.82
+                    // Clean and format numeric data
                     const priceStr = (trade.Price || '0').toString().replace(/[$,]/g, '');
                     const price = parseFloat(priceStr) || 0;
                     
-                    // Clean quantity: "50,195" -> 50195
                     const qtyStr = (trade.Qty || '0').toString().replace(/[,$]/g, '');
                     const qty = parseInt(qtyStr) || 0;
                     
-                    // Handle ΔOwn: "1%" -> "1%"
                     const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || trade['Delta Own'] || '';
                     
-                    // Clean value: "$442,720" -> 442720
                     const valueStr = (trade.Value || '0').toString().replace(/[$,]/g, '');
                     const value = parseInt(valueStr) || 0;
                     
@@ -947,11 +933,11 @@
                         <td>${qty.toLocaleString()}</td>
                         <td>${deltaOwn}</td>
                         <td>$${value.toLocaleString()}</td>
-                        <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`; <!-- Added the chevron icon -->
+                        <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`;
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
-                    detailsRow.innerHTML = `<td colspan="9" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`; // Adjusted colspan
+                    detailsRow.innerHTML = `<td colspan="9" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`;
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
@@ -960,14 +946,14 @@
                 });
             } catch (error) {
                 log('error', 'Failed to fetch trades', error);
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`; // Adjusted colspan
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
             }
         }
         
         function toggleTradeDetails(row, detailsRow, ticker) {
             const rowId = row.dataset.id;
             const isActive = row.classList.contains('active-row');
-            const toggleIcon = row.querySelector('.trade-toggle-icon'); // Get the icon
+            const toggleIcon = row.querySelector('.trade-toggle-icon');
 
             log('debug', 'Toggling trade details', { ticker, rowId, isActive });
             
@@ -980,7 +966,7 @@
                     if (oldDetailsRow && oldDetailsRow.classList.contains('trade-details-row')) {
                         oldDetailsRow.classList.remove('active');
                     }
-                    if (oldToggleIcon) { // Rotate back the old icon
+                    if (oldToggleIcon) {
                         oldToggleIcon.classList.remove('rotated');
                     }
                 }
@@ -988,7 +974,7 @@
 
             row.classList.toggle('active-row', !isActive);
             detailsRow.classList.toggle('active', !isActive);
-            if (toggleIcon) { // Rotate the current icon
+            if (toggleIcon) {
                 toggleIcon.classList.toggle('rotated', !isActive);
             }
 
@@ -1008,59 +994,53 @@
             container.innerHTML = '';
             container.dataset.loaded = 'true';
 
-            const createWidget = (src, config) => {
-                const div = document.createElement('div');
-                div.className = 'tradingview-widget-container'; // Apply the container class
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = src;
-                script.async = true;
-                script.text = JSON.stringify(config);
-                div.appendChild(script);
-                return div;
-            };
+            // Create a unique ID for each widget instance
+            const chartId = `tradingview_chart_${ticker}_${Date.now()}`;
+            const profileId = `tradingview_profile_${ticker}_${Date.now()}`;
 
-            // TradingView config for the chart (Symbol Overview)
-            const overviewConfig = { 
-                "symbols": [[ticker, `${ticker}|1D`]], 
-                "chartOnly": false, 
-                "width": "100%", 
-                "height": "100%", 
-                "locale": "en", 
-                "colorTheme": "dark", 
-                "autosize": true, 
-                "showVolume": false, 
-                "hideDateRanges": false, 
-                "hideMarketStatus": false, 
-                "hideSymbolLogo": false, 
-                "scalePosition": "right", 
-                "scaleMode": "Normal", 
-                "fontFamily": "Inter", 
-                "fontSize": "10", 
-                "noTimeScale": false, 
-                "valuesTracking": "1", 
-                "changeMode": "price-and-percent", 
-                "chartType": "area", 
-                "backgroundColor": "rgba(16, 24, 44, 0)", 
-                "lineColor": "#2962FF", 
-                "topColor": "rgba(41, 98, 255, 0.3)", 
-                "bottomColor": "rgba(41, 98, 255, 0)" 
-            };
+            // Chart Widget
+            const chartDiv = document.createElement('div');
+            chartDiv.className = 'tradingview-widget-container';
+            chartDiv.innerHTML = `
+                <div class="tradingview-widget-container__widget" id="${chartId}"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+                {
+                    "autosize": true,
+                    "symbol": "${ticker}",
+                    "interval": "D",
+                    "timezone": "Etc/UTC",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "en",
+                    "enable_publishing": false,
+                    "backgroundColor": "rgba(16, 24, 44, 0.7)",
+                    "gridColor": "rgba(0, 198, 255, 0.1)",
+                    "hide_top_toolbar": false,
+                    "hide_legend": false,
+                    "save_image": false,
+                    "container_id": "${chartId}"
+                }
+                </script>`;
+
+            // Profile Widget  
+            const profileDiv = document.createElement('div');
+            profileDiv.className = 'tradingview-widget-container';
+            profileDiv.innerHTML = `
+                <div class="tradingview-widget-container__widget" id="${profileId}"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js" async>
+                {
+                    "width": "100%",
+                    "height": "100%",
+                    "colorTheme": "dark",
+                    "isTransparent": true,
+                    "symbol": "${ticker}",
+                    "locale": "en",
+                    "container_id": "${profileId}"
+                }
+                </script>`;
             
-            // TradingView config for the profile
-            const profileConfig = { 
-                "symbol": ticker, 
-                "width": "100%", 
-                "height": "100%", 
-                "colorTheme": "dark", 
-                "isTransparent": true, 
-                "locale": "en" 
-            };
-            
-            container.append(
-                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js', overviewConfig),
-                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js', profileConfig)
-            );
+            container.appendChild(chartDiv);
+            container.appendChild(profileDiv);
         }
 
         // --- SETTINGS MANAGEMENT ---
@@ -1078,7 +1058,8 @@
 
             document.getElementById('emailToggle').checked = settings.notifyByEmail;
             document.getElementById('smsToggle').checked = settings.notifyBySms;
-            document.querySelector(`input[name="timing"]:checked`).value = settings.timing; // Ensure the correct radio is selected
+            const timingRadio = document.querySelector(`input[name="timing"][value="${settings.timing}"]`);
+            if (timingRadio) timingRadio.checked = true;
             document.getElementById('summaryTime').classList.toggle('hidden', settings.timing !== 'summary');
             document.getElementById('summaryTime').value = settings.summaryTime;
 
@@ -1101,10 +1082,11 @@
             saveButton.disabled = true;
             saveButton.textContent = 'Saving...';
 
+            const checkedTiming = document.querySelector('input[name="timing"]:checked');
             const settingsToSave = {
                 notifyByEmail: document.getElementById('emailToggle').checked,
                 notifyBySms: document.getElementById('smsToggle').checked,
-                timing: document.querySelector('input[name="timing"]:checked').value,
+                timing: checkedTiming ? checkedTiming.value : 'realtime',
                 summaryTime: document.getElementById('summaryTime').value,
                 filters: {
                     stockPrice: parseFloat(document.getElementById('stockPrice').value),
@@ -1118,11 +1100,9 @@
             try {
                 await db.collection('users').doc(appState.currentUser.uid).update({ settings: settingsToSave });
                 log('success', 'Settings saved successfully');
-                // Using a custom modal/message box instead of alert()
                 displayMessage('Settings saved successfully!', 'success');
             } catch (error) {
                 log('error', 'Failed to save settings', error);
-                // Using a custom modal/message box instead of alert()
                 displayMessage("Failed to save settings. Please try again.", 'error');
             } finally {
                 saveButton.disabled = false;
