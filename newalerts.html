@@ -51,7 +51,7 @@
         }
 
         /* --- UTILITY & LAYOUT --- */
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; } /* Increased max-width */
         .hidden { display: none !important; }
         .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.5; background: var(--dark-bg); overflow: hidden; }
         .bg-animation::before { content: ''; position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(circle at 20% 50%, rgba(0, 198, 255, 0.15) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(10, 116, 218, 0.15) 0%, transparent 40%); animation: floatAnimation 30s ease-in-out infinite; }
@@ -132,21 +132,32 @@
         .recommended-tag { font-size: 0.7rem; color: var(--warning-yellow); margin-left: 0.5rem; }
         .save-settings-container { margin-top: 2rem; text-align: right; }
 
-        /* --- TRADES FEED & TRADINGVIEW --- */
-        .trades-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .trades-table th { text-align: left; padding: 1rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); }
-        .trades-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; word-break: break-word; }
+        /* --- TRADES FEED & TRADINGVIEW (REVAMPED) --- */
+        .trades-table { width: 100%; border-collapse: collapse; table-layout: auto; } /* Changed to auto for better column sizing */
+        .trades-table th { text-align: left; padding: 1rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        .trades-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
         .trades-table tbody tr.trade-row { cursor: pointer; transition: background-color 0.2s; }
         .trades-table tbody tr.trade-row:hover { background-color: rgba(0, 198, 255, 0.05); }
-        .trades-table tr.active-row { background-color: rgba(0, 198, 255, 0.1); }
+        .trades-table tr.active-row { background-color: rgba(0, 198, 255, 0.1) !important; }
         .company-name { font-weight: 600; }
         .ticker { color: var(--text-secondary); font-size: 0.9rem; }
+        .insider-title { color: var(--text-tertiary); font-style: italic; }
         .trade-details-row { display: none; }
         .trade-details-row.active { display: table-row; }
-        .trade-details-cell { padding: 0 !important; }
-        .trade-details-content { background: var(--dark-bg); padding: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; animation: slideDown 0.5s ease; }
+        .trade-details-cell { padding: 0 !important; background: var(--dark-bg); }
+        .trade-details-content {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 350px; /* Main chart and sidebar */
+            gap: 1.5rem;
+            animation: slideDown 0.5s ease-out;
+            border-top: 1px solid var(--border-color);
+        }
+        @media (max-width: 900px) {
+            .trade-details-content { grid-template-columns: 1fr; }
+        }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .tradingview-widget-container { width: 100%; height: 400px; overflow: hidden; }
+        .tradingview-widget-container { width: 100%; height: 500px; border-radius: 12px; overflow: hidden; }
         .trade-toggle-icon { margin-left: 0.5rem; transition: transform 0.3s ease; }
         .trade-toggle-icon.rotated { transform: rotate(180deg); }
         .skeleton-loader { background: linear-gradient(90deg, var(--card-bg) 25%, var(--text-tertiary) 50%, var(--card-bg) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 4px; color: transparent !important; }
@@ -154,26 +165,26 @@
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .feed-container { overflow-x: auto; }
 
-        /* --- NEW: CREATIVE DATE DISPLAY --- */
-        .date-cell { vertical-align: middle; }
-        .date-wrapper { display: flex; align-items: center; gap: 12px; }
+        /* --- REFINED DATE DISPLAY --- */
+        .date-cell { width: 120px; } /* Fixed width for date cells */
+        .date-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .date-icon-display {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            text-align: center;
             font-weight: 700;
-            width: 55px;
+            width: 60px;
             flex-shrink: 0;
             padding: 4px 0;
         }
         .date-icon-month { display: block; font-size: 0.7rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px; }
         .date-icon-day { display: block; font-size: 1.5rem; line-height: 1.2; color: var(--text-primary); }
-        .date-text-display .date-full { font-weight: 500; color: var(--text-primary); font-size: 0.95rem; }
-        .date-text-display .time-full { font-size: 0.85rem; color: var(--text-secondary); }
-        .trades-table td.date-cell { padding: 0.75rem 1rem; }
-        .trades-table th.date-header { min-width: 200px; } /* Give more space */
-
+        .date-time {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-top: 6px;
+            font-style: italic;
+        }
 
         /* --- LOCKED DASHBOARD VIEW --- */
         .locked-dashboard { position: relative; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; }
@@ -685,17 +696,17 @@
                     <div class="locked-content">
                         <div class="feed-container">
                         <table class="trades-table">
-                            <thead><tr><th class="date-header">Filing Date</th><th class="date-header">Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th></tr></thead>
+                            <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th></tr></thead>
                             <tbody>
-                                <tr><td><div class="date-wrapper"><div class="date-icon-display"><span class="date-icon-month">OCT</span><span class="date-icon-day">26</span></div><div class="date-text-display"><div class="date-full">October 26, 2024</div></div></div></td><td><div class="date-wrapper"><div class="date-icon-display"><span class="date-icon-month">OCT</span><span class="date-icon-day">25</span></div><div class="date-text-display"><div class="date-full">October 25, 2024</div></div></div></td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson<br><small>CTO</small></td><td>$45.25</td><td>99,500</td><td>+15.2%</td><td>$4,502,500</td></tr>
-                                <tr><td><div class="date-wrapper"><div class="date-icon-display"><span class="date-icon-month">OCT</span><span class="date-icon-day">25</span></div><div class="date-text-display"><div class="date-full">October 25, 2024</div></div></div></td><td><div class="date-wrapper"><div class="date-icon-display"><span class="date-icon-month">OCT</span><span class="date-icon-day">24</span></div><div class="date-text-display"><div class="date-full">October 24, 2024</div></div></div></td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts<br><small>CEO</small></td><td>$8.59</td><td>99,400</td><td>+8.3%</td><td>$853,900</td></tr>
+                                <tr><td>...</td><td>...</td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson</td><td class="insider-title">CTO</td><td>$45.25</td><td>99,500</td><td>+15.2%</td><td>$4,502,500</td></tr>
+                                <tr><td>...</td><td>...</td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts</td><td class="insider-title">CEO</td><td>$8.59</td><td>99,400</td><td>+8.3%</td><td>$853,900</td></tr>
                             </tbody>
                         </table>
                         </div>
                     </div>
                     <div class="lock-overlay">
                         <i class="fas fa-lock"></i><h2>Full Feed Locked</h2>
-                        <p>Upgrade to an Advanced or Professional plan to unlock the live feed, real-time alerts, and TradingView charts.</p>
+                        <p>Upgrade to an Advanced or Professional plan to unlock the live feed, real-time alerts, and advanced charts.</p>
                         <button class="btn btn-primary" onclick="scrollToPricing()">Upgrade Your Plan</button>
                     </div>
                 </div>`;
@@ -705,17 +716,17 @@
             feedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
-                        <thead><tr><th class="date-header">Filing Date</th><th class="date-header">Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead>
+                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead>
                         <tbody id="trades-tbody"></tbody>
                     </table>
                 </div>`;
             await populateTradesTable();
         }
 
-        // NEW: Helper function to format dates creatively
-        function formatDateCell(dateString) {
+        // REFINED: Helper function to format dates
+        function formatDateCell(dateString, showTime) {
             if (!dateString || typeof dateString !== 'string') {
-                return '<td class="date-cell">N/A</td>';
+                return '<td class="date-cell"><div class="date-wrapper">N/A</div></td>';
             }
 
             const parts = dateString.split(' ');
@@ -724,16 +735,15 @@
 
             const date = new Date(datePart);
             if (isNaN(date.getTime())) {
-                return `<td class="date-cell">${dateString}</td>`; // Fallback to original string
+                return `<td class="date-cell"><div class="date-wrapper">${dateString}</div></td>`;
             }
 
             const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
             const month = monthNames[date.getMonth()];
             const day = date.getDate();
-            const year = date.getFullYear();
             
-            let formattedTime = '';
-            if (timePart) {
+            let timeHtml = '';
+            if (showTime && timePart) {
                 let [hours, minutes] = timePart.split(':');
                 let period = 'AM';
                 hours = parseInt(hours, 10);
@@ -742,10 +752,8 @@
                     if (hours > 12) hours -= 12;
                 }
                 if (hours === 0) hours = 12;
-                formattedTime = `at ${hours}:${minutes} ${period}`;
+                timeHtml = `<div class="date-time">${hours}:${minutes} ${period}</div>`;
             }
-
-            const fullDateString = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
             return `
                 <td class="date-cell">
@@ -754,10 +762,7 @@
                             <span class="date-icon-month">${month}</span>
                             <span class="date-icon-day">${day}</span>
                         </div>
-                        <div class="date-text-display">
-                            <div class="date-full">${fullDateString}</div>
-                            ${formattedTime ? `<div class="time-full">${formattedTime}</div>` : ''}
-                        </div>
+                        ${timeHtml}
                     </div>
                 </td>
             `;
@@ -769,18 +774,16 @@
             
             log('debug', 'Populating trades table');
             tbody.innerHTML = '';
-            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
+            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="10"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
                 const response = await fetch(RENDER_DATA_URL);
                 if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
                 const trades = await response.json();
                 
-                // NEW: Clean the keys of the fetched data to handle encoding issues
                 const cleanedTrades = trades.map(trade => {
                     const cleanedTrade = {};
                     for (const key in trade) {
-                        // Replaces non-breaking spaces (\u00A0) and trims whitespace
                         const cleanedKey = key.replace(/\u00A0/g, ' ').trim();
                         cleanedTrade[cleanedKey] = trade[key];
                     }
@@ -796,7 +799,7 @@
                 
                 tbody.innerHTML = '';
                 if (purchasesTrades.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem;">No insider purchases found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 2rem;">No insider purchases found.</td></tr>`;
                     return;
                 }
 
@@ -807,28 +810,27 @@
                     row.dataset.ticker = trade.Ticker;
                     row.dataset.id = tradeId;
                     
-                    // Use cleaned keys to access data
                     const filingDateStr = trade['Filing Date'] || '';
                     const tradeDateStr = trade['Trade Date'] || '';
                     const companyName = trade['Company Name'] || '';
                     const ticker = trade.Ticker || '';
                     const insiderName = trade['Insider Name'] || '';
-                    const title = trade.Title || '';
+                    const title = trade.Title || 'N/A';
                     
                     const price = parseFloat((trade.Price || '0').toString().replace(/[$,]/g, '')) || 0;
                     const qty = parseInt((trade.Qty || '0').toString().replace(/[,]/g, '')) || 0;
                     const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || '';
                     const value = parseInt((trade.Value || '0').toString().replace(/[$,]/g, '')) || 0;
                     
-                    // Use the new date formatting function
-                    const filingDateCell = formatDateCell(filingDateStr);
-                    const tradeDateCell = formatDateCell(tradeDateStr);
+                    const filingDateCell = formatDateCell(filingDateStr, true); // Show time for filing
+                    const tradeDateCell = formatDateCell(tradeDateStr, false); // Hide time for trade
 
                     row.innerHTML = `
                         ${filingDateCell}
                         ${tradeDateCell}
                         <td><div class="company-name">${companyName}</div><div class="ticker">${ticker}</div></td>
-                        <td><div>${insiderName}</div><div class="text-secondary">${title}</div></td>
+                        <td>${insiderName}</td>
+                        <td class="insider-title">${title}</td>
                         <td>$${price.toFixed(2)}</td>
                         <td>${qty.toLocaleString()}</td>
                         <td>${deltaOwn}</td>
@@ -837,7 +839,7 @@
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
-                    detailsRow.innerHTML = `<td colspan="9" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`;
+                    detailsRow.innerHTML = `<td colspan="10" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"><div class="skeleton-loader" style="width:100%; height: 500px;"></div><div class="skeleton-loader" style="width:100%; height: 500px;"></div></div></td>`;
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
@@ -846,7 +848,7 @@
                 });
             } catch (error) {
                 log('error', 'Failed to fetch or process trades', error);
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
             }
         }
         
@@ -855,6 +857,7 @@
             const isActive = row.classList.contains('active-row');
             const toggleIcon = row.querySelector('.trade-toggle-icon');
 
+            // Close any other open details row
             if (appState.activeTradeDetails && appState.activeTradeDetails !== rowId) {
                 const oldActiveRow = document.querySelector(`.trade-row[data-id="${appState.activeTradeDetails}"]`);
                 if (oldActiveRow) {
@@ -878,33 +881,68 @@
             }
         }
 
+        // REVAMPED: Load advanced TradingView widgets
         function loadTradingViewWidgets(ticker, containerId) {
             const container = document.getElementById(containerId);
             if (!container || container.dataset.loaded === 'true') return;
             
-            container.innerHTML = '';
+            log('debug', 'Loading ADVANCED TradingView widgets', { ticker, containerId });
+            container.innerHTML = ''; // Clear skeleton loader
             container.dataset.loaded = 'true';
 
-            const createWidget = (src, config) => {
-                const div = document.createElement('div');
-                div.className = 'tradingview-widget-container';
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = src;
-                script.async = true;
-                script.text = JSON.stringify(config);
-                div.appendChild(script);
-                return div;
-            };
+            // 1. Advanced Chart Widget
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'tradingview-widget-container';
+            new TradingView.widget({
+                "autosize": true,
+                "symbol": ticker,
+                "interval": "D",
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "withdateranges": true,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "container_id": chartContainer.id,
+                "isTransparent": true,
+                "details": true,
+                "hotlist": true,
+                "calendar": true,
+                "studies": [
+                    "Volume@tv-basicstudies"
+                ],
+                "container": chartContainer
+            });
 
-            const overviewConfig = { "symbols": [[ticker, `${ticker}|1D`]], "chartOnly": false, "width": "100%", "height": "100%", "locale": "en", "colorTheme": "dark", "autosize": true, "showVolume": false, "hideDateRanges": false, "hideMarketStatus": false, "hideSymbolLogo": false, "scalePosition": "right", "scaleMode": "Normal", "fontFamily": "Inter", "fontSize": "10", "noTimeScale": false, "valuesTracking": "1", "changeMode": "price-and-percent", "chartType": "area", "backgroundColor": "rgba(16, 24, 44, 0)", "lineColor": "#2962FF", "topColor": "rgba(41, 98, 255, 0.3)", "bottomColor": "rgba(41, 98, 255, 0)" };
-            const profileConfig = { "symbol": ticker, "width": "100%", "height": "100%", "colorTheme": "dark", "isTransparent": true, "locale": "en" };
+            // 2. Fundamental Data Widget
+            const fundamentalContainer = document.createElement('div');
+            fundamentalContainer.className = 'tradingview-widget-container';
+            new TradingView.widget({
+                "autosize": true,
+                "symbol": ticker,
+                "colorTheme": "dark",
+                "isTransparent": true,
+                "locale": "en",
+                "largeChartUrl": "",
+                "displayMode": "regular", // or compact
+                "container": fundamentalContainer,
+                "widgetType": "fundamental"
+            });
             
-            container.append(
-                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js', overviewConfig),
-                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js', profileConfig)
-            );
+            // Create script elements and append
+            const chartScript = document.createElement('script');
+            chartScript.type = 'text/javascript';
+            chartScript.src = 'https://s3.tradingview.com/tv.js';
+            chartScript.onload = () => {
+                container.appendChild(chartContainer);
+                container.appendChild(fundamentalContainer);
+            };
+            document.head.appendChild(chartScript);
         }
+
 
         // --- SETTINGS MANAGEMENT ---
         function populateSettingsView() {
