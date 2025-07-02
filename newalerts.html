@@ -133,24 +133,54 @@
         .save-settings-container { margin-top: 2rem; text-align: right; }
 
         /* --- TRADES FEED & TRADINGVIEW --- */
-        .trades-table { width: 100%; border-collapse: collapse; }
-        .trades-table th { 
-            text-align: left; 
-            padding: 1rem; 
-            color: var(--text-secondary); 
-            font-size: 0.8rem; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
-            border-bottom: 1px solid var(--border-color); 
-            /* Ensure enough width for date columns */
-            min-width: 120px; /* Adjust as needed */
+        .trades-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            table-layout: fixed; /* Use fixed table layout for better column width control */
         }
-        .trades-table td { 
+        .trades-table th, .trades-table td { 
             padding: 1rem; 
             border-bottom: 1px solid var(--border-color); 
             vertical-align: middle; 
             word-break: break-word; /* Allow long words/dates to break */
+            white-space: normal; /* Allow content to wrap */
+            text-align: left;
         }
+
+        /* Specific widths for date columns to prevent "######" */
+        .trades-table th:nth-child(1), .trades-table td:nth-child(1) { /* Filing Date */
+            width: 15%; /* Adjust as needed */
+            min-width: 120px;
+        }
+        .trades-table th:nth-child(2), .trades-table td:nth-child(2) { /* Trade Date */
+            width: 15%; /* Adjust as needed */
+            min-width: 120px;
+        }
+        /* Adjust other column widths if necessary to fit content */
+        .trades-table th:nth-child(3), .trades-table td:nth-child(3) { /* Company */
+            width: 15%;
+        }
+        .trades-table th:nth-child(4), .trades-table td:nth-child(4) { /* Insider */
+            width: 15%;
+        }
+        .trades-table th:nth-child(5), .trades-table td:nth-child(5) { /* Price */
+            width: 8%;
+        }
+        .trades-table th:nth-child(6), .trades-table td:nth-child(6) { /* Quantity */
+            width: 10%;
+        }
+        .trades-table th:nth-child(7), .trades-table td:nth-child(7) { /* ΔOwn */
+            width: 7%;
+        }
+        .trades-table th:nth-child(8), .trades-table td:nth-child(8) { /* Value */
+            width: 10%;
+        }
+        .trades-table th:nth-child(9), .trades-table td:nth-child(9) { /* Icon */
+            width: 5%;
+            text-align: center; /* Center the icon */
+        }
+
+
         .trades-table tbody tr.trade-row { cursor: pointer; transition: background-color 0.2s; }
         .trades-table tbody tr.trade-row:hover { background-color: rgba(0, 198, 255, 0.05); }
         .trades-table tr.active-row { background-color: rgba(0, 198, 255, 0.1); }
@@ -159,27 +189,31 @@
         .trade-details-row { display: none; }
         .trade-details-row.active { display: table-row; }
         .trade-details-cell { padding: 0 !important; }
+        
         /* Changed to grid for better control over widget layout */
         .trade-details-content { 
             background: var(--dark-bg); 
-            padding: 1rem; /* Reduced padding for more space for widgets */
+            padding: 1rem; 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive columns */
-            gap: 1rem; /* Gap between widgets */
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); /* Adjusted minmax for wider widgets */
+            gap: 1rem; 
             animation: slideDown 0.5s ease; 
         }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        
         /* Adjusted tradingview-widget-container for grid layout */
         .tradingview-widget-container { 
             width: 100%; 
-            height: 400px; /* Fixed height for better rendering consistency */
-            overflow: hidden; /* Hide any overflow */
+            height: 450px; /* Increased height for better visibility of the chart */
+            overflow: hidden; /* Keep overflow hidden to prevent scrollbars within the widget */
         }
 
         /* Styles for the dropdown indicator */
         .trade-toggle-icon {
             margin-left: 0.5rem;
             transition: transform 0.3s ease;
+            color: var(--accent-cyan); /* Make the icon more visible */
+            font-size: 0.9rem;
         }
         .trade-toggle-icon.rotated {
             transform: rotate(180deg);
@@ -1044,7 +1078,7 @@
 
             document.getElementById('emailToggle').checked = settings.notifyByEmail;
             document.getElementById('smsToggle').checked = settings.notifyBySms;
-            document.querySelector(`input[name="timing"][value="${settings.timing}"]`).checked = true;
+            document.querySelector(`input[name="timing"]:checked`).value = settings.timing; // Ensure the correct radio is selected
             document.getElementById('summaryTime').classList.toggle('hidden', settings.timing !== 'summary');
             document.getElementById('summaryTime').value = settings.summaryTime;
 
