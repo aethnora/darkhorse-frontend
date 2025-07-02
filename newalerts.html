@@ -200,10 +200,10 @@
             border-radius: 12px;
             overflow: hidden;
             border: 1px solid var(--border-color);
-            position: relative;
+            height: fit-content;
         }
         .chart-header {
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1rem;
             background: linear-gradient(135deg, var(--card-bg) 0%, rgba(0, 198, 255, 0.1) 100%);
             border-bottom: 1px solid var(--border-color);
             display: flex;
@@ -212,7 +212,7 @@
         }
         .chart-header h3 {
             margin: 0;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--text-primary);
             display: flex;
@@ -230,7 +230,7 @@
         }
         .tradingview-widget-container {
             width: 100%;
-            height: 600px;
+            height: 450px;
             background: var(--dark-bg);
             position: relative;
         }
@@ -254,91 +254,17 @@
             to { transform: rotate(360deg); }
         }
 
-        /* --- COMPANY PROFILE SIDEBAR --- */
-        .info-section {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        
-        .insider-summary-card {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-        
-        .card-header {
-            padding: 1rem 1.5rem;
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(0, 198, 255, 0.1) 100%);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .card-header h4 {
-            margin: 0;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .summary-stats {
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .summary-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.75rem;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        
-        .summary-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--gradient-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 0.9rem;
-        }
-        
-        .summary-content {
-            flex: 1;
-        }
-        
-        .summary-label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
-        }
-        
-        .summary-value {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        
+        /* --- COMPANY PROFILE SECTION --- */
         .profile-section {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
             border: 1px solid var(--border-color);
             overflow: hidden;
-            flex: 1;
+            height: fit-content;
         }
         
         .profile-header {
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1rem;
             background: linear-gradient(135deg, var(--card-bg) 0%, rgba(0, 198, 255, 0.1) 100%);
             border-bottom: 1px solid var(--border-color);
         }
@@ -355,7 +281,7 @@
         
         .profile-content {
             padding: 0;
-            height: 550px;
+            height: 450px;
         }
         
         .fundamentals-widget {
@@ -1211,7 +1137,7 @@
             // Mark as loaded to prevent duplicate loading
             appState.loadedWidgets.add(containerId);
             
-            // Create the enhanced layout with insider trading summary
+            // Create the enhanced layout with aligned sections
             container.innerHTML = `
                 <div class="chart-section">
                     <div class="chart-header">
@@ -1229,42 +1155,18 @@
                     </div>
                 </div>
                 
-                <div class="info-section">
-                    <div class="insider-summary-card">
-                        <div class="card-header">
-                            <h4><i class="fas fa-users"></i> Insider Activity Summary</h4>
-                        </div>
-                        <div class="summary-stats">
-                            <div class="summary-item">
-                                <div class="summary-icon"><i class="fas fa-arrow-up"></i></div>
-                                <div class="summary-content">
-                                    <div class="summary-label">Recent Purchases</div>
-                                    <div class="summary-value">View Live</div>
-                                </div>
-                            </div>
-                            <div class="summary-item">
-                                <div class="summary-icon"><i class="fas fa-chart-trend-up"></i></div>
-                                <div class="summary-content">
-                                    <div class="summary-label">Insider Sentiment</div>
-                                    <div class="summary-value">Bullish</div>
-                                </div>
-                            </div>
-                        </div>
+                <div class="profile-section">
+                    <div class="profile-header">
+                        <h3>
+                            <i class="fas fa-building"></i>
+                            Company Profile
+                        </h3>
                     </div>
-                    
-                    <div class="profile-section">
-                        <div class="profile-header">
-                            <h3>
-                                <i class="fas fa-building"></i>
-                                Company Profile
-                            </h3>
-                        </div>
-                        <div class="profile-content">
-                            <div class="fundamentals-widget" id="fundamentals-${containerId}">
-                                <div class="widget-loading">
-                                    <i class="fas fa-spinner"></i>
-                                    <div>Loading company profile...</div>
-                                </div>
+                    <div class="profile-content">
+                        <div class="fundamentals-widget" id="fundamentals-${containerId}">
+                            <div class="widget-loading">
+                                <i class="fas fa-spinner"></i>
+                                <div>Loading company profile...</div>
                             </div>
                         </div>
                     </div>
@@ -1350,7 +1252,7 @@
                             "isTransparent": true,
                             "locale": "en",
                             "width": "100%",
-                            "height": "550"
+                            "height": "450"
                         }`;
                         
                         // Append the script to the widget container
