@@ -133,24 +133,9 @@
         .save-settings-container { margin-top: 2rem; text-align: right; }
 
         /* --- TRADES FEED & TRADINGVIEW --- */
-        .trades-table { width: 100%; border-collapse: collapse; }
-        .trades-table th { 
-            text-align: left; 
-            padding: 1rem; 
-            color: var(--text-secondary); 
-            font-size: 0.8rem; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
-            border-bottom: 1px solid var(--border-color); 
-            /* Ensure enough width for date columns */
-            min-width: 120px; /* Adjust as needed */
-        }
-        .trades-table td { 
-            padding: 1rem; 
-            border-bottom: 1px solid var(--border-color); 
-            vertical-align: middle; 
-            word-break: break-word; /* Allow long words/dates to break */
-        }
+        .trades-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .trades-table th { text-align: left; padding: 1rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); }
+        .trades-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; word-break: break-word; }
         .trades-table tbody tr.trade-row { cursor: pointer; transition: background-color 0.2s; }
         .trades-table tbody tr.trade-row:hover { background-color: rgba(0, 198, 255, 0.05); }
         .trades-table tr.active-row { background-color: rgba(0, 198, 255, 0.1); }
@@ -159,36 +144,36 @@
         .trade-details-row { display: none; }
         .trade-details-row.active { display: table-row; }
         .trade-details-cell { padding: 0 !important; }
-        /* Changed to grid for better control over widget layout */
-        .trade-details-content { 
-            background: var(--dark-bg); 
-            padding: 1rem; /* Reduced padding for more space for widgets */
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive columns */
-            gap: 1rem; /* Gap between widgets */
-            animation: slideDown 0.5s ease; 
-        }
+        .trade-details-content { background: var(--dark-bg); padding: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; animation: slideDown 0.5s ease; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        /* Adjusted tradingview-widget-container for grid layout */
-        .tradingview-widget-container { 
-            width: 100%; 
-            height: 400px; /* Fixed height for better rendering consistency */
-            overflow: hidden; /* Hide any overflow */
-        }
-
-        /* Styles for the dropdown indicator */
-        .trade-toggle-icon {
-            margin-left: 0.5rem;
-            transition: transform 0.3s ease;
-        }
-        .trade-toggle-icon.rotated {
-            transform: rotate(180deg);
-        }
-
+        .tradingview-widget-container { width: 100%; height: 400px; overflow: hidden; }
+        .trade-toggle-icon { margin-left: 0.5rem; transition: transform 0.3s ease; }
+        .trade-toggle-icon.rotated { transform: rotate(180deg); }
         .skeleton-loader { background: linear-gradient(90deg, var(--card-bg) 25%, var(--text-tertiary) 50%, var(--card-bg) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 4px; color: transparent !important; }
         .skeleton-row td > div { height: 20px; width: 80%; }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .feed-container { overflow-x: auto; }
+
+        /* --- NEW: CREATIVE DATE DISPLAY --- */
+        .date-cell { vertical-align: middle; }
+        .date-wrapper { display: flex; align-items: center; gap: 12px; }
+        .date-icon-display {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 700;
+            width: 55px;
+            flex-shrink: 0;
+            padding: 4px 0;
+        }
+        .date-icon-month { display: block; font-size: 0.7rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px; }
+        .date-icon-day { display: block; font-size: 1.5rem; line-height: 1.2; color: var(--text-primary); }
+        .date-text-display .date-full { font-weight: 500; color: var(--text-primary); font-size: 0.95rem; }
+        .date-text-display .time-full { font-size: 0.85rem; color: var(--text-secondary); }
+        .trades-table td.date-cell { padding: 0.75rem 1rem; }
+        .trades-table th.date-header { min-width: 200px; } /* Give more space */
+
 
         /* --- LOCKED DASHBOARD VIEW --- */
         .locked-dashboard { position: relative; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; }
@@ -374,7 +359,7 @@
         };
         const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOJTMJ8Y86P001uNGik7B';
         const SERVER_URL = 'https://darkhorse-backend.onrender.com';
-        const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders'; // UPDATE THIS WITH YOUR ACTUAL API URL
+        const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
 
         // --- INITIALIZATION ---
         firebase.initializeApp(firebaseConfig);
@@ -421,7 +406,6 @@
 
             try {
                 const response = await fetch(`${SERVER_URL}/health`);
-                const data = await response.json();
                 info['Server Health'] = response.ok ? '✅ OK' : '❌ Error';
             } catch (error) {
                 info['Server Health'] = '❌ Unreachable';
@@ -433,9 +417,7 @@
         // --- ENHANCED LOGGING ---
         const log = (level, message, data = null) => {
             const timestamp = new Date().toISOString();
-            const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}`;
-            console.log(logMessage, data || '');
-            
+            console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, data || '');
             if (appState.debugMode) {
                 refreshDebugInfo();
             }
@@ -466,7 +448,7 @@
                 window.history.replaceState(null, '', window.location.pathname);
                 
                 let attempts = 0;
-                const maxAttempts = 30; // Increased from 15
+                const maxAttempts = 30; 
                 if (appState.pollingInterval) clearInterval(appState.pollingInterval);
                 
                 appState.pollingInterval = setInterval(async () => {
@@ -476,11 +458,9 @@
                     
                     if (appState.currentUser) {
                         try {
-                            log('debug', 'Polling subscription status', { attempt: attempts, userId: appState.currentUser.uid });
                             const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
                             if (userDoc.exists) {
                                 const userData = userDoc.data();
-                                log('debug', 'User data retrieved', userData.subscription);
                                 if (userData.subscription && userData.subscription.status === 'active') {
                                     log('success', 'Subscription activated successfully');
                                     clearInterval(appState.pollingInterval);
@@ -502,20 +482,17 @@
                         appState.pollingInterval = null;
                         processingOverlay.classList.remove('show');
                         processingOverlay.classList.add('hidden');
-                        // Using a custom modal/message box instead of alert()
                         displayMessage('Subscription activation is taking longer than expected. Please refresh the page or contact support if the issue persists.', 'error');
                     }
-                }, 2000); // Check every 2 seconds
+                }, 2000);
             }
             if (urlParams.has('canceled')) {
                 log('info', 'Payment canceled');
-                // Using a custom modal/message box instead of alert()
                 displayMessage('Your payment was canceled. You can choose a plan at any time.', 'info');
                 window.history.replaceState(null, '', window.location.pathname);
             }
         }
 
-        // Custom message display function (replaces alert)
         function displayMessage(message, type = 'info') {
             const messageBox = document.createElement('div');
             messageBox.className = `status-message ${type}`;
@@ -532,10 +509,7 @@
             messageBox.style.opacity = '0';
             document.body.appendChild(messageBox);
 
-            setTimeout(() => {
-                messageBox.style.opacity = '1';
-            }, 10);
-
+            setTimeout(() => { messageBox.style.opacity = '1'; }, 10);
             setTimeout(() => {
                 messageBox.style.opacity = '0';
                 messageBox.addEventListener('transitionend', () => messageBox.remove());
@@ -552,7 +526,6 @@
             appState.unsubscribeUserProfile = userDocRef.onSnapshot(async (doc) => {
                 if (doc.exists) {
                     appState.userProfile = { uid: doc.id, ...doc.data() };
-                    log('info', 'User profile updated', appState.userProfile.subscription);
                 } else {
                     log('info', 'Creating initial user profile');
                     await createInitialUserProfile(userDocRef);
@@ -576,7 +549,6 @@
             try {
                 await userDocRef.set(initialProfile);
                 appState.userProfile = initialProfile;
-                log('success', 'Initial user profile created');
             } catch (error) {
                 log('error', 'Error creating user profile', error);
             }
@@ -592,10 +564,7 @@
             pricingSection.classList.remove('hidden');
         }
 
-        window.signOut = () => {
-            log('info', 'User signing out');
-            auth.signOut();
-        };
+        window.signOut = () => auth.signOut();
         
         window.showAuthModal = (signUp) => {
             appState.isSignUp = signUp;
@@ -621,15 +590,12 @@
 
             try {
                 if (appState.isSignUp) {
-                    log('info', 'Attempting user registration', { email });
                     await auth.createUserWithEmailAndPassword(email, password);
                 } else {
-                    log('info', 'Attempting user sign in', { email });
                     await auth.signInWithEmailAndPassword(email, password);
                 }
                 closeAuthModal();
             } catch (error) {
-                log('error', 'Authentication failed', error);
                 authError.textContent = error.message;
                 authError.classList.remove('hidden');
             } finally {
@@ -638,10 +604,8 @@
             }
         });
 
-        // --- ENHANCED SUBSCRIPTION SELECTION ---
         window.selectPlan = async (priceId, planName) => {
             if (!appState.currentUser) { 
-                log('warn', 'User not authenticated, showing auth modal');
                 showAuthModal(false); 
                 return; 
             }
@@ -651,17 +615,10 @@
             checkoutButton.disabled = true;
             checkoutButton.textContent = 'Redirecting...';
 
-            log('info', 'Creating checkout session', { priceId, planName, userId: appState.currentUser.uid });
-
             try {
-                // Verify user exists in Firebase first
-                log('debug', 'Verifying user profile exists');
                 const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
-                if (!userDoc.exists) {
-                    throw new Error('User profile not found. Please refresh and try again.');
-                }
+                if (!userDoc.exists) throw new Error('User profile not found. Please refresh and try again.');
 
-                log('debug', 'Making API request to create checkout session');
                 const response = await fetch(`${SERVER_URL}/create-checkout-session`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -675,28 +632,17 @@
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    log('error', 'Server response error', { status: response.status, text: errorText });
                     throw new Error(`Server error: ${response.status} - ${errorText}`);
                 }
 
-                const responseData = await response.json();
-                log('success', 'Checkout session created', responseData);
-
-                if (!responseData.sessionId) {
-                    throw new Error('No session ID received from server');
-                }
-
-                log('info', 'Redirecting to Stripe Checkout');
-                const { error } = await stripe.redirectToCheckout({ 
-                    sessionId: responseData.sessionId 
-                });
+                const { sessionId } = await response.json();
+                if (!sessionId) throw new Error('No session ID received from server');
                 
-                if (error) {
-                    throw error;
-                }
+                const { error } = await stripe.redirectToCheckout({ sessionId });
+                if (error) throw error;
+
             } catch (error) {
                 log('error', 'Checkout session creation failed', error);
-                // Using a custom modal/message box instead of alert()
                 displayMessage(`Could not initiate payment: ${error.message}`, 'error');
                 checkoutButton.disabled = false;
                 checkoutButton.textContent = originalText;
@@ -705,21 +651,16 @@
 
         // --- VIEW MANAGEMENT & RENDERING ---
         function updateDashboardView() {
-            if (!appState.userProfile) {
-                log('debug', 'No user profile, skipping dashboard update');
-                return;
-            }
+            if (!appState.userProfile) return;
 
-            const subscription = appState.userProfile.subscription;
-            log('debug', 'Updating dashboard view', subscription);
-
+            const { subscription } = appState.userProfile;
             if (subscription && subscription.status === 'active') {
                 processingOverlay.classList.remove('show');
                 processingOverlay.classList.add('hidden');
                 pricingSection.classList.add('hidden');
                 dashboardSection.classList.remove('hidden');
 
-                const planId = subscription.planId;
+                const { planId } = subscription;
                 upgradeTabBtn.classList.toggle('hidden', planId !== 'basic');
                 
                 if (planId === 'basic') {
@@ -739,14 +680,16 @@
         }
 
         function renderLockedDashboard() {
-            log('debug', 'Rendering locked dashboard');
             feedTabContent.innerHTML = `
                 <div class="locked-dashboard">
                     <div class="locked-content">
                         <div class="feed-container">
                         <table class="trades-table">
-                            <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th></tr></thead>
-                            <tbody><tr><td>2024-10-26</td><td>2024-10-25</td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson<br><small>CTO</small></td><td>$45.25</td><td>99,500</td><td>+15.2%</td><td>$4,502,500</td></tr><tr><td>2024-10-25</td><td>2024-10-24</td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts<br><small>CEO</small></td><td>$8.59</td><td>99,400</td><td>+8.3%</td><td>$853,900</td></tr><tr><td>2024-10-25</td><td>2024-10-24</td><td>Wayne Enterprises<br><small>WAYN</small></td><td>Lucius Fox<br><small>CFO</small></td><td>$11.28</td><td>99,300</td><td>+12.7%</td><td>$1,120,880</td></tr></tbody>
+                            <thead><tr><th class="date-header">Filing Date</th><th class="date-header">Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th></tr></thead>
+                            <tbody>
+                                <tr><td><div class="date-wrapper"><div class="date-icon-display"><span class="date-icon-month">OCT</span><span class="date-icon-day">26</span></div><div class="date-text-display"><div class="date-full">October 26, 2024</div></div></div></td><td><div class="date-wrapper"><div class="date-icon-display"><span class="date-icon-month">OCT</span><span class="date-icon-day">25</span></div><div class="date-text-display"><div class="date-full">October 25, 2024</div></div></div></td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson<br><small>CTO</small></td><td>$45.25</td><td>99,500</td><td>+15.2%</td><td>$4,502,500</td></tr>
+                                <tr><td><div class="date-wrapper"><div class="date-icon-display"><span class="date-icon-month">OCT</span><span class="date-icon-day">25</span></div><div class="date-text-display"><div class="date-full">October 25, 2024</div></div></div></td><td><div class="date-wrapper"><div class="date-icon-display"><span class="date-icon-month">OCT</span><span class="date-icon-day">24</span></div><div class="date-text-display"><div class="date-full">October 24, 2024</div></div></div></td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts<br><small>CEO</small></td><td>$8.59</td><td>99,400</td><td>+8.3%</td><td>$853,900</td></tr>
+                            </tbody>
                         </table>
                         </div>
                     </div>
@@ -759,15 +702,65 @@
         }
         
         async function renderFullDashboard() {
-            log('debug', 'Rendering full dashboard');
             feedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
-                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead> <!-- Added an empty header for the icon column -->
+                        <thead><tr><th class="date-header">Filing Date</th><th class="date-header">Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead>
                         <tbody id="trades-tbody"></tbody>
                     </table>
                 </div>`;
             await populateTradesTable();
+        }
+
+        // NEW: Helper function to format dates creatively
+        function formatDateCell(dateString) {
+            if (!dateString || typeof dateString !== 'string') {
+                return '<td class="date-cell">N/A</td>';
+            }
+
+            const parts = dateString.split(' ');
+            const datePart = parts[0];
+            const timePart = parts.length > 1 ? parts[1] : null;
+
+            const date = new Date(datePart);
+            if (isNaN(date.getTime())) {
+                return `<td class="date-cell">${dateString}</td>`; // Fallback to original string
+            }
+
+            const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            const month = monthNames[date.getMonth()];
+            const day = date.getDate();
+            const year = date.getFullYear();
+            
+            let formattedTime = '';
+            if (timePart) {
+                let [hours, minutes] = timePart.split(':');
+                let period = 'AM';
+                hours = parseInt(hours, 10);
+                if (hours >= 12) {
+                    period = 'PM';
+                    if (hours > 12) hours -= 12;
+                }
+                if (hours === 0) hours = 12;
+                formattedTime = `at ${hours}:${minutes} ${period}`;
+            }
+
+            const fullDateString = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+            return `
+                <td class="date-cell">
+                    <div class="date-wrapper">
+                        <div class="date-icon-display">
+                            <span class="date-icon-month">${month}</span>
+                            <span class="date-icon-day">${day}</span>
+                        </div>
+                        <div class="date-text-display">
+                            <div class="date-full">${fullDateString}</div>
+                            ${formattedTime ? `<div class="time-full">${formattedTime}</div>` : ''}
+                        </div>
+                    </div>
+                </td>
+            `;
         }
 
         async function populateTradesTable() {
@@ -776,148 +769,75 @@
             
             log('debug', 'Populating trades table');
             tbody.innerHTML = '';
-            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; } // Adjusted colspan
+            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
-                log('debug', 'Fetching trades data from API');
                 const response = await fetch(RENDER_DATA_URL);
                 if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
                 const trades = await response.json();
                 
-                log('success', 'Trades data fetched successfully', { count: trades.length });
-                
-                // SUPER DEBUG: Log everything to see what's wrong
-                console.log('🔍 FULL DEBUG - First trade object:');
-                console.log(JSON.stringify(trades[0], null, 2));
-                console.log('🔍 All column names:', Object.keys(trades[0]));
-                console.log('🔍 First 5 Trade Type values:', trades.slice(0, 5).map(t => {
-                    const tradeTypeKey = Object.keys(t).find(key => key.toLowerCase().includes('trade') && key.toLowerCase().includes('type'));
-                    return { originalKey: tradeTypeKey, value: t[tradeTypeKey] };
-                }));
-                
-                // MUCH SIMPLER FILTER - catch ANY purchase indication
-                const purchasesTrades = trades.filter(trade => {
-                    // Find the trade type column (might have encoding issues)
-                    const tradeTypeKey = Object.keys(trade).find(key => 
-                        key.toLowerCase().includes('trade') && key.toLowerCase().includes('type')
-                    );
-                    
-                    if (!tradeTypeKey) {
-                        console.log('❌ No Trade Type column found in:', Object.keys(trade));
-                        return false;
+                // NEW: Clean the keys of the fetched data to handle encoding issues
+                const cleanedTrades = trades.map(trade => {
+                    const cleanedTrade = {};
+                    for (const key in trade) {
+                        // Replaces non-breaking spaces (\u00A0) and trims whitespace
+                        const cleanedKey = key.replace(/\u00A0/g, ' ').trim();
+                        cleanedTrade[cleanedKey] = trade[key];
                     }
-                    
-                    const tradeType = (trade[tradeTypeKey] || '').toString().toLowerCase().trim();
-                    console.log(`🔍 Checking trade type: "${tradeType}" from column: "${tradeTypeKey}"`);
-                    
-                    // Super simple check - if it contains 'p' and 'purchase' OR just starts with 'p'
-                    const isPurchase = (
-                        tradeType.includes('purchase') ||
-                        tradeType.includes('p - ') ||
-                        tradeType.startsWith('p') ||
-                        tradeType === 'p'
-                    );
-                    
-                    console.log(`✅ Is purchase: ${isPurchase}`);
-                    return isPurchase;
+                    return cleanedTrade;
+                });
+
+                const purchasesTrades = cleanedTrades.filter(trade => {
+                    const tradeType = (trade['Trade Type'] || '').toString().toLowerCase().trim();
+                    return tradeType.includes('purchase') || tradeType.startsWith('p');
                 });
                 
-                log('debug', 'Filtered trades', { 
-                    total: trades.length, 
-                    purchases: purchasesTrades.length,
-                    sampleTradeTypes: trades.slice(0, 5).map(t => t['Trade Type'])
-                });
+                log('success', 'Trades data fetched and cleaned', { total: trades.length, purchases: purchasesTrades.length });
                 
                 tbody.innerHTML = '';
                 if (purchasesTrades.length === 0) {
-                    // Show debug info when no purchases found
-                    const uniqueTradeTypes = [...new Set(trades.map(t => t['Trade Type']))];
-                    console.log('🚨 No purchases found. All Trade Types:', uniqueTradeTypes);
-                    
-                    // Temporarily show ALL trades for debugging (remove this later)
-                    tbody.innerHTML = `
-                        <tr><td colspan="9" style="text-align:center; padding: 2rem;"> <!-- Adjusted colspan -->
-                            No insider purchases found with current filter.<br>
-                            <small style="color: var(--text-tertiary); margin-top: 0.5rem; display: block;">
-                                Found ${trades.length} total trades. Trade types: ${uniqueTradeTypes.join(', ')}
-                            </small>
-                            <button onclick="showAllTrades()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary-blue); color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                Show All Trades (Debug)
-                            </button>
-                        </td></tr>`;
-                    
-                    // Add debug function to window
-                    window.showAllTrades = () => {
-                        tbody.innerHTML = '';
-                        trades.slice(0, 10).forEach(trade => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${trade['Filing Date'] || trade['FilingÂ Date'] || ''}</td>
-                                <td>${trade['Trade Date'] || trade['TradeÂ Date'] || ''}</td>
-                                <td>${trade['Company Name'] || trade['CompanyÂ Name'] || ''}<br><small>${trade.Ticker || ''}</small></td>
-                                <td>${trade['Insider Name'] || trade['InsiderÂ Name'] || ''}<br><small>${trade.Title || ''}</small></td>
-                                <td>${trade.Price || ''}</td>
-                                <td>${trade.Qty || ''}</td>
-                                <td>${trade['ΔOwn'] || trade['Î"Own'] || ''}</td>
-                                <td>${trade.Value || ''}<br><small style="background: yellow; color: black;"><strong>Type: ${trade['Trade Type'] || 'MISSING'}</strong></small></td>
-                                <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`;
-                            tbody.appendChild(row);
-                        });
-                    };
+                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem;">No insider purchases found.</td></tr>`;
                     return;
                 }
 
-                // Show filtered purchase data
-                purchasesTrades.slice(0, 50).forEach(trade => { // Limit to 50 trades
-                    // Find the trade type column dynamically
-                    const tradeTypeKey = Object.keys(trade).find(key => 
-                        key.toLowerCase().includes('trade') && key.toLowerCase().includes('type')
-                    );
-                    
+                purchasesTrades.slice(0, 50).forEach(trade => {
                     const tradeId = `${trade.Ticker}-${trade['Trade Date']}`.replace(/[^a-zA-Z0-9]/g, '');
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
                     row.dataset.ticker = trade.Ticker;
                     row.dataset.id = tradeId;
                     
-                    // Format the data with better cleaning for your CSV format
-                    // Ensure Filing Date and Trade Date are displayed as they are received
-                    const filingDate = trade['Filing Date'] || trade['FilingÂ Date'] || '';
-                    const tradeDate = trade['Trade Date'] || trade['TradeÂ Date'] || '';
-                    const companyName = trade['Company Name'] || trade['CompanyÂ Name'] || '';
+                    // Use cleaned keys to access data
+                    const filingDateStr = trade['Filing Date'] || '';
+                    const tradeDateStr = trade['Trade Date'] || '';
+                    const companyName = trade['Company Name'] || '';
                     const ticker = trade.Ticker || '';
-                    const insiderName = trade['Insider Name'] || trade['InsiderÂ Name'] || '';
+                    const insiderName = trade['Insider Name'] || '';
                     const title = trade.Title || '';
                     
-                    // Clean price: "$8.82" -> 8.82
-                    const priceStr = (trade.Price || '0').toString().replace(/[$,]/g, '');
-                    const price = parseFloat(priceStr) || 0;
+                    const price = parseFloat((trade.Price || '0').toString().replace(/[$,]/g, '')) || 0;
+                    const qty = parseInt((trade.Qty || '0').toString().replace(/[,]/g, '')) || 0;
+                    const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || '';
+                    const value = parseInt((trade.Value || '0').toString().replace(/[$,]/g, '')) || 0;
                     
-                    // Clean quantity: "50,195" -> 50195
-                    const qtyStr = (trade.Qty || '0').toString().replace(/[,$]/g, '');
-                    const qty = parseInt(qtyStr) || 0;
-                    
-                    // Handle ΔOwn: "1%" -> "1%"
-                    const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || trade['Delta Own'] || '';
-                    
-                    // Clean value: "$442,720" -> 442720
-                    const valueStr = (trade.Value || '0').toString().replace(/[$,]/g, '');
-                    const value = parseInt(valueStr) || 0;
-                    
+                    // Use the new date formatting function
+                    const filingDateCell = formatDateCell(filingDateStr);
+                    const tradeDateCell = formatDateCell(tradeDateStr);
+
                     row.innerHTML = `
-                        <td>${filingDate}</td>
-                        <td>${tradeDate}</td>
+                        ${filingDateCell}
+                        ${tradeDateCell}
                         <td><div class="company-name">${companyName}</div><div class="ticker">${ticker}</div></td>
                         <td><div>${insiderName}</div><div class="text-secondary">${title}</div></td>
                         <td>$${price.toFixed(2)}</td>
                         <td>${qty.toLocaleString()}</td>
                         <td>${deltaOwn}</td>
                         <td>$${value.toLocaleString()}</td>
-                        <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`; <!-- Added the chevron icon -->
+                        <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`;
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
-                    detailsRow.innerHTML = `<td colspan="9" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`; // Adjusted colspan
+                    detailsRow.innerHTML = `<td colspan="9" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`;
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
@@ -925,38 +845,30 @@
                     row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, ticker));
                 });
             } catch (error) {
-                log('error', 'Failed to fetch trades', error);
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`; // Adjusted colspan
+                log('error', 'Failed to fetch or process trades', error);
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
             }
         }
         
         function toggleTradeDetails(row, detailsRow, ticker) {
             const rowId = row.dataset.id;
             const isActive = row.classList.contains('active-row');
-            const toggleIcon = row.querySelector('.trade-toggle-icon'); // Get the icon
+            const toggleIcon = row.querySelector('.trade-toggle-icon');
 
-            log('debug', 'Toggling trade details', { ticker, rowId, isActive });
-            
             if (appState.activeTradeDetails && appState.activeTradeDetails !== rowId) {
                 const oldActiveRow = document.querySelector(`.trade-row[data-id="${appState.activeTradeDetails}"]`);
                 if (oldActiveRow) {
                     const oldDetailsRow = oldActiveRow.nextElementSibling;
                     const oldToggleIcon = oldActiveRow.querySelector('.trade-toggle-icon');
                     oldActiveRow.classList.remove('active-row');
-                    if (oldDetailsRow && oldDetailsRow.classList.contains('trade-details-row')) {
-                        oldDetailsRow.classList.remove('active');
-                    }
-                    if (oldToggleIcon) { // Rotate back the old icon
-                        oldToggleIcon.classList.remove('rotated');
-                    }
+                    if (oldDetailsRow) oldDetailsRow.classList.remove('active');
+                    if (oldToggleIcon) oldToggleIcon.classList.remove('rotated');
                 }
             }
 
             row.classList.toggle('active-row', !isActive);
             detailsRow.classList.toggle('active', !isActive);
-            if (toggleIcon) { // Rotate the current icon
-                toggleIcon.classList.toggle('rotated', !isActive);
-            }
+            if (toggleIcon) toggleIcon.classList.toggle('rotated', !isActive);
 
             if (!isActive) {
                 appState.activeTradeDetails = rowId;
@@ -970,13 +882,12 @@
             const container = document.getElementById(containerId);
             if (!container || container.dataset.loaded === 'true') return;
             
-            log('debug', 'Loading TradingView widgets', { ticker, containerId });
             container.innerHTML = '';
             container.dataset.loaded = 'true';
 
             const createWidget = (src, config) => {
                 const div = document.createElement('div');
-                div.className = 'tradingview-widget-container'; // Apply the container class
+                div.className = 'tradingview-widget-container';
                 const script = document.createElement('script');
                 script.type = 'text/javascript';
                 script.src = src;
@@ -986,42 +897,8 @@
                 return div;
             };
 
-            // TradingView config for the chart (Symbol Overview)
-            const overviewConfig = { 
-                "symbols": [[ticker, `${ticker}|1D`]], 
-                "chartOnly": false, 
-                "width": "100%", 
-                "height": "100%", 
-                "locale": "en", 
-                "colorTheme": "dark", 
-                "autosize": true, 
-                "showVolume": false, 
-                "hideDateRanges": false, 
-                "hideMarketStatus": false, 
-                "hideSymbolLogo": false, 
-                "scalePosition": "right", 
-                "scaleMode": "Normal", 
-                "fontFamily": "Inter", 
-                "fontSize": "10", 
-                "noTimeScale": false, 
-                "valuesTracking": "1", 
-                "changeMode": "price-and-percent", 
-                "chartType": "area", 
-                "backgroundColor": "rgba(16, 24, 44, 0)", 
-                "lineColor": "#2962FF", 
-                "topColor": "rgba(41, 98, 255, 0.3)", 
-                "bottomColor": "rgba(41, 98, 255, 0)" 
-            };
-            
-            // TradingView config for the profile
-            const profileConfig = { 
-                "symbol": ticker, 
-                "width": "100%", 
-                "height": "100%", 
-                "colorTheme": "dark", 
-                "isTransparent": true, 
-                "locale": "en" 
-            };
+            const overviewConfig = { "symbols": [[ticker, `${ticker}|1D`]], "chartOnly": false, "width": "100%", "height": "100%", "locale": "en", "colorTheme": "dark", "autosize": true, "showVolume": false, "hideDateRanges": false, "hideMarketStatus": false, "hideSymbolLogo": false, "scalePosition": "right", "scaleMode": "Normal", "fontFamily": "Inter", "fontSize": "10", "noTimeScale": false, "valuesTracking": "1", "changeMode": "price-and-percent", "chartType": "area", "backgroundColor": "rgba(16, 24, 44, 0)", "lineColor": "#2962FF", "topColor": "rgba(41, 98, 255, 0.3)", "bottomColor": "rgba(41, 98, 255, 0)" };
+            const profileConfig = { "symbol": ticker, "width": "100%", "height": "100%", "colorTheme": "dark", "isTransparent": true, "locale": "en" };
             
             container.append(
                 createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js', overviewConfig),
@@ -1036,8 +913,6 @@
             const { planId } = appState.userProfile.subscription;
             const { settings } = appState.userProfile;
             const isCustomizable = (planId === 'advanced' || planId === 'professional');
-            
-            log('debug', 'Populating settings view', { planId, isCustomizable });
             
             document.querySelectorAll('.settings-card input, .settings-card button').forEach(el => el.disabled = !isCustomizable);
             document.querySelectorAll('.settings-card').forEach(el => el.style.opacity = isCustomizable ? '1' : '0.5');
@@ -1079,16 +954,11 @@
                 }
             };
             
-            log('info', 'Saving settings', settingsToSave);
-            
             try {
                 await db.collection('users').doc(appState.currentUser.uid).update({ settings: settingsToSave });
-                log('success', 'Settings saved successfully');
-                // Using a custom modal/message box instead of alert()
                 displayMessage('Settings saved successfully!', 'success');
             } catch (error) {
                 log('error', 'Failed to save settings', error);
-                // Using a custom modal/message box instead of alert()
                 displayMessage("Failed to save settings. Please try again.", 'error');
             } finally {
                 saveButton.disabled = false;
@@ -1123,7 +993,6 @@
         document.getElementById('tradeValue').addEventListener('input', e => updateSliderValue('tradeValueValue', e.target.value, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any'));
         window.scrollToPricing = () => pricingSection.scrollIntoView({ behavior: 'smooth' });
 
-        // Initialize debug info if debug mode is on
         if (appState.debugMode) refreshDebugInfo();
     });
     </script>
