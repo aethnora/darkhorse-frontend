@@ -336,7 +336,7 @@
         };
         const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOtJMJ8Y86P001uNGik7B';
         const SERVER_URL = 'https://darkhorse-backend.onrender.com';
-        const RENDER_DATA_URL = 'https://api.jsonbin.io/v3/b/6735ab3fe41b4d34e4513c8b/latest';
+        const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
 
         // --- INITIALIZATION ---
         firebase.initializeApp(firebaseConfig);
@@ -676,8 +676,8 @@
                     <div class="locked-content">
                         <div class="feed-container">
                         <table class="trades-table">
-                            <thead><tr><th>Filing Date</th><th>Company</th><th>Insider</th><th>Value</th></tr></thead>
-                            <tbody><tr><td>2024-10-26</td><td>Cyberdyne Systems</td><td>Miles Dyson</td><td>$4,502,500</td></tr><tr><td>2024-10-25</td><td>Stark Industries</td><td>Pepper Potts</td><td>$853,900</td></tr><tr><td>2024-10-25</td><td>Wayne Enterprises</td><td>Lucius Fox</td><td>$1,120,880</td></tr></tbody>
+                            <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th></tr></thead>
+                            <tbody><tr><td>2024-10-26</td><td>2024-10-25</td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson<br><small>CTO</small></td><td>$45.25</td><td>99,500</td><td>+15.2%</td><td>$4,502,500</td></tr><tr><td>2024-10-25</td><td>2024-10-24</td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts<br><small>CEO</small></td><td>$8.59</td><td>99,400</td><td>+8.3%</td><td>$853,900</td></tr><tr><td>2024-10-25</td><td>2024-10-24</td><td>Wayne Enterprises<br><small>WAYN</small></td><td>Lucius Fox<br><small>CFO</small></td><td>$11.28</td><td>99,300</td><td>+12.7%</td><td>$1,120,880</td></tr></tbody>
                         </table>
                         </div>
                     </div>
@@ -694,7 +694,7 @@
             feedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
-                        <thead><tr><th>Filing Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>Value</th></tr></thead>
+                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th></tr></thead>
                         <tbody id="trades-tbody"></tbody>
                     </table>
                 </div>`;
@@ -707,7 +707,7 @@
             
             log('debug', 'Populating trades table');
             tbody.innerHTML = '';
-            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="6"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
+            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="8"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
                 log('debug', 'Fetching trades data from API');
@@ -716,38 +716,62 @@
                 const trades = await response.json();
                 
                 log('success', 'Trades data fetched successfully', { count: trades.length });
+                
+                // Filter for purchases only
+                const purchasesTrades = trades.filter(trade => {
+                    const tradeType = (trade['Trade Type'] || '').toLowerCase();
+                    return tradeType.includes('p') || tradeType.includes('buy') || tradeType.includes('purchase');
+                });
+                
+                log('debug', 'Filtered trades', { total: trades.length, purchases: purchasesTrades.length });
+                
                 tbody.innerHTML = '';
-                if (trades.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem;">No recent insider trades found.</td></tr>`;
+                if (purchasesTrades.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 2rem;">No recent insider purchases found.</td></tr>`;
                     return;
                 }
 
-                trades.forEach(trade => {
+                purchasesTrades.slice(0, 50).forEach(trade => { // Limit to 50 trades
                     const tradeId = `${trade.Ticker}-${trade['Trade Date']}`.replace(/[^a-zA-Z0-9]/g, '');
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
                     row.dataset.ticker = trade.Ticker;
                     row.dataset.id = tradeId;
+                    
+                    // Format the data with fallbacks
+                    const filingDate = trade['Filing Date'] || '';
+                    const tradeDate = trade['Trade Date'] || '';
+                    const companyName = trade['Company Name'] || '';
+                    const ticker = trade.Ticker || '';
+                    const insiderName = trade['Insider Name'] || '';
+                    const title = trade.Title || '';
+                    const price = parseFloat(trade.Price || 0);
+                    const qty = parseInt(trade.Qty || 0);
+                    const deltaOwn = trade['ΔOwn'] || trade.DeltaOwn || trade['Delta Own'] || '';
+                    const value = parseInt(trade.Value || 0);
+                    
                     row.innerHTML = `
-                        <td>${trade['Filing Date']}</td>
-                        <td><div class="company-name">${trade['Company Name']}</div><div class="ticker">${trade.Ticker}</div></td>
-                        <td><div>${trade['Insider Name']}</div><div class="text-secondary">${trade.Title}</div></td>
-                        <td>$${parseFloat(trade.Price).toFixed(2)}</td>
-                        <td>${parseInt(trade.Qty).toLocaleString()}</td>
-                        <td>$${parseInt(trade.Value).toLocaleString()}</td>`;
+                        <td>${filingDate}</td>
+                        <td>${tradeDate}</td>
+                        <td><div class="company-name">${companyName}</div><div class="ticker">${ticker}</div></td>
+                        <td><div>${insiderName}</div><div class="text-secondary">${title}</div></td>
+                        <td>${price.toFixed(2)}</td>
+                        <td>${qty.toLocaleString()}</td>
+                        <td>${deltaOwn}</td>
+                        <td>${value.toLocaleString()}</td>`;
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
-                    detailsRow.innerHTML = `<td colspan="6" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`;
+                    detailsRow.innerHTML = `<td colspan="8" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`;
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
 
-                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, trade.Ticker));
+                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, ticker));
                 });
             } catch (error) {
                 log('error', 'Failed to fetch trades', error);
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
             }
         }
         
