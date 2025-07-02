@@ -1287,7 +1287,7 @@
         function initializeWidgets(ticker, containerId) {
             setTimeout(() => {
                 try {
-                    // Simplified Chart Widget
+                    // Advanced Chart Widget (restored)
                     new TradingView.widget({
                         "autosize": true,
                         "symbol": ticker,
@@ -1300,46 +1300,61 @@
                         "enable_publishing": false,
                         "backgroundColor": "#0a0f1c",
                         "gridColor": "#1a1a1a",
-                        "hide_side_toolbar": true,
-                        "allow_symbol_change": false,
-                        "details": false,
-                        "hotlist": false,
-                        "calendar": false,
+                        "hide_side_toolbar": false,
+                        "allow_symbol_change": true,
+                        "details": true,
+                        "hotlist": true,
+                        "calendar": true,
                         "studies": [
-                            "Volume@tv-basicstudies"
+                            "Volume@tv-basicstudies",
+                            "MACD@tv-basicstudies"
                         ],
                         "container_id": `chart-${containerId}`,
-                        "withdateranges": false,
-                        "hide_top_toolbar": true,
+                        "withdateranges": true,
+                        "hide_top_toolbar": false,
                         "save_image": false,
                         "container": document.getElementById(`chart-${containerId}`)
                     });
 
-                    // Company Profile Widget using the specific widget script
+                    // Company Profile Widget - Proper TradingView implementation
                     const profileContainer = document.getElementById(`fundamentals-${containerId}`);
                     if (profileContainer) {
-                        const widgetId = `profile-widget-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-                        profileContainer.innerHTML = `
-                            <div class="tradingview-widget-container" id="${widgetId}">
+                        // Clear the container
+                        profileContainer.innerHTML = '';
+                        
+                        // Create the exact structure TradingView expects
+                        const widgetHTML = `
+                            <div class="tradingview-widget-container">
                                 <div class="tradingview-widget-container__widget"></div>
+                                <div class="tradingview-widget-copyright">
+                                    <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
+                                        <span class="blue-text">Track all markets on TradingView</span>
+                                    </a>
+                                </div>
                             </div>
                         `;
                         
-                        // Create and inject the script for the profile widget
+                        profileContainer.innerHTML = widgetHTML;
+                        
+                        // Create script with configuration inside
                         const script = document.createElement('script');
                         script.type = 'text/javascript';
                         script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js';
                         script.async = true;
-                        script.innerHTML = JSON.stringify({
-                            "symbol": ticker,
+                        
+                        // The configuration goes INSIDE the script tag as text content
+                        script.textContent = `
+                        {
+                            "symbol": "${ticker}",
                             "colorTheme": "dark",
                             "isTransparent": true,
                             "locale": "en",
                             "width": "100%",
-                            "height": 550
-                        });
+                            "height": "550"
+                        }`;
                         
-                        profileContainer.appendChild(script);
+                        // Append the script to the widget container
+                        profileContainer.querySelector('.tradingview-widget-container').appendChild(script);
                     }
 
                     log('success', 'TradingView widgets loaded successfully', { ticker, containerId });
