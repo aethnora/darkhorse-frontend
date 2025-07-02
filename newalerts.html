@@ -104,8 +104,29 @@
 
         /* --- DASHBOARD LAYOUT --- */
         .dashboard-header { margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; }
-        .dashboard-header h1 { font-size: 2.5rem; }
-        .dashboard-tabs { display: flex; gap: 1rem; margin-top: 1rem; }
+        .dashboard-header-content { display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; }
+        .dashboard-header-left { flex: 1; }
+        .dashboard-header-right { flex-shrink: 0; }
+        .dashboard-header h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+        .dashboard-tabs { display: flex; gap: 1rem; }
+        
+        /* --- PLAN INFO SECTION --- */
+        .plan-info { display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem; }
+        .current-plan { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+        .plan-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .plan-name { font-size: 1.1rem; font-weight: 700; margin-top: 0.25rem; }
+        .plan-name.basic { color: var(--text-secondary); }
+        .plan-name.advanced { color: var(--accent-cyan); }
+        .plan-name.professional { color: var(--success-green); }
+        .manage-plan-btn { padding: 0.5rem 1rem; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+        .manage-plan-btn:hover { transform: translateY(-2px); }
+        
+        @media (max-width: 768px) {
+            .dashboard-header-content { flex-direction: column; align-items: stretch; }
+            .dashboard-header-right { align-self: stretch; }
+            .plan-info { flex-direction: row; justify-content: space-between; align-items: center; }
+            .current-plan { align-items: flex-start; text-align: left; }
+        }
         .tab-btn { background: none; border: none; color: var(--text-secondary); font-size: 1rem; font-weight: 600; padding: 0.5rem 0; cursor: pointer; position: relative; transition: color 0.3s ease; }
         .tab-btn::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--accent-cyan); transform: scaleX(0); transition: transform 0.3s ease; }
         .tab-btn.active { color: var(--text-primary); }
@@ -496,11 +517,26 @@
         <!-- Dashboard Section -->
         <section id="dashboardSection" class="container hidden">
             <div class="dashboard-header">
-                <h1 id="dashboard-title">Insider Trades Feed</h1>
-                <div class="dashboard-tabs">
-                    <button class="tab-btn active" data-tab="feed">Feed</button>
-                    <button class="tab-btn" data-tab="settings">Settings</button>
-                    <button class="tab-btn hidden" id="upgrade-tab-btn" onclick="scrollToPricing()">Upgrade Plan</button>
+                <div class="dashboard-header-content">
+                    <div class="dashboard-header-left">
+                        <h1 id="dashboard-title">Insider Trades Feed</h1>
+                        <div class="dashboard-tabs">
+                            <button class="tab-btn active" data-tab="feed">Feed</button>
+                            <button class="tab-btn" data-tab="settings">Settings</button>
+                            <button class="tab-btn hidden" id="upgrade-tab-btn" onclick="scrollToPricing()">Upgrade Plan</button>
+                        </div>
+                    </div>
+                    <div class="dashboard-header-right">
+                        <div class="plan-info" id="planInfo">
+                            <div class="current-plan">
+                                <span class="plan-label">Current Plan:</span>
+                                <span class="plan-name" id="currentPlanName">Loading...</span>
+                            </div>
+                            <button class="btn btn-secondary manage-plan-btn" onclick="managePlan()" id="managePlanBtn">
+                                <i class="fas fa-cog"></i> Manage Plan
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -847,6 +883,48 @@
             }
         });
 
+        // --- PLAN MANAGEMENT ---
+        window.managePlan = async () => {
+            if (!appState.currentUser || !appState.userProfile) {
+                displayMessage('Please sign in to manage your plan.', 'error');
+                return;
+            }
+
+            const managePlanBtn = document.getElementById('managePlanBtn');
+            const originalText = managePlanBtn.innerHTML;
+            managePlanBtn.disabled = true;
+            managePlanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+            try {
+                const response = await fetch(`${SERVER_URL}/create-portal-session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: appState.currentUser.uid,
+                        userEmail: appState.currentUser.email,
+                        returnUrl: window.location.href
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+
+                const { url } = await response.json();
+                if (!url) throw new Error('No portal URL received from server');
+                
+                // Redirect to Stripe Customer Portal
+                window.location.href = url;
+
+            } catch (error) {
+                log('error', 'Portal session creation failed', error);
+                displayMessage(`Could not open plan management: ${error.message}`, 'error');
+                managePlanBtn.disabled = false;
+                managePlanBtn.innerHTML = originalText;
+            }
+        };
+
         window.selectPlan = async (priceId, planName) => {
             if (!appState.currentUser) { 
                 showAuthModal(false); 
@@ -905,6 +983,9 @@
 
                 const { planId } = subscription;
                 
+                // Update plan info display
+                updatePlanInfoDisplay(planId);
+                
                 // Show upgrade tab for Basic users only
                 upgradeTabBtn.classList.toggle('hidden', planId !== 'basic');
                 
@@ -923,6 +1004,30 @@
                     pricingSection.classList.remove('hidden');
                 }
             }
+        }
+
+        function updatePlanInfoDisplay(planId) {
+            const currentPlanName = document.getElementById('currentPlanName');
+            const managePlanBtn = document.getElementById('managePlanBtn');
+            
+            if (!currentPlanName || !managePlanBtn) return;
+            
+            // Plan display mapping
+            const planDisplayInfo = {
+                basic: { name: 'Basic', class: 'basic' },
+                advanced: { name: 'Advanced', class: 'advanced' },
+                professional: { name: 'Professional', class: 'professional' }
+            };
+            
+            const planInfo = planDisplayInfo[planId] || { name: 'Unknown', class: 'basic' };
+            
+            // Update plan name with styling
+            currentPlanName.textContent = planInfo.name;
+            currentPlanName.className = `plan-name ${planInfo.class}`;
+            
+            // Enable manage plan button
+            managePlanBtn.disabled = false;
+            managePlanBtn.style.opacity = '1';
         }
 
         function renderLockedDashboard() {
