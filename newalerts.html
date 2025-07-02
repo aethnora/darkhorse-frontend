@@ -334,7 +334,7 @@
             messagingSenderId: "528610189023",
             appId: "1:528610189023:web:1f8741bfb0f8635bf9d36a"
         };
-        const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOtJMJ8Y86P001uNGik7B';
+        const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOJTMJ8Y86P001uNGik7B';
         const SERVER_URL = 'https://darkhorse-backend.onrender.com';
         const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders'; // UPDATE THIS WITH YOUR ACTUAL API URL
 
@@ -464,16 +464,46 @@
                         appState.pollingInterval = null;
                         processingOverlay.classList.remove('show');
                         processingOverlay.classList.add('hidden');
-                        alert('Subscription activation is taking longer than expected. Please refresh the page or contact support if the issue persists.');
+                        // Using a custom modal/message box instead of alert()
+                        displayMessage('Subscription activation is taking longer than expected. Please refresh the page or contact support if the issue persists.', 'error');
                     }
                 }, 2000); // Check every 2 seconds
             }
             if (urlParams.has('canceled')) {
                 log('info', 'Payment canceled');
-                alert('Your payment was canceled. You can choose a plan at any time.');
+                // Using a custom modal/message box instead of alert()
+                displayMessage('Your payment was canceled. You can choose a plan at any time.', 'info');
                 window.history.replaceState(null, '', window.location.pathname);
             }
         }
+
+        // Custom message display function (replaces alert)
+        function displayMessage(message, type = 'info') {
+            const messageBox = document.createElement('div');
+            messageBox.className = `status-message ${type}`;
+            messageBox.textContent = message;
+            messageBox.style.position = 'fixed';
+            messageBox.style.top = '20px';
+            messageBox.style.left = '50%';
+            messageBox.style.transform = 'translateX(-50%)';
+            messageBox.style.zIndex = '10000';
+            messageBox.style.padding = '15px 25px';
+            messageBox.style.borderRadius = '8px';
+            messageBox.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+            messageBox.style.transition = 'opacity 0.5s ease-in-out';
+            messageBox.style.opacity = '0';
+            document.body.appendChild(messageBox);
+
+            setTimeout(() => {
+                messageBox.style.opacity = '1';
+            }, 10);
+
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+                messageBox.addEventListener('transitionend', () => messageBox.remove());
+            }, 5000);
+        }
+
 
         function handleUserLogin() {
             loggedInView.classList.remove('hidden');
@@ -628,7 +658,8 @@
                 }
             } catch (error) {
                 log('error', 'Checkout session creation failed', error);
-                alert(`Could not initiate payment: ${error.message}`);
+                // Using a custom modal/message box instead of alert()
+                displayMessage(`Could not initiate payment: ${error.message}`, 'error');
                 checkoutButton.disabled = false;
                 checkoutButton.textContent = originalText;
             }
@@ -811,6 +842,7 @@
                     row.dataset.id = tradeId;
                     
                     // Format the data with better cleaning for your CSV format
+                    // Ensure Filing Date and Trade Date are displayed as they are received
                     const filingDate = trade['Filing Date'] || trade['FilingÂ Date'] || '';
                     const tradeDate = trade['Trade Date'] || trade['TradeÂ Date'] || '';
                     const companyName = trade['Company Name'] || trade['CompanyÂ Name'] || '';
@@ -907,12 +939,13 @@
 
             const overviewConfig = { "symbols": [[ticker, `${ticker}|1D`]], "chartOnly": false, "width": "100%", "height": "100%", "locale": "en", "colorTheme": "dark", "autosize": true, "showVolume": false, "hideDateRanges": false, "hideMarketStatus": false, "hideSymbolLogo": false, "scalePosition": "right", "scaleMode": "Normal", "fontFamily": "Inter", "fontSize": "10", "noTimeScale": false, "valuesTracking": "1", "changeMode": "price-and-percent", "chartType": "area", "backgroundColor": "rgba(16, 24, 44, 0)", "lineColor": "#2962FF", "topColor": "rgba(41, 98, 255, 0.3)", "bottomColor": "rgba(41, 98, 255, 0)" };
             const profileConfig = { "symbol": ticker, "width": "100%", "height": "100%", "colorTheme": "dark", "isTransparent": true, "locale": "en" };
-            const timelineConfig = { "feedMode": "symbol", "symbol": ticker, "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "100%", "locale": "en" };
+            // Removed the TradingView News (Timeline) widget as requested
+            // const timelineConfig = { "feedMode": "symbol", "symbol": ticker, "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "100%", "locale": "en" };
 
             container.append(
                 createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js', overviewConfig),
-                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js', profileConfig),
-                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-timeline.js', timelineConfig)
+                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js', profileConfig)
+                // timelineConfig is removed from here
             );
         }
 
@@ -937,7 +970,7 @@
 
             const { stockPrice, tradeValue, titles } = settings.filters;
             document.getElementById('stockPrice').value = stockPrice;
-            updateSliderValue('stockPriceValue', stockPrice, val => `$${parseFloat(val).toFixed(2)}`);
+            updateSliderValue('stockPriceValue', stockPrice, val => `$${parseFloat(val).toFixed(2)}` );
             document.getElementById('tradeValue').value = tradeValue;
             updateSliderValue('tradeValueValue', tradeValue, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any');
             document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
@@ -971,10 +1004,12 @@
             try {
                 await db.collection('users').doc(appState.currentUser.uid).update({ settings: settingsToSave });
                 log('success', 'Settings saved successfully');
-                alert('Settings saved successfully!');
+                // Using a custom modal/message box instead of alert()
+                displayMessage('Settings saved successfully!', 'success');
             } catch (error) {
                 log('error', 'Failed to save settings', error);
-                alert("Failed to save settings. Please try again.");
+                // Using a custom modal/message box instead of alert()
+                displayMessage("Failed to save settings. Please try again.", 'error');
             } finally {
                 saveButton.disabled = false;
                 saveButton.textContent = originalText;
