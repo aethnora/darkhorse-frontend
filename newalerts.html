@@ -21,6 +21,9 @@
     <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
 
+    <!-- TradingView Charting Library -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
     <style>
         :root {
             --primary-blue: #0a74da;
@@ -51,7 +54,7 @@
         }
 
         /* --- UTILITY & LAYOUT --- */
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; } /* Increased max-width */
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
         .hidden { display: none !important; }
         .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.5; background: var(--dark-bg); overflow: hidden; }
         .bg-animation::before { content: ''; position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(circle at 20% 50%, rgba(0, 198, 255, 0.15) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(10, 116, 218, 0.15) 0%, transparent 40%); animation: floatAnimation 30s ease-in-out infinite; }
@@ -132,41 +135,213 @@
         .recommended-tag { font-size: 0.7rem; color: var(--warning-yellow); margin-left: 0.5rem; }
         .save-settings-container { margin-top: 2rem; text-align: right; }
 
-        /* --- TRADES FEED & TRADINGVIEW (REVAMPED) --- */
-        .trades-table { width: 100%; border-collapse: collapse; table-layout: auto; } /* Changed to auto for better column sizing */
+        /* --- ENHANCED TRADES FEED & DROPDOWN --- */
+        .trades-table { width: 100%; border-collapse: collapse; table-layout: auto; }
         .trades-table th { text-align: left; padding: 1rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
         .trades-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-        .trades-table tbody tr.trade-row { cursor: pointer; transition: background-color 0.2s; }
-        .trades-table tbody tr.trade-row:hover { background-color: rgba(0, 198, 255, 0.05); }
-        .trades-table tr.active-row { background-color: rgba(0, 198, 255, 0.1) !important; }
-        .company-name { font-weight: 600; }
-        .ticker { color: var(--text-secondary); font-size: 0.9rem; }
+        .trades-table tbody tr.trade-row { cursor: pointer; transition: all 0.3s ease; position: relative; }
+        .trades-table tbody tr.trade-row:hover { background-color: rgba(0, 198, 255, 0.05); transform: translateY(-1px); }
+        .trades-table tr.active-row { 
+            background: linear-gradient(90deg, rgba(0, 198, 255, 0.1) 0%, rgba(10, 116, 218, 0.05) 100%) !important; 
+            border-left: 3px solid var(--accent-cyan);
+            box-shadow: 0 2px 8px rgba(0, 198, 255, 0.1);
+        }
+        .company-name { font-weight: 600; color: var(--text-primary); }
+        .ticker { color: var(--accent-cyan); font-size: 0.9rem; font-weight: 500; }
         .insider-title { color: var(--text-tertiary); font-style: italic; }
-        .trade-details-row { display: none; }
-        .trade-details-row.active { display: table-row; }
-        .trade-details-cell { padding: 0 !important; background: var(--dark-bg); }
+        
+        /* --- ENHANCED DROPDOWN DESIGN --- */
+        .trade-details-row { 
+            display: none; 
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .trade-details-row.active { 
+            display: table-row; 
+            opacity: 1;
+        }
+        .trade-details-cell { 
+            padding: 0 !important; 
+            background: linear-gradient(135deg, rgba(16, 24, 44, 0.95) 0%, rgba(10, 15, 28, 0.95) 100%);
+            border-left: 3px solid var(--accent-cyan);
+            box-shadow: inset 0 0 20px rgba(0, 198, 255, 0.05);
+        }
         .trade-details-content {
-            padding: 1.5rem;
+            padding: 2rem;
             display: grid;
-            grid-template-columns: 1fr 350px; /* Main chart and sidebar */
-            gap: 1.5rem;
-            animation: slideDown 0.5s ease-out;
-            border-top: 1px solid var(--border-color);
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            animation: slideDownFade 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: 1px solid rgba(0, 198, 255, 0.1);
+            border-radius: 12px;
+            margin: 1rem;
+            backdrop-filter: blur(10px);
         }
-        @media (max-width: 900px) {
-            .trade-details-content { grid-template-columns: 1fr; }
+        @media (max-width: 1200px) {
+            .trade-details-content { 
+                grid-template-columns: 1fr; 
+                gap: 1.5rem;
+            }
         }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .tradingview-widget-container { width: 100%; height: 500px; border-radius: 12px; overflow: hidden; }
-        .trade-toggle-icon { margin-left: 0.5rem; transition: transform 0.3s ease; }
-        .trade-toggle-icon.rotated { transform: rotate(180deg); }
-        .skeleton-loader { background: linear-gradient(90deg, var(--card-bg) 25%, var(--text-tertiary) 50%, var(--card-bg) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 4px; color: transparent !important; }
+        @keyframes slideDownFade { 
+            0% { 
+                opacity: 0; 
+                transform: translateY(-30px) scale(0.95); 
+            } 
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            } 
+        }
+
+        /* --- ADVANCED CHART CONTAINER --- */
+        .chart-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        .chart-header {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(0, 198, 255, 0.1) 100%);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .chart-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .chart-header .ticker-badge {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .tradingview-widget-container {
+            width: 100%;
+            height: 600px;
+            background: var(--dark-bg);
+            position: relative;
+        }
+        .widget-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        .widget-loading i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- COMPANY PROFILE SIDEBAR --- */
+        .profile-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .profile-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(0, 198, 255, 0.1) 100%);
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .profile-header h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .profile-content {
+            padding: 1.5rem;
+        }
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-item {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .fundamentals-widget {
+            width: 100%;
+            height: 300px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--dark-bg);
+        }
+
+        /* --- TOGGLE ICON ENHANCEMENT --- */
+        .trade-toggle-icon { 
+            margin-left: 0.5rem; 
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .trade-toggle-icon.rotated { 
+            transform: rotate(180deg); 
+            color: var(--accent-cyan);
+        }
+        .trade-row:hover .trade-toggle-icon {
+            color: var(--accent-cyan);
+            transform: translateX(2px);
+        }
+        .trade-row.active-row:hover .trade-toggle-icon.rotated {
+            transform: rotate(180deg) translateX(-2px);
+        }
+
+        /* --- SKELETON LOADER --- */
+        .skeleton-loader { 
+            background: linear-gradient(90deg, var(--card-bg) 25%, var(--text-tertiary) 50%, var(--card-bg) 75%); 
+            background-size: 200% 100%; 
+            animation: loading 1.5s infinite; 
+            border-radius: 4px; 
+            color: transparent !important; 
+        }
         .skeleton-row td > div { height: 20px; width: 80%; }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .feed-container { overflow-x: auto; }
 
         /* --- REFINED DATE DISPLAY --- */
-        .date-cell { width: 120px; } /* Fixed width for date cells */
+        .date-cell { width: 120px; }
         .date-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .date-icon-display {
             background-color: var(--card-bg);
@@ -394,7 +569,8 @@
             unsubscribeUserProfile: null,
             activeTradeDetails: null,
             pollingInterval: null,
-            debugMode: false
+            debugMode: false,
+            loadedWidgets: new Set()
         };
 
         // --- DEBUG FUNCTIONS ---
@@ -754,7 +930,7 @@
             await populateTradesTable();
         }
 
-        // REFINED: Helper function to format dates
+        // Helper function to format dates
         function formatDateCell(dateString, showTime) {
             if (!dateString || typeof dateString !== 'string') {
                 return '<td class="date-cell"><div class="date-wrapper">N/A</div></td>';
@@ -917,12 +1093,12 @@
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
-                    detailsRow.innerHTML = `<td colspan="10" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"><div class="skeleton-loader" style="width:100%; height: 500px;"></div><div class="skeleton-loader" style="width:100%; height: 500px;"></div></div></td>`;
+                    detailsRow.innerHTML = `<td colspan="10" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
 
-                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, ticker));
+                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, ticker, companyName));
                 });
             } catch (error) {
                 log('error', 'Failed to fetch or process trades', error);
@@ -939,7 +1115,7 @@
             }
         }
         
-        function toggleTradeDetails(row, detailsRow, ticker) {
+        function toggleTradeDetails(row, detailsRow, ticker, companyName) {
             const rowId = row.dataset.id;
             const isActive = row.classList.contains('active-row');
             const toggleIcon = row.querySelector('.trade-toggle-icon');
@@ -962,72 +1138,165 @@
 
             if (!isActive) {
                 appState.activeTradeDetails = rowId;
-                loadTradingViewWidgets(ticker, `details-content-${rowId}`);
+                loadAdvancedTradingViewWidgets(ticker, companyName, `details-content-${rowId}`);
             } else {
                 appState.activeTradeDetails = null;
             }
         }
 
-        // REVAMPED: Load advanced TradingView widgets
-        function loadTradingViewWidgets(ticker, containerId) {
+        // --- ENHANCED TRADINGVIEW WIDGETS LOADING ---
+        function loadAdvancedTradingViewWidgets(ticker, companyName, containerId) {
             const container = document.getElementById(containerId);
-            if (!container || container.dataset.loaded === 'true') return;
+            if (!container || appState.loadedWidgets.has(containerId)) return;
             
-            log('debug', 'Loading ADVANCED TradingView widgets', { ticker, containerId });
-            container.innerHTML = ''; // Clear skeleton loader
-            container.dataset.loaded = 'true';
-
-            // 1. Advanced Chart Widget
-            const chartContainer = document.createElement('div');
-            chartContainer.className = 'tradingview-widget-container';
-            new TradingView.widget({
-                "autosize": true,
-                "symbol": ticker,
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "withdateranges": true,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "container_id": chartContainer.id,
-                "isTransparent": true,
-                "details": true,
-                "hotlist": true,
-                "calendar": true,
-                "studies": [
-                    "Volume@tv-basicstudies"
-                ],
-                "container": chartContainer
-            });
-
-            // 2. Fundamental Data Widget
-            const fundamentalContainer = document.createElement('div');
-            fundamentalContainer.className = 'tradingview-widget-container';
-            new TradingView.widget({
-                "autosize": true,
-                "symbol": ticker,
-                "colorTheme": "dark",
-                "isTransparent": true,
-                "locale": "en",
-                "largeChartUrl": "",
-                "displayMode": "regular", // or compact
-                "container": fundamentalContainer,
-                "widgetType": "fundamental"
-            });
+            log('debug', 'Loading advanced TradingView widgets', { ticker, companyName, containerId });
             
-            // Create script elements and append
-            const chartScript = document.createElement('script');
-            chartScript.type = 'text/javascript';
-            chartScript.src = 'https://s3.tradingview.com/tv.js';
-            chartScript.onload = () => {
-                container.appendChild(chartContainer);
-                container.appendChild(fundamentalContainer);
-            };
-            document.head.appendChild(chartScript);
+            // Mark as loaded to prevent duplicate loading
+            appState.loadedWidgets.add(containerId);
+            
+            // Create the enhanced layout
+            container.innerHTML = `
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h3>
+                            <i class="fas fa-chart-line"></i>
+                            Advanced Chart
+                            <span class="ticker-badge">${ticker}</span>
+                        </h3>
+                    </div>
+                    <div class="tradingview-widget-container" id="chart-${containerId}">
+                        <div class="widget-loading">
+                            <i class="fas fa-spinner"></i>
+                            <div>Loading advanced chart...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-section">
+                    <div class="profile-header">
+                        <h3>
+                            <i class="fas fa-building"></i>
+                            ${companyName}
+                        </h3>
+                        <div class="ticker-badge">${ticker}</div>
+                    </div>
+                    <div class="profile-content">
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">Status</div>
+                                <div class="stat-value">Active</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Market</div>
+                                <div class="stat-value">NYSE</div>
+                            </div>
+                        </div>
+                        <div class="fundamentals-widget" id="fundamentals-${containerId}">
+                            <div class="widget-loading">
+                                <i class="fas fa-spinner"></i>
+                                <div>Loading company data...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Load TradingView script if not already loaded
+            if (!window.TradingView) {
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = 'https://s3.tradingview.com/tv.js';
+                script.async = true;
+                script.onload = () => initializeWidgets(ticker, containerId);
+                document.head.appendChild(script);
+            } else {
+                initializeWidgets(ticker, containerId);
+            }
+        }
+
+        function initializeWidgets(ticker, containerId) {
+            setTimeout(() => {
+                try {
+                    // Advanced Chart Widget
+                    new TradingView.widget({
+                        "autosize": true,
+                        "symbol": ticker,
+                        "interval": "D",
+                        "timezone": "Etc/UTC",
+                        "theme": "dark",
+                        "style": "1",
+                        "locale": "en",
+                        "toolbar_bg": "#0a0f1c",
+                        "enable_publishing": false,
+                        "backgroundColor": "#0a0f1c",
+                        "gridColor": "#1a1a1a",
+                        "hide_side_toolbar": false,
+                        "allow_symbol_change": true,
+                        "details": true,
+                        "hotlist": true,
+                        "calendar": true,
+                        "studies": [
+                            "Volume@tv-basicstudies",
+                            "MACD@tv-basicstudies"
+                        ],
+                        "container_id": `chart-${containerId}`,
+                        "withdateranges": true,
+                        "hide_top_toolbar": false,
+                        "save_image": false,
+                        "container": document.getElementById(`chart-${containerId}`)
+                    });
+
+                    // Company Profile Widget
+                    new TradingView.widget({
+                        "colorTheme": "dark",
+                        "dateRange": "12M",
+                        "exchange": "NASDAQ",
+                        "showChart": true,
+                        "locale": "en",
+                        "largeChartUrl": "",
+                        "isTransparent": true,
+                        "showSymbolLogo": true,
+                        "showFloatingTooltip": false,
+                        "width": "100%",
+                        "height": "300",
+                        "plotLineColorGrowing": "rgba(0, 198, 255, 1)",
+                        "plotLineColorFalling": "rgba(255, 107, 107, 1)",
+                        "gridLineColor": "rgba(240, 243, 250, 0.06)",
+                        "scaleFontColor": "rgba(160, 168, 184, 1)",
+                        "belowLineFillColorGrowing": "rgba(0, 198, 255, 0.05)",
+                        "belowLineFillColorFalling": "rgba(255, 107, 107, 0.05)",
+                        "belowLineFillColorGrowingBottom": "rgba(0, 198, 255, 0)",
+                        "belowLineFillColorFallingBottom": "rgba(255, 107, 107, 0)",
+                        "symbolActiveColor": "rgba(0, 198, 255, 0.12)",
+                        "container_id": `fundamentals-${containerId}`,
+                        "symbol": ticker
+                    });
+
+                    log('success', 'TradingView widgets loaded successfully', { ticker, containerId });
+                } catch (error) {
+                    log('error', 'Failed to load TradingView widgets', { ticker, containerId, error });
+                    
+                    // Show error message in containers
+                    const chartContainer = document.getElementById(`chart-${containerId}`);
+                    const fundamentalsContainer = document.getElementById(`fundamentals-${containerId}`);
+                    
+                    if (chartContainer) {
+                        chartContainer.innerHTML = `
+                            <div class="widget-loading">
+                                <i class="fas fa-exclamation-triangle" style="color: var(--error-red);"></i>
+                                <div>Failed to load chart for ${ticker}</div>
+                            </div>`;
+                    }
+                    
+                    if (fundamentalsContainer) {
+                        fundamentalsContainer.innerHTML = `
+                            <div class="widget-loading">
+                                <i class="fas fa-exclamation-triangle" style="color: var(--error-red);"></i>
+                                <div>Failed to load company data</div>
+                            </div>`;
+                    }
+                }
+            }, 500);
         }
 
         // --- SETTINGS MANAGEMENT ---
