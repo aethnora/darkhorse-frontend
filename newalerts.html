@@ -169,7 +169,7 @@
         .trade-details-content {
             padding: 2rem;
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 1.5fr 1fr;
             gap: 2rem;
             animation: slideDownFade 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             border: 1px solid rgba(0, 198, 255, 0.1);
@@ -255,56 +255,113 @@
         }
 
         /* --- COMPANY PROFILE SIDEBAR --- */
-        .profile-section {
+        .info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .insider-summary-card {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
             border: 1px solid var(--border-color);
             overflow: hidden;
         }
-        .profile-header {
-            padding: 1.5rem;
+        
+        .card-header {
+            padding: 1rem 1.5rem;
             background: linear-gradient(135deg, var(--card-bg) 0%, rgba(0, 198, 255, 0.1) 100%);
             border-bottom: 1px solid var(--border-color);
-            text-align: center;
         }
-        .profile-header h3 {
-            margin: 0 0 0.5rem 0;
-            font-size: 1.2rem;
-            font-weight: 700;
+        
+        .card-header h4 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
             color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .profile-content {
+        
+        .summary-stats {
             padding: 1.5rem;
-        }
-        .profile-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 1rem;
-            margin-bottom: 1.5rem;
         }
-        .stat-item {
+        
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
             background: rgba(0, 0, 0, 0.4);
-            padding: 1rem;
             border-radius: 8px;
             border: 1px solid var(--border-color);
-            text-align: center;
         }
-        .stat-label {
+        
+        .summary-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .summary-content {
+            flex: 1;
+        }
+        
+        .summary-label {
             font-size: 0.8rem;
             color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
         }
-        .stat-value {
-            font-size: 1.1rem;
-            font-weight: 700;
+        
+        .summary-value {
+            font-size: 1rem;
+            font-weight: 600;
             color: var(--text-primary);
         }
+        
+        .profile-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            flex: 1;
+        }
+        
+        .profile-header {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(0, 198, 255, 0.1) 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .profile-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .profile-content {
+            padding: 0;
+            height: 550px;
+        }
+        
         .fundamentals-widget {
             width: 100%;
-            height: 300px;
-            border-radius: 8px;
+            height: 100%;
+            border-radius: 0;
             overflow: hidden;
             background: var(--dark-bg);
         }
@@ -1149,52 +1206,65 @@
             const container = document.getElementById(containerId);
             if (!container || appState.loadedWidgets.has(containerId)) return;
             
-            log('debug', 'Loading advanced TradingView widgets', { ticker, companyName, containerId });
+            log('debug', 'Loading TradingView widgets', { ticker, companyName, containerId });
             
             // Mark as loaded to prevent duplicate loading
             appState.loadedWidgets.add(containerId);
             
-            // Create the enhanced layout
+            // Create the enhanced layout with insider trading summary
             container.innerHTML = `
                 <div class="chart-section">
                     <div class="chart-header">
                         <h3>
                             <i class="fas fa-chart-line"></i>
-                            Advanced Chart
+                            Price Chart
                             <span class="ticker-badge">${ticker}</span>
                         </h3>
                     </div>
                     <div class="tradingview-widget-container" id="chart-${containerId}">
                         <div class="widget-loading">
                             <i class="fas fa-spinner"></i>
-                            <div>Loading advanced chart...</div>
+                            <div>Loading chart...</div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="profile-section">
-                    <div class="profile-header">
-                        <h3>
-                            <i class="fas fa-building"></i>
-                            ${companyName}
-                        </h3>
-                        <div class="ticker-badge">${ticker}</div>
-                    </div>
-                    <div class="profile-content">
-                        <div class="profile-stats">
-                            <div class="stat-item">
-                                <div class="stat-label">Status</div>
-                                <div class="stat-value">Active</div>
+                <div class="info-section">
+                    <div class="insider-summary-card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-users"></i> Insider Activity Summary</h4>
+                        </div>
+                        <div class="summary-stats">
+                            <div class="summary-item">
+                                <div class="summary-icon"><i class="fas fa-arrow-up"></i></div>
+                                <div class="summary-content">
+                                    <div class="summary-label">Recent Purchases</div>
+                                    <div class="summary-value">View Live</div>
+                                </div>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Market</div>
-                                <div class="stat-value">NYSE</div>
+                            <div class="summary-item">
+                                <div class="summary-icon"><i class="fas fa-chart-trend-up"></i></div>
+                                <div class="summary-content">
+                                    <div class="summary-label">Insider Sentiment</div>
+                                    <div class="summary-value">Bullish</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="fundamentals-widget" id="fundamentals-${containerId}">
-                            <div class="widget-loading">
-                                <i class="fas fa-spinner"></i>
-                                <div>Loading company data...</div>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <div class="profile-header">
+                            <h3>
+                                <i class="fas fa-building"></i>
+                                Company Profile
+                            </h3>
+                        </div>
+                        <div class="profile-content">
+                            <div class="fundamentals-widget" id="fundamentals-${containerId}">
+                                <div class="widget-loading">
+                                    <i class="fas fa-spinner"></i>
+                                    <div>Loading company profile...</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1217,7 +1287,7 @@
         function initializeWidgets(ticker, containerId) {
             setTimeout(() => {
                 try {
-                    // Advanced Chart Widget
+                    // Simplified Chart Widget
                     new TradingView.widget({
                         "autosize": true,
                         "symbol": ticker,
@@ -1230,47 +1300,47 @@
                         "enable_publishing": false,
                         "backgroundColor": "#0a0f1c",
                         "gridColor": "#1a1a1a",
-                        "hide_side_toolbar": false,
-                        "allow_symbol_change": true,
-                        "details": true,
-                        "hotlist": true,
-                        "calendar": true,
+                        "hide_side_toolbar": true,
+                        "allow_symbol_change": false,
+                        "details": false,
+                        "hotlist": false,
+                        "calendar": false,
                         "studies": [
-                            "Volume@tv-basicstudies",
-                            "MACD@tv-basicstudies"
+                            "Volume@tv-basicstudies"
                         ],
                         "container_id": `chart-${containerId}`,
-                        "withdateranges": true,
-                        "hide_top_toolbar": false,
+                        "withdateranges": false,
+                        "hide_top_toolbar": true,
                         "save_image": false,
                         "container": document.getElementById(`chart-${containerId}`)
                     });
 
-                    // Company Profile Widget
-                    new TradingView.widget({
-                        "colorTheme": "dark",
-                        "dateRange": "12M",
-                        "exchange": "NASDAQ",
-                        "showChart": true,
-                        "locale": "en",
-                        "largeChartUrl": "",
-                        "isTransparent": true,
-                        "showSymbolLogo": true,
-                        "showFloatingTooltip": false,
-                        "width": "100%",
-                        "height": "300",
-                        "plotLineColorGrowing": "rgba(0, 198, 255, 1)",
-                        "plotLineColorFalling": "rgba(255, 107, 107, 1)",
-                        "gridLineColor": "rgba(240, 243, 250, 0.06)",
-                        "scaleFontColor": "rgba(160, 168, 184, 1)",
-                        "belowLineFillColorGrowing": "rgba(0, 198, 255, 0.05)",
-                        "belowLineFillColorFalling": "rgba(255, 107, 107, 0.05)",
-                        "belowLineFillColorGrowingBottom": "rgba(0, 198, 255, 0)",
-                        "belowLineFillColorFallingBottom": "rgba(255, 107, 107, 0)",
-                        "symbolActiveColor": "rgba(0, 198, 255, 0.12)",
-                        "container_id": `fundamentals-${containerId}`,
-                        "symbol": ticker
-                    });
+                    // Company Profile Widget using the specific widget script
+                    const profileContainer = document.getElementById(`fundamentals-${containerId}`);
+                    if (profileContainer) {
+                        const widgetId = `profile-widget-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                        profileContainer.innerHTML = `
+                            <div class="tradingview-widget-container" id="${widgetId}">
+                                <div class="tradingview-widget-container__widget"></div>
+                            </div>
+                        `;
+                        
+                        // Create and inject the script for the profile widget
+                        const script = document.createElement('script');
+                        script.type = 'text/javascript';
+                        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js';
+                        script.async = true;
+                        script.innerHTML = JSON.stringify({
+                            "symbol": ticker,
+                            "colorTheme": "dark",
+                            "isTransparent": true,
+                            "locale": "en",
+                            "width": "100%",
+                            "height": 550
+                        });
+                        
+                        profileContainer.appendChild(script);
+                    }
 
                     log('success', 'TradingView widgets loaded successfully', { ticker, containerId });
                 } catch (error) {
@@ -1284,7 +1354,7 @@
                         chartContainer.innerHTML = `
                             <div class="widget-loading">
                                 <i class="fas fa-exclamation-triangle" style="color: var(--error-red);"></i>
-                                <div>Failed to load chart for ${ticker}</div>
+                                <div>Failed to load chart for ` + ticker + `</div>
                             </div>`;
                     }
                     
