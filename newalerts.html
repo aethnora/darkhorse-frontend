@@ -717,48 +717,131 @@
                 
                 log('success', 'Trades data fetched successfully', { count: trades.length });
                 
-                // Filter for purchases only
+                // SUPER DEBUG: Log everything to see what's wrong
+                console.log('🔍 FULL DEBUG - First trade object:');
+                console.log(JSON.stringify(trades[0], null, 2));
+                console.log('🔍 All column names:', Object.keys(trades[0]));
+                console.log('🔍 First 5 Trade Type values:', trades.slice(0, 5).map(t => {
+                    const tradeTypeKey = Object.keys(t).find(key => key.toLowerCase().includes('trade') && key.toLowerCase().includes('type'));
+                    return { originalKey: tradeTypeKey, value: t[tradeTypeKey] };
+                }));
+                
+                // MUCH SIMPLER FILTER - catch ANY purchase indication
                 const purchasesTrades = trades.filter(trade => {
-                    const tradeType = (trade['Trade Type'] || '').toLowerCase();
-                    return tradeType.includes('p') || tradeType.includes('buy') || tradeType.includes('purchase');
+                    // Find the trade type column (might have encoding issues)
+                    const tradeTypeKey = Object.keys(trade).find(key => 
+                        key.toLowerCase().includes('trade') && key.toLowerCase().includes('type')
+                    );
+                    
+                    if (!tradeTypeKey) {
+                        console.log('❌ No Trade Type column found in:', Object.keys(trade));
+                        return false;
+                    }
+                    
+                    const tradeType = (trade[tradeTypeKey] || '').toString().toLowerCase().trim();
+                    console.log(`🔍 Checking trade type: "${tradeType}" from column: "${tradeTypeKey}"`);
+                    
+                    // Super simple check - if it contains 'p' and 'purchase' OR just starts with 'p'
+                    const isPurchase = (
+                        tradeType.includes('purchase') ||
+                        tradeType.includes('p - ') ||
+                        tradeType.startsWith('p') ||
+                        tradeType === 'p'
+                    );
+                    
+                    console.log(`✅ Is purchase: ${isPurchase}`);
+                    return isPurchase;
                 });
                 
-                log('debug', 'Filtered trades', { total: trades.length, purchases: purchasesTrades.length });
+                log('debug', 'Filtered trades', { 
+                    total: trades.length, 
+                    purchases: purchasesTrades.length,
+                    sampleTradeTypes: trades.slice(0, 5).map(t => t['Trade Type'])
+                });
                 
                 tbody.innerHTML = '';
                 if (purchasesTrades.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 2rem;">No recent insider purchases found.</td></tr>`;
+                    // Show debug info when no purchases found
+                    const uniqueTradeTypes = [...new Set(trades.map(t => t['Trade Type']))];
+                    console.log('🚨 No purchases found. All Trade Types:', uniqueTradeTypes);
+                    
+                    // Temporarily show ALL trades for debugging (remove this later)
+                    tbody.innerHTML = `
+                        <tr><td colspan="8" style="text-align:center; padding: 2rem;">
+                            No insider purchases found with current filter.<br>
+                            <small style="color: var(--text-tertiary); margin-top: 0.5rem; display: block;">
+                                Found ${trades.length} total trades. Trade types: ${uniqueTradeTypes.join(', ')}
+                            </small>
+                            <button onclick="showAllTrades()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary-blue); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Show All Trades (Debug)
+                            </button>
+                        </td></tr>`;
+                    
+                    // Add debug function to window
+                    window.showAllTrades = () => {
+                        tbody.innerHTML = '';
+                        trades.slice(0, 10).forEach(trade => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${trade['Filing Date'] || trade['FilingÂ Date'] || ''}</td>
+                                <td>${trade['Trade Date'] || trade['TradeÂ Date'] || ''}</td>
+                                <td>${trade['Company Name'] || trade['CompanyÂ Name'] || ''}<br><small>${trade.Ticker || ''}</small></td>
+                                <td>${trade['Insider Name'] || trade['InsiderÂ Name'] || ''}<br><small>${trade.Title || ''}</small></td>
+                                <td>${trade.Price || ''}</td>
+                                <td>${trade.Qty || ''}</td>
+                                <td>${trade['ΔOwn'] || trade['Î"Own'] || ''}</td>
+                                <td>${trade.Value || ''}<br><small style="background: yellow; color: black;"><strong>Type: ${trade['Trade Type'] || 'MISSING'}</strong></small></td>`;
+                            tbody.appendChild(row);
+                        });
+                    };
                     return;
                 }
 
+                // Show filtered purchase data
                 purchasesTrades.slice(0, 50).forEach(trade => { // Limit to 50 trades
+                    // Find the trade type column dynamically
+                    const tradeTypeKey = Object.keys(trade).find(key => 
+                        key.toLowerCase().includes('trade') && key.toLowerCase().includes('type')
+                    );
+                    
                     const tradeId = `${trade.Ticker}-${trade['Trade Date']}`.replace(/[^a-zA-Z0-9]/g, '');
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
                     row.dataset.ticker = trade.Ticker;
                     row.dataset.id = tradeId;
                     
-                    // Format the data with fallbacks
-                    const filingDate = trade['Filing Date'] || '';
-                    const tradeDate = trade['Trade Date'] || '';
-                    const companyName = trade['Company Name'] || '';
+                    // Format the data with better cleaning for your CSV format
+                    const filingDate = trade['Filing Date'] || trade['FilingÂ Date'] || '';
+                    const tradeDate = trade['Trade Date'] || trade['TradeÂ Date'] || '';
+                    const companyName = trade['Company Name'] || trade['CompanyÂ Name'] || '';
                     const ticker = trade.Ticker || '';
-                    const insiderName = trade['Insider Name'] || '';
+                    const insiderName = trade['Insider Name'] || trade['InsiderÂ Name'] || '';
                     const title = trade.Title || '';
-                    const price = parseFloat(trade.Price || 0);
-                    const qty = parseInt(trade.Qty || 0);
-                    const deltaOwn = trade['ΔOwn'] || trade.DeltaOwn || trade['Delta Own'] || '';
-                    const value = parseInt(trade.Value || 0);
+                    
+                    // Clean price: "$8.82" -> 8.82
+                    const priceStr = (trade.Price || '0').toString().replace(/[$,]/g, '');
+                    const price = parseFloat(priceStr) || 0;
+                    
+                    // Clean quantity: "50,195" -> 50195
+                    const qtyStr = (trade.Qty || '0').toString().replace(/[,$]/g, '');
+                    const qty = parseInt(qtyStr) || 0;
+                    
+                    // Handle ΔOwn: "1%" -> "1%"
+                    const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || trade['Delta Own'] || '';
+                    
+                    // Clean value: "$442,720" -> 442720
+                    const valueStr = (trade.Value || '0').toString().replace(/[$,]/g, '');
+                    const value = parseInt(valueStr) || 0;
                     
                     row.innerHTML = `
                         <td>${filingDate}</td>
                         <td>${tradeDate}</td>
                         <td><div class="company-name">${companyName}</div><div class="ticker">${ticker}</div></td>
                         <td><div>${insiderName}</div><div class="text-secondary">${title}</div></td>
-                        <td>${price.toFixed(2)}</td>
+                        <td>$${price.toFixed(2)}</td>
                         <td>${qty.toLocaleString()}</td>
                         <td>${deltaOwn}</td>
-                        <td>${value.toLocaleString()}</td>`;
+                        <td>$${value.toLocaleString()}</td>`;
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
