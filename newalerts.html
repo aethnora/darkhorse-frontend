@@ -134,9 +134,23 @@
 
         /* --- TRADES FEED & TRADINGVIEW --- */
         .trades-table { width: 100%; border-collapse: collapse; }
-        /* Removed white-space: nowrap from th and td */
-        .trades-table th { text-align: left; padding: 1rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); }
-        .trades-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .trades-table th { 
+            text-align: left; 
+            padding: 1rem; 
+            color: var(--text-secondary); 
+            font-size: 0.8rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            border-bottom: 1px solid var(--border-color); 
+            /* Ensure enough width for date columns */
+            min-width: 120px; /* Adjust as needed */
+        }
+        .trades-table td { 
+            padding: 1rem; 
+            border-bottom: 1px solid var(--border-color); 
+            vertical-align: middle; 
+            word-break: break-word; /* Allow long words/dates to break */
+        }
         .trades-table tbody tr.trade-row { cursor: pointer; transition: background-color 0.2s; }
         .trades-table tbody tr.trade-row:hover { background-color: rgba(0, 198, 255, 0.05); }
         .trades-table tr.active-row { background-color: rgba(0, 198, 255, 0.1); }
@@ -145,25 +159,21 @@
         .trade-details-row { display: none; }
         .trade-details-row.active { display: table-row; }
         .trade-details-cell { padding: 0 !important; }
-        /* Adjusted trade-details-content to use flexbox for better widget layout */
+        /* Changed to grid for better control over widget layout */
         .trade-details-content { 
             background: var(--dark-bg); 
-            padding: 2rem; 
-            display: flex; /* Changed to flex */
-            flex-wrap: wrap; /* Allow wrapping */
-            justify-content: space-around; /* Distribute space */
-            align-items: flex-start; /* Align items to the start */
-            gap: 1rem; /* Reduced gap */
+            padding: 1rem; /* Reduced padding for more space for widgets */
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive columns */
+            gap: 1rem; /* Gap between widgets */
             animation: slideDown 0.5s ease; 
         }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        /* Adjusted tradingview-widget-container height */
+        /* Adjusted tradingview-widget-container for grid layout */
         .tradingview-widget-container { 
-            width: 100%; /* Ensure it takes full width initially */
-            min-height: 400px; /* Set a minimum height for visibility */
-            height: auto; /* Allow height to adjust */
-            flex: 1 1 45%; /* Allow widgets to grow/shrink and take about half width */
-            max-width: 100%; /* Prevent overflow */
+            width: 100%; 
+            height: 400px; /* Fixed height for better rendering consistency */
+            overflow: hidden; /* Hide any overflow */
         }
 
         /* Styles for the dropdown indicator */
@@ -976,11 +986,43 @@
                 return div;
             };
 
-            const overviewConfig = { "symbols": [[ticker, `${ticker}|1D`]], "chartOnly": false, "width": "100%", "height": "100%", "locale": "en", "colorTheme": "dark", "autosize": true, "showVolume": false, "hideDateRanges": false, "hideMarketStatus": false, "hideSymbolLogo": false, "scalePosition": "right", "scaleMode": "Normal", "fontFamily": "Inter", "fontSize": "10", "noTimeScale": false, "valuesTracking": "1", "changeMode": "price-and-percent", "chartType": "area", "backgroundColor": "rgba(16, 24, 44, 0)", "lineColor": "#2962FF", "topColor": "rgba(41, 98, 255, 0.3)", "bottomColor": "rgba(41, 98, 255, 0)" };
-            const profileConfig = { "symbol": ticker, "width": "100%", "height": "100%", "colorTheme": "dark", "isTransparent": true, "locale": "en" };
-            // Removed the TradingView News (Timeline) widget as requested
-            // const timelineConfig = { "feedMode": "symbol", "symbol": ticker, "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "100%", "locale": "en" };
-
+            // TradingView config for the chart (Symbol Overview)
+            const overviewConfig = { 
+                "symbols": [[ticker, `${ticker}|1D`]], 
+                "chartOnly": false, 
+                "width": "100%", 
+                "height": "100%", 
+                "locale": "en", 
+                "colorTheme": "dark", 
+                "autosize": true, 
+                "showVolume": false, 
+                "hideDateRanges": false, 
+                "hideMarketStatus": false, 
+                "hideSymbolLogo": false, 
+                "scalePosition": "right", 
+                "scaleMode": "Normal", 
+                "fontFamily": "Inter", 
+                "fontSize": "10", 
+                "noTimeScale": false, 
+                "valuesTracking": "1", 
+                "changeMode": "price-and-percent", 
+                "chartType": "area", 
+                "backgroundColor": "rgba(16, 24, 44, 0)", 
+                "lineColor": "#2962FF", 
+                "topColor": "rgba(41, 98, 255, 0.3)", 
+                "bottomColor": "rgba(41, 98, 255, 0)" 
+            };
+            
+            // TradingView config for the profile
+            const profileConfig = { 
+                "symbol": ticker, 
+                "width": "100%", 
+                "height": "100%", 
+                "colorTheme": "dark", 
+                "isTransparent": true, 
+                "locale": "en" 
+            };
+            
             container.append(
                 createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js', overviewConfig),
                 createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js', profileConfig)
