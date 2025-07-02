@@ -134,8 +134,9 @@
 
         /* --- TRADES FEED & TRADINGVIEW --- */
         .trades-table { width: 100%; border-collapse: collapse; }
-        .trades-table th { text-align: left; padding: 1rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-        .trades-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; white-space: nowrap; }
+        /* Removed white-space: nowrap from th and td */
+        .trades-table th { text-align: left; padding: 1rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); }
+        .trades-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
         .trades-table tbody tr.trade-row { cursor: pointer; transition: background-color 0.2s; }
         .trades-table tbody tr.trade-row:hover { background-color: rgba(0, 198, 255, 0.05); }
         .trades-table tr.active-row { background-color: rgba(0, 198, 255, 0.1); }
@@ -144,9 +145,36 @@
         .trade-details-row { display: none; }
         .trade-details-row.active { display: table-row; }
         .trade-details-cell { padding: 0 !important; }
-        .trade-details-content { background: var(--dark-bg); padding: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; animation: slideDown 0.5s ease; }
+        /* Adjusted trade-details-content to use flexbox for better widget layout */
+        .trade-details-content { 
+            background: var(--dark-bg); 
+            padding: 2rem; 
+            display: flex; /* Changed to flex */
+            flex-wrap: wrap; /* Allow wrapping */
+            justify-content: space-around; /* Distribute space */
+            align-items: flex-start; /* Align items to the start */
+            gap: 1rem; /* Reduced gap */
+            animation: slideDown 0.5s ease; 
+        }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .tradingview-widget-container { width: 100%; height: 550px; }
+        /* Adjusted tradingview-widget-container height */
+        .tradingview-widget-container { 
+            width: 100%; /* Ensure it takes full width initially */
+            min-height: 400px; /* Set a minimum height for visibility */
+            height: auto; /* Allow height to adjust */
+            flex: 1 1 45%; /* Allow widgets to grow/shrink and take about half width */
+            max-width: 100%; /* Prevent overflow */
+        }
+
+        /* Styles for the dropdown indicator */
+        .trade-toggle-icon {
+            margin-left: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+        .trade-toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
         .skeleton-loader { background: linear-gradient(90deg, var(--card-bg) 25%, var(--text-tertiary) 50%, var(--card-bg) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 4px; color: transparent !important; }
         .skeleton-row td > div { height: 20px; width: 80%; }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -725,7 +753,7 @@
             feedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
-                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th></tr></thead>
+                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead> <!-- Added an empty header for the icon column -->
                         <tbody id="trades-tbody"></tbody>
                     </table>
                 </div>`;
@@ -738,7 +766,7 @@
             
             log('debug', 'Populating trades table');
             tbody.innerHTML = '';
-            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="8"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
+            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; } // Adjusted colspan
 
             try {
                 log('debug', 'Fetching trades data from API');
@@ -798,7 +826,7 @@
                     
                     // Temporarily show ALL trades for debugging (remove this later)
                     tbody.innerHTML = `
-                        <tr><td colspan="8" style="text-align:center; padding: 2rem;">
+                        <tr><td colspan="9" style="text-align:center; padding: 2rem;"> <!-- Adjusted colspan -->
                             No insider purchases found with current filter.<br>
                             <small style="color: var(--text-tertiary); margin-top: 0.5rem; display: block;">
                                 Found ${trades.length} total trades. Trade types: ${uniqueTradeTypes.join(', ')}
@@ -821,7 +849,8 @@
                                 <td>${trade.Price || ''}</td>
                                 <td>${trade.Qty || ''}</td>
                                 <td>${trade['ΔOwn'] || trade['Î"Own'] || ''}</td>
-                                <td>${trade.Value || ''}<br><small style="background: yellow; color: black;"><strong>Type: ${trade['Trade Type'] || 'MISSING'}</strong></small></td>`;
+                                <td>${trade.Value || ''}<br><small style="background: yellow; color: black;"><strong>Type: ${trade['Trade Type'] || 'MISSING'}</strong></small></td>
+                                <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`;
                             tbody.appendChild(row);
                         });
                     };
@@ -873,11 +902,12 @@
                         <td>$${price.toFixed(2)}</td>
                         <td>${qty.toLocaleString()}</td>
                         <td>${deltaOwn}</td>
-                        <td>$${value.toLocaleString()}</td>`;
+                        <td>$${value.toLocaleString()}</td>
+                        <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`; <!-- Added the chevron icon -->
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
-                    detailsRow.innerHTML = `<td colspan="8" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`;
+                    detailsRow.innerHTML = `<td colspan="9" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`; // Adjusted colspan
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
@@ -886,29 +916,37 @@
                 });
             } catch (error) {
                 log('error', 'Failed to fetch trades', error);
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`; // Adjusted colspan
             }
         }
         
         function toggleTradeDetails(row, detailsRow, ticker) {
             const rowId = row.dataset.id;
             const isActive = row.classList.contains('active-row');
-            
+            const toggleIcon = row.querySelector('.trade-toggle-icon'); // Get the icon
+
             log('debug', 'Toggling trade details', { ticker, rowId, isActive });
             
             if (appState.activeTradeDetails && appState.activeTradeDetails !== rowId) {
                 const oldActiveRow = document.querySelector(`.trade-row[data-id="${appState.activeTradeDetails}"]`);
                 if (oldActiveRow) {
                     const oldDetailsRow = oldActiveRow.nextElementSibling;
+                    const oldToggleIcon = oldActiveRow.querySelector('.trade-toggle-icon');
                     oldActiveRow.classList.remove('active-row');
                     if (oldDetailsRow && oldDetailsRow.classList.contains('trade-details-row')) {
                         oldDetailsRow.classList.remove('active');
+                    }
+                    if (oldToggleIcon) { // Rotate back the old icon
+                        oldToggleIcon.classList.remove('rotated');
                     }
                 }
             }
 
             row.classList.toggle('active-row', !isActive);
             detailsRow.classList.toggle('active', !isActive);
+            if (toggleIcon) { // Rotate the current icon
+                toggleIcon.classList.toggle('rotated', !isActive);
+            }
 
             if (!isActive) {
                 appState.activeTradeDetails = rowId;
@@ -928,6 +966,7 @@
 
             const createWidget = (src, config) => {
                 const div = document.createElement('div');
+                div.className = 'tradingview-widget-container'; // Apply the container class
                 const script = document.createElement('script');
                 script.type = 'text/javascript';
                 script.src = src;
@@ -945,7 +984,6 @@
             container.append(
                 createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js', overviewConfig),
                 createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js', profileConfig)
-                // timelineConfig is removed from here
             );
         }
 
