@@ -132,101 +132,103 @@
         .recommended-tag { font-size: 0.7rem; color: var(--warning-yellow); margin-left: 0.5rem; }
         .save-settings-container { margin-top: 2rem; text-align: right; }
 
-        /* --- TRADES FEED & TRADINGVIEW --- */
-        .trades-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            table-layout: fixed;
+        /* --- NEW TRADES FEED CARD DESIGN --- */
+        .trades-feed-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
         }
-        .trades-table th, .trades-table td { 
-            padding: 0.75rem; 
-            border-bottom: 1px solid var(--border-color); 
-            vertical-align: middle; 
-            word-break: break-word;
-            white-space: normal;
-            text-align: left;
+        .trade-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .trade-card:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 198, 255, 0.1);
+        }
+        .trade-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        .trade-card-company h3 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        .trade-card-company .ticker {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .trade-card-insider {
+            text-align: right;
+        }
+        .trade-card-insider .insider-name {
+            font-weight: 600;
+        }
+        .trade-card-insider .insider-title {
+            color: var(--text-tertiary);
             font-size: 0.9rem;
         }
-
-        /* Enhanced widths for date columns to display formatted dates properly */
-        .trades-table th:nth-child(1), .trades-table td:nth-child(1) { /* Filing Date */
-            width: 12%;
-            min-width: 120px;
+        .trade-card-body {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
-        .trades-table th:nth-child(2), .trades-table td:nth-child(2) { /* Trade Date */
-            width: 12%;
-            min-width: 120px;
+        .trade-data-point {
+            background: rgba(0,0,0,0.2);
+            padding: 0.75rem;
+            border-radius: 8px;
         }
-        .trades-table th:nth-child(3), .trades-table td:nth-child(3) { /* Company */
-            width: 18%;
+        .trade-data-point .label {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .trades-table th:nth-child(4), .trades-table td:nth-child(4) { /* Insider */
-            width: 18%;
+        .trade-data-point .value {
+            font-size: 1.1rem;
+            font-weight: 600;
         }
-        .trades-table th:nth-child(5), .trades-table td:nth-child(5) { /* Price */
-            width: 10%;
+        .trade-data-point .value.positive { color: var(--success-green); }
+        .trade-card-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            text-align: right;
         }
-        .trades-table th:nth-child(6), .trades-table td:nth-child(6) { /* Quantity */
-            width: 12%;
+        .trade-details-content {
+            display: none;
+            padding: 1.5rem 0 0 0;
+            animation: slideDown 0.5s ease;
         }
-        .trades-table th:nth-child(7), .trades-table td:nth-child(7) { /* ΔOwn */
-            width: 8%;
-        }
-        .trades-table th:nth-child(8), .trades-table td:nth-child(8) { /* Value */
-            width: 12%;
-        }
-        .trades-table th:nth-child(9), .trades-table td:nth-child(9) { /* Icon */
-            width: 5%;
-            text-align: center;
-        }
-
-        .trades-table tbody tr.trade-row { cursor: pointer; transition: background-color 0.2s; }
-        .trades-table tbody tr.trade-row:hover { background-color: rgba(0, 198, 255, 0.05); }
-        .trades-table tr.active-row { background-color: rgba(0, 198, 255, 0.1); }
-        .company-name { font-weight: 600; }
-        .ticker { color: var(--text-secondary); font-size: 0.9rem; }
-        .trade-details-row { display: none; }
-        .trade-details-row.active { display: table-row; }
-        .trade-details-cell { padding: 0 !important; }
-        
-        /* Flexbox layout for TradingView widgets */
-        .trade-details-content { 
-            background: var(--dark-bg); 
-            padding: 1rem; 
-            display: flex; 
-            gap: 0; 
-            animation: slideDown 0.5s ease; 
+        .trade-details-content.active {
+            display: block;
         }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* TradingView widget containers */
-        .tradingview-widget-container { 
-            flex: 1;
-            height: 500px;
-            overflow: hidden;
-            background: transparent;
-        }
-        
-        .tradingview-widget-container__widget {
-            height: 100% !important;
-            width: 100% !important;
-        }
-
-        /* Styles for the dropdown indicator */
-        .trade-toggle-icon {
-            margin-left: 0.5rem;
-            transition: transform 0.3s ease;
-            color: var(--accent-cyan);
-            font-size: 0.9rem;
-        }
-        .trade-toggle-icon.rotated {
-            transform: rotate(180deg);
+        .tradingview-widget-container {
+            height: 450px;
+            width: 100%;
         }
 
         .skeleton-loader { background: linear-gradient(90deg, var(--card-bg) 25%, var(--text-tertiary) 50%, var(--card-bg) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 4px; color: transparent !important; }
-        .skeleton-row td > div { height: 20px; width: 80%; }
+        .skeleton-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .skeleton-card .skeleton-line {
+            height: 20px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .feed-container { overflow-x: auto; }
 
         /* --- LOCKED DASHBOARD VIEW --- */
         .locked-dashboard { position: relative; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; }
@@ -431,18 +433,15 @@
 
             // --- UTILITY FUNCTIONS ---
             const formatDate = function(dateStr) {
-                if (!dateStr) return '';
-                try {
-                    const date = new Date(dateStr);
-                    if (isNaN(date.getTime())) return dateStr;
-                    return date.toLocaleDateString('en-US', { 
-                        month: 'numeric', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                    });
-                } catch (error) {
-                    return dateStr;
-                }
+                if (!dateStr) return 'N/A';
+                // Handles formats like "6/18/2025 11:48" or "6/17/2025"
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr; // Return original if parsing fails
+                return date.toLocaleDateString('en-US', { 
+                    month: 'numeric', 
+                    day: 'numeric', 
+                    year: '2-digit' 
+                });
             };
 
             // --- DOM Elements ---
@@ -821,12 +820,20 @@
                 feedTabContent.innerHTML = `
                     <div class="locked-dashboard">
                         <div class="locked-content">
-                            <div class="feed-container">
-                            <table class="trades-table">
-                                <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th></tr></thead>
-                                <tbody><tr><td>10/26/2024</td><td>10/25/2024</td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson<br><small>CTO</small></td><td>$45.25</td><td>99,500</td><td>+15.2%</td><td>$4,502,500</td></tr><tr><td>10/25/2024</td><td>10/24/2024</td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts<br><small>CEO</small></td><td>$8.59</td><td>99,400</td><td>+8.3%</td><td>$853,900</td></tr><tr><td>10/25/2024</td><td>10/24/2024</td><td>Wayne Enterprises<br><small>WAYN</small></td><td>Lucius Fox<br><small>CFO</small></td><td>$11.28</td><td>99,300</td><td>+12.7%</td><td>$1,120,880</td></tr></tbody>
-                            </table>
-                            </div>
+                             <div class="trades-feed-grid">
+                                <div class="trade-card">
+                                    <div class="trade-card-header">
+                                        <div class="trade-card-company"><h3>Cyberdyne Systems</h3><span class="ticker">CDYNE</span></div>
+                                        <div class="trade-card-insider"><div class="insider-name">Miles Dyson</div><div class="insider-title">CTO</div></div>
+                                    </div>
+                                    <div class="trade-card-body">
+                                        <div class="trade-data-point"><div class="label">Trade Value</div><div class="value">$4,502,500</div></div>
+                                        <div class="trade-data-point"><div class="label">Share Price</div><div class="value">$45.25</div></div>
+                                        <div class="trade-data-point"><div class="label">Shares</div><div class="value">99,500</div></div>
+                                        <div class="trade-data-point"><div class="label">Ownership Change</div><div class="value positive">+15.2%</div></div>
+                                    </div>
+                                </div>
+                             </div>
                         </div>
                         <div class="lock-overlay">
                             <i class="fas fa-lock"></i><h2>Full Feed Locked</h2>
@@ -838,24 +845,41 @@
             
             async function renderFullDashboard() {
                 log('debug', 'Rendering full dashboard');
-                feedTabContent.innerHTML = `
-                    <div class="feed-container">
-                        <table class="trades-table">
-                            <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead>
-                            <tbody id="trades-tbody"></tbody>
-                        </table>
-                    </div>`;
+                feedTabContent.innerHTML = `<div class="trades-feed-grid" id="trades-feed-grid"></div>`;
                 await populateTradesTable();
             }
 
+            function getTradeValue(trade, key, fallbackKeys = []) {
+                const keys = [key, ...fallbackKeys];
+                for (const k of keys) {
+                    if (trade[k] !== undefined && trade[k] !== null) {
+                        return trade[k];
+                    }
+                }
+                return '';
+            }
+
             async function populateTradesTable() {
-                const tbody = document.getElementById('trades-tbody');
-                if (!tbody) return;
+                const grid = document.getElementById('trades-feed-grid');
+                if (!grid) return;
                 
-                log('debug', 'Populating trades table');
-                tbody.innerHTML = '';
-                for(let i=0; i<5; i++) { 
-                    tbody.innerHTML += `<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; 
+                log('debug', 'Populating trades feed');
+                grid.innerHTML = ''; // Clear previous content
+                // Show skeleton loaders
+                for(let i=0; i<3; i++) { 
+                    const skeletonCard = document.createElement('div');
+                    skeletonCard.className = 'skeleton-card';
+                    skeletonCard.innerHTML = `
+                        <div class="skeleton-line skeleton-loader" style="width: 60%; height: 24px;"></div>
+                        <div class="skeleton-line skeleton-loader" style="width: 40%; height: 18px;"></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                            <div class="skeleton-line skeleton-loader"></div>
+                            <div class="skeleton-line skeleton-loader"></div>
+                            <div class="skeleton-line skeleton-loader"></div>
+                            <div class="skeleton-line skeleton-loader"></div>
+                        </div>
+                    `;
+                    grid.appendChild(skeletonCard);
                 }
 
                 try {
@@ -866,221 +890,170 @@
                     
                     log('success', 'Trades data fetched successfully', { count: trades.length });
                     
-                    console.log('🔍 FULL DEBUG - First trade object:');
-                    console.log(JSON.stringify(trades[0], null, 2));
-                    console.log('🔍 All column names:', Object.keys(trades[0]));
-                    
-                    const purchasesTrades = trades.filter(function(trade) {
-                        const tradeTypeKey = Object.keys(trade).find(function(key) {
-                            return key.toLowerCase().includes('trade') && key.toLowerCase().includes('type');
-                        });
-                        
-                        if (!tradeTypeKey) {
-                            console.log('❌ No Trade Type column found in:', Object.keys(trade));
-                            return false;
-                        }
-                        
+                    const purchasesTrades = trades.filter(trade => {
+                        const tradeTypeKey = Object.keys(trade).find(key => key.toLowerCase().includes('trade') && key.toLowerCase().includes('type'));
+                        if (!tradeTypeKey) return false;
                         const tradeType = (trade[tradeTypeKey] || '').toString().toLowerCase().trim();
-                        console.log(`🔍 Checking trade type: "${tradeType}" from column: "${tradeTypeKey}"`);
-                        
-                        const isPurchase = (
-                            tradeType.includes('purchase') ||
-                            tradeType.includes('p - ') ||
-                            tradeType.startsWith('p') ||
-                            tradeType === 'p'
-                        );
-                        
-                        console.log(`✅ Is purchase: ${isPurchase}`);
-                        return isPurchase;
+                        return tradeType.includes('purchase') || tradeType.includes('p -') || tradeType.startsWith('p');
                     });
                     
-                    log('debug', 'Filtered trades', { 
-                        total: trades.length, 
-                        purchases: purchasesTrades.length,
-                        sampleTradeTypes: trades.slice(0, 5).map(function(t) { return t['Trade Type']; })
-                    });
-                    
-                    tbody.innerHTML = '';
+                    grid.innerHTML = ''; // Clear skeletons
                     if (purchasesTrades.length === 0) {
-                        const uniqueTradeTypes = [...new Set(trades.map(function(t) { return t['Trade Type']; }))];
-                        console.log('🚨 No purchases found. All Trade Types:', uniqueTradeTypes);
-                        
-                        tbody.innerHTML = `
-                            <tr><td colspan="9" style="text-align:center; padding: 2rem;">
-                                No insider purchases found with current filter.<br>
-                                <small style="color: var(--text-tertiary); margin-top: 0.5rem; display: block;">
-                                    Found ${trades.length} total trades. Trade types: ${uniqueTradeTypes.join(', ')}
-                                </small>
-                                <button onclick="showAllTrades()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary-blue); color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                    Show All Trades (Debug)
-                                </button>
-                            </td></tr>`;
-                        
-                        window.showAllTrades = function() {
-                            tbody.innerHTML = '';
-                            trades.slice(0, 10).forEach(function(trade) {
-                                const row = document.createElement('tr');
-                                
-                                const filingDate = trade['Filing Date'] || trade['FilingÂ Date'] || '';
-                                const tradeDate = trade['Trade Date'] || trade['TradeÂ Date'] || '';
-                                
-                                row.innerHTML = `
-                                    <td>${formatDate(filingDate)}</td>
-                                    <td>${formatDate(tradeDate)}</td>
-                                    <td>${trade['Company Name'] || trade['CompanyÂ Name'] || ''}<br><small>${trade.Ticker || ''}</small></td>
-                                    <td>${trade['Insider Name'] || trade['InsiderÂ Name'] || ''}<br><small>${trade.Title || ''}</small></td>
-                                    <td>${trade.Price || ''}</td>
-                                    <td>${trade.Qty || ''}</td>
-                                    <td>${trade['ΔOwn'] || trade['Î"Own'] || ''}</td>
-                                    <td>${trade.Value || ''}<br><small style="background: yellow; color: black;"><strong>Type: ${trade['Trade Type'] || 'MISSING'}</strong></small></td>
-                                    <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`;
-                                tbody.appendChild(row);
-                            });
-                        };
+                        grid.innerHTML = `<p style="text-align: center; color: var(--text-secondary);">No recent insider purchases found.</p>`;
                         return;
                     }
 
-                    purchasesTrades.slice(0, 50).forEach(function(trade) {
-                        const tradeId = `${trade.Ticker}-${trade['Trade Date']}`.replace(/[^a-zA-Z0-9]/g, '');
-                        const row = document.createElement('tr');
-                        row.className = 'trade-row';
-                        row.dataset.ticker = trade.Ticker;
-                        row.dataset.id = tradeId;
+                    purchasesTrades.slice(0, 50).forEach(trade => {
+                        const tradeId = `${getTradeValue(trade, 'Ticker')}-${getTradeValue(trade, 'Trade Date', ['TradeÂ Date'])}`.replace(/[^a-zA-Z0-9]/g, '');
                         
-                        const filingDate = trade['Filing Date'] || trade['FilingÂ Date'] || '';
-                        const tradeDate = trade['Trade Date'] || trade['TradeÂ Date'] || '';
-                        const companyName = trade['Company Name'] || trade['CompanyÂ Name'] || '';
-                        const ticker = trade.Ticker || '';
-                        const insiderName = trade['Insider Name'] || trade['InsiderÂ Name'] || '';
-                        const title = trade.Title || '';
-                        
-                        const priceStr = (trade.Price || '0').toString().replace(/[$,]/g, '');
-                        const price = parseFloat(priceStr) || 0;
-                        
-                        const qtyStr = (trade.Qty || '0').toString().replace(/[,$]/g, '');
-                        const qty = parseInt(qtyStr) || 0;
-                        
-                        const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || trade['Delta Own'] || '';
-                        
-                        const valueStr = (trade.Value || '0').toString().replace(/[$,]/g, '');
-                        const value = parseInt(valueStr) || 0;
-                        
-                        row.innerHTML = `
-                            <td>${formatDate(filingDate)}</td>
-                            <td>${formatDate(tradeDate)}</td>
-                            <td><div class="company-name">${companyName}</div><div class="ticker">${ticker}</div></td>
-                            <td><div>${insiderName}</div><div class="text-secondary">${title}</div></td>
-                            <td>$${price.toFixed(2)}</td>
-                            <td>${qty.toLocaleString()}</td>
-                            <td>${deltaOwn}</td>
-                            <td>$${value.toLocaleString()}</td>
-                            <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`;
-                        
-                        const detailsRow = document.createElement('tr');
-                        detailsRow.className = 'trade-details-row';
-                        detailsRow.innerHTML = `<td colspan="9" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`;
+                        const filingDate = getTradeValue(trade, 'Filing Date', ['FilingÂ Date']);
+                        const tradeDate = getTradeValue(trade, 'Trade Date', ['TradeÂ Date']);
+                        const companyName = getTradeValue(trade, 'Company Name', ['CompanyÂ Name']);
+                        const ticker = getTradeValue(trade, 'Ticker');
+                        const insiderName = getTradeValue(trade, 'Insider Name', ['InsiderÂ Name']);
+                        const title = getTradeValue(trade, 'Title');
+                        const price = parseFloat(String(getTradeValue(trade, 'Price')).replace(/[$,]/g, '')) || 0;
+                        const qty = parseInt(String(getTradeValue(trade, 'Qty')).replace(/[,]/g, '')) || 0;
+                        const deltaOwn = getTradeValue(trade, 'ΔOwn', ['Î"Own', 'Delta Own']);
+                        const value = parseFloat(String(getTradeValue(trade, 'Value')).replace(/[$,]/g, '')) || 0;
 
-                        tbody.appendChild(row);
-                        tbody.appendChild(detailsRow);
-
-                        row.addEventListener('click', function() {
-                            toggleTradeDetails(row, detailsRow, ticker);
-                        });
+                        const card = document.createElement('div');
+                        card.className = 'trade-card';
+                        card.id = `trade-${tradeId}`;
+                        card.innerHTML = `
+                            <div class="trade-card-header">
+                                <div class="trade-card-company">
+                                    <h3>${companyName}</h3>
+                                    <span class="ticker">${ticker}</span>
+                                </div>
+                                <div class="trade-card-insider">
+                                    <div class="insider-name">${insiderName}</div>
+                                    <div class="insider-title">${title}</div>
+                                </div>
+                            </div>
+                            <div class="trade-card-body">
+                                <div class="trade-data-point">
+                                    <div class="label">Trade Value</div>
+                                    <div class="value">$${value.toLocaleString()}</div>
+                                </div>
+                                <div class="trade-data-point">
+                                    <div class="label">Share Price</div>
+                                    <div class="value">$${price.toFixed(2)}</div>
+                                </div>
+                                <div class="trade-data-point">
+                                    <div class="label">Shares</div>
+                                    <div class="value">${qty.toLocaleString()}</div>
+                                </div>
+                                <div class="trade-data-point">
+                                    <div class="label">Filing Date</div>
+                                    <div class="value">${formatDate(filingDate)}</div>
+                                </div>
+                                <div class="trade-data-point">
+                                    <div class="label">Trade Date</div>
+                                    <div class="value">${formatDate(tradeDate)}</div>
+                                </div>
+                                <div class="trade-data-point">
+                                    <div class="label">Ownership Change</div>
+                                    <div class="value ${deltaOwn.startsWith('+') ? 'positive' : ''}">${deltaOwn}</div>
+                                </div>
+                            </div>
+                            <div class="trade-card-footer">
+                                <button class="btn btn-secondary" onclick="toggleTradeDetails(this, '${tradeId}', '${ticker}')">
+                                    <i class="fas fa-chart-line"></i> View Chart
+                                </button>
+                            </div>
+                            <div class="trade-details-content" id="details-content-${tradeId}"></div>
+                        `;
+                        grid.appendChild(card);
                     });
                 } catch (error) {
-                    log('error', 'Failed to fetch trades', error);
-                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
+                    log('error', 'Failed to fetch or render trades', error);
+                    grid.innerHTML = `<p style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</p>`;
                 }
             }
             
-            function toggleTradeDetails(row, detailsRow, ticker) {
-                const rowId = row.dataset.id;
-                const isActive = row.classList.contains('active-row');
-                const toggleIcon = row.querySelector('.trade-toggle-icon');
-
-                log('debug', 'Toggling trade details', { ticker: ticker, rowId: rowId, isActive: isActive });
+            window.toggleTradeDetails = function(button, tradeId, ticker) {
+                const detailsContent = document.getElementById(`details-content-${tradeId}`);
+                const isActive = detailsContent.classList.contains('active');
                 
-                if (appState.activeTradeDetails && appState.activeTradeDetails !== rowId) {
-                    const oldActiveRow = document.querySelector(`.trade-row[data-id="${appState.activeTradeDetails}"]`);
-                    if (oldActiveRow) {
-                        const oldDetailsRow = oldActiveRow.nextElementSibling;
-                        const oldToggleIcon = oldActiveRow.querySelector('.trade-toggle-icon');
-                        oldActiveRow.classList.remove('active-row');
-                        if (oldDetailsRow && oldDetailsRow.classList.contains('trade-details-row')) {
-                            oldDetailsRow.classList.remove('active');
-                        }
-                        if (oldToggleIcon) {
-                            oldToggleIcon.classList.remove('rotated');
-                        }
+                // Close any other open details
+                if (appState.activeTradeDetails && appState.activeTradeDetails !== tradeId) {
+                    const oldDetails = document.getElementById(`details-content-${appState.activeTradeDetails}`);
+                    const oldButton = document.querySelector(`#trade-${appState.activeTradeDetails} button`);
+                    if (oldDetails) oldDetails.classList.remove('active');
+                    if (oldButton) {
+                        oldButton.innerHTML = '<i class="fas fa-chart-line"></i> View Chart';
+                        oldButton.classList.remove('btn-primary');
+                        oldButton.classList.add('btn-secondary');
                     }
                 }
-
-                row.classList.toggle('active-row', !isActive);
-                detailsRow.classList.toggle('active', !isActive);
-                if (toggleIcon) {
-                    toggleIcon.classList.toggle('rotated', !isActive);
-                }
-
+                
+                detailsContent.classList.toggle('active');
+                
                 if (!isActive) {
-                    appState.activeTradeDetails = rowId;
-                    loadTradingViewWidgets(ticker, `details-content-${rowId}`);
+                    appState.activeTradeDetails = tradeId;
+                    button.innerHTML = '<i class="fas fa-times"></i> Close Chart';
+                    button.classList.remove('btn-secondary');
+                    button.classList.add('btn-primary');
+                    loadTradingViewWidgets(ticker, `details-content-${tradeId}`);
                 } else {
                     appState.activeTradeDetails = null;
+                    button.innerHTML = '<i class="fas fa-chart-line"></i> View Chart';
+                    button.classList.remove('btn-primary');
+                    button.classList.add('btn-secondary');
+                    detailsContent.innerHTML = ''; // Clear content to allow reloading
                 }
             }
 
             function loadTradingViewWidgets(ticker, containerId) {
                 const container = document.getElementById(containerId);
-                if (!container || container.dataset.loaded === 'true') return;
+                if (!container || container.innerHTML !== '') return;
                 
                 log('debug', 'Loading TradingView widgets', { ticker: ticker, containerId: containerId });
-                container.innerHTML = '';
-                container.dataset.loaded = 'true';
-
-                const chartId = `tradingview_chart_${ticker}_${Date.now()}`;
-                const profileId = `tradingview_profile_${ticker}_${Date.now()}`;
-
-                const chartDiv = document.createElement('div');
-                chartDiv.className = 'tradingview-widget-container';
-                chartDiv.innerHTML = `
-                    <div class="tradingview-widget-container__widget" id="${chartId}"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-                    {
-                        "autosize": true,
-                        "symbol": "${ticker}",
-                        "interval": "D",
-                        "timezone": "Etc/UTC",
-                        "theme": "dark",
-                        "style": "1",
-                        "locale": "en",
-                        "enable_publishing": false,
-                        "backgroundColor": "rgba(16, 24, 44, 0.7)",
-                        "gridColor": "rgba(0, 198, 255, 0.1)",
-                        "hide_top_toolbar": false,
-                        "hide_legend": false,
-                        "save_image": false,
-                        "container_id": "${chartId}"
-                    }
-                    </scr` + `ipt>`;
-
-                const profileDiv = document.createElement('div');
-                profileDiv.className = 'tradingview-widget-container';
-                profileDiv.innerHTML = `
-                    <div class="tradingview-widget-container__widget" id="${profileId}"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js" async>
-                    {
-                        "width": "100%",
-                        "height": "100%",
-                        "colorTheme": "dark",
-                        "isTransparent": true,
-                        "symbol": "${ticker}",
-                        "locale": "en",
-                        "container_id": "${profileId}"
-                    }
-                    </scr` + `ipt>`;
                 
-                container.appendChild(chartDiv);
-                container.appendChild(profileDiv);
+                const widgetWrapper = document.createElement('div');
+                widgetWrapper.style.display = 'flex';
+                widgetWrapper.style.gap = '1rem';
+                widgetWrapper.style.flexWrap = 'wrap';
+
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'tradingview-widget-container';
+                chartContainer.style.flex = '2 1 600px'; // Flex grow, shrink, basis
+                
+                const profileContainer = document.createElement('div');
+                profileContainer.className = 'tradingview-widget-container';
+                profileContainer.style.flex = '1 1 300px';
+                profileContainer.style.minHeight = '450px';
+
+                widgetWrapper.appendChild(chartContainer);
+                widgetWrapper.appendChild(profileContainer);
+                container.appendChild(widgetWrapper);
+
+                // Advanced Chart Widget
+                new TradingView.widget({
+                    "autosize": true,
+                    "symbol": ticker,
+                    "interval": "D",
+                    "timezone": "Etc/UTC",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "en",
+                    "enable_publishing": false,
+                    "backgroundColor": "rgba(16, 24, 44, 1)",
+                    "gridColor": "rgba(0, 198, 255, 0.1)",
+                    "container_id": chartContainer.id
+                });
+
+                // Symbol Profile Widget
+                new TradingView.widget({
+                    "width": "100%",
+                    "height": "100%",
+                    "colorTheme": "dark",
+                    "isTransparent": true,
+                    "symbol": ticker,
+                    "locale": "en",
+                    "container_id": profileContainer.id
+                });
             }
 
             function populateSettingsView() {
@@ -1217,5 +1190,6 @@
             if (appState.debugMode) window.refreshDebugInfo();
         });
     </script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </body>
 </html>
