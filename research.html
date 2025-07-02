@@ -1,0 +1,1975 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DarkHorse Research - Navigating Market Turbulence</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --dark-navy: #02040a;
+            --space-cadet: #101727;
+            --slate-blue: #2a3b5a;
+            --light-slate: #a0aec0;
+            --white: #ffffff;
+            --gold: #ffc700;
+            --cyan: #00d1ff;
+            --green-glow: #00ff88;
+            --red-glow: #ff4d4d;
+            --font-primary: 'Inter', sans-serif;
+            --font-mono: 'Roboto Mono', monospace;
+            --container-width: 1280px;
+            --glass-bg: rgba(16, 23, 39, 0.5);
+            --glass-border: rgba(42, 59, 90, 0.5);
+        }
+
+        /* --- BASE STYLES --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--dark-navy);
+            color: var(--light-slate);
+            font-family: var(--font-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            overflow: hidden; /* Contains all animations */
+        }
+
+        .section-padding {
+            padding: 10rem 2rem;
+        }
+
+        .container {
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--white);
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        h1 { font-size: clamp(3rem, 7vw, 5.5rem); }
+        h2 { font-size: clamp(2.5rem, 5vw, 3.5rem); }
+        h3 { font-size: 1.75rem; }
+        p { font-size: 1.1rem; max-width: 70ch; }
+        
+        .highlight-cyan { 
+            color: var(--cyan);
+            text-shadow: 0 0 15px rgba(0, 209, 255, 0.3);
+        }
+        
+        .highlight-gold {
+            color: var(--gold);
+            text-shadow: 0 0 15px rgba(255, 199, 0, 0.3);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .section-header p {
+            margin-top: 1.5rem;
+            font-size: 1.25rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            text-align: center;
+            padding: 2rem;
+            background: radial-gradient(ellipse at 50% 0%, rgba(16, 23, 39, 1) 0%, var(--dark-navy) 70%);
+        }
+
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+        }
+
+        .hero-content h1 {
+            font-weight: 900;
+        }
+        
+        .hero-content p {
+            font-size: 1.5rem;
+            color: var(--light-slate);
+            margin: 2rem auto 3rem;
+            max-width: 800px;
+            font-weight: 300;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.2rem 3rem;
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--gold) 100%);
+            color: var(--dark-navy);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 10px 30px rgba(0, 209, 255, 0.2), 0 5px 15px rgba(255, 199, 0, 0.1);
+        }
+        .hero-cta:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 209, 255, 0.3), 0 10px 20px rgba(255, 199, 0, 0.2);
+        }
+
+        .scroll-down-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--light-slate);
+            font-size: 0.9rem;
+            opacity: 0;
+            animation: fadeIn 2s 2s forwards;
+        }
+        .scroll-down-indicator i {
+            display: block;
+            margin: 0.5rem auto 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        @keyframes fadeIn {
+            to { opacity: 0.7; }
+        }
+
+        /* --- CRASH TEST SECTION --- */
+        .crash-test-section {
+            position: relative;
+            background-color: var(--space-cadet);
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .crash-test-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .crash-test-intro {
+            grid-column: 1 / 13;
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .crash-test-intro h2 { font-size: 3rem; }
+        .crash-test-intro p { font-size: 1.25rem; margin-top: 1.5rem; max-width: 800px; margin-left:auto; margin-right: auto;}
+        
+        .crash-test-chart-container {
+            grid-column: 1 / 8;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .chart-svg {
+            width: 100%;
+            height: auto;
+            overflow: visible;
+        }
+        .chart-line {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .bot-line { stroke: var(--cyan); }
+        .spy-line { stroke: var(--red-glow); }
+        .chart-labels text { font-family: var(--font-mono); font-size: 14px; fill: var(--light-slate); }
+        .chart-axis-line { stroke: var(--slate-blue); stroke-width: 1; }
+        
+        .crash-test-metrics {
+            grid-column: 8 / 13;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .metric-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--cyan);
+        }
+        .metric-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .metric-icon {
+            font-size: 1.5rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .metric-icon.bot-icon { background-color: rgba(0, 209, 255, 0.1); color: var(--cyan); }
+        .metric-icon.spy-icon { background-color: rgba(255, 77, 77, 0.1); color: var(--red-glow); }
+        .metric-title { font-size: 1.1rem; color: var(--white); font-weight: 600; }
+        
+        .metric-value {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            font-family: var(--font-mono);
+            line-height: 1;
+        }
+        .metric-value.positive { color: var(--green-glow); text-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+        .metric-value.negative { color: var(--red-glow); text-shadow: 0 0 15px rgba(255, 77, 77, 0.4); }
+        
+       .march-spotlight {
+            grid-column: 1 / 13;
+            margin-top: 4rem;
+            background: linear-gradient(135deg, rgba(0, 209, 255, 0.05), rgba(255, 199, 0, 0.05));
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+        }
+
+        .march-spotlight h3 {
+            font-size: 2.25rem;
+        }
+
+        .march-spotlight p {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .march-spotlight .comparison {
+            text-align: initial;
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .comparison > div {
+            font-size: 1.2rem;
+        }
+        .comparison .label {
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            color: var(--light-slate);
+        }
+        
+        /* --- HOW IT WORKS SECTION --- */
+        .how-it-works-section {
+            background: radial-gradient(circle at 100% 0%, var(--space-cadet) 0%, var(--dark-navy) 40%);
+        }
+        
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 5rem;
+        }
+        
+        .pillar-card {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+        .pillar-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: var(--glass-bg);
+            border-color: var(--cyan);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+        }
+        .pillar-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 209, 255, 0.1) 0%, transparent 40%);
+            transform: scale(0);
+            transition: transform 0.8s ease-out;
+            z-index: 0;
+        }
+        .pillar-card:hover::before {
+            transform: scale(1);
+        }
+        
+        .pillar-content { position: relative; z-index: 1; }
+        .pillar-icon {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            color: var(--cyan);
+        }
+        .pillar-card h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .pillar-card p {
+            font-size: 1.05rem;
+        }
+        
+        /* --- LONG-TERM PERFORMANCE SECTION --- */
+        .performance-section {
+            background: var(--dark-navy);
+        }
+        
+        .year-cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            margin-top: 5rem;
+        }
+        
+        .year-card {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 3rem;
+            align-items: center;
+            background-color: var(--space-cadet);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+        }
+        .year-card:hover {
+            border-color: var(--gold);
+        }
+        
+        .year-label {
+            text-align: center;
+        }
+        .year-label h3 {
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--slate-blue);
+            transition: color 0.3s ease;
+        }
+        .year-card:hover .year-label h3 {
+            color: var(--gold);
+        }
+        
+        .year-data {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .performance-bar {
+            width: 100%;
+            height: 40px;
+            background-color: var(--dark-navy);
+            border: 1px solid var(--slate-blue);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .bar-fill {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            border-radius: 8px;
+            transform: scaleX(0);
+            transform-origin: left;
+        }
+        .bar-fill.bot-bar { background: linear-gradient(90deg, var(--cyan), var(--green-glow)); }
+        .bar-fill.spy-bar { background-color: var(--slate-blue); }
+        .bar-fill.spy-bar.negative-return { background: var(--red-glow); }
+        
+        .bar-label {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--white);
+            font-weight: 600;
+        }
+        .bar-value {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--white);
+        }
+        
+        /* --- TOP TRADES SECTION --- */
+        .top-trades-section {
+            background: radial-gradient(circle at 0% 100%, var(--space-cadet) 0%, var(--dark-navy) 40%);
+        }
+        
+        .trades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 2rem;
+            margin-top: 5rem;
+        }
+        
+        .trade-card {
+            background-color: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(5px);
+            border-radius: 16px;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        .trade-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -150%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            transform: skewX(-25deg);
+            transition: left 0.8s ease;
+        }
+        .trade-card:hover::after {
+            left: 150%;
+        }
+        
+        .trade-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+        .trade-ticker {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--white);
+        }
+        .trade-role {
+            background-color: var(--slate-blue);
+            color: var(--cyan);
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .trade-return {
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .trade-return-value {
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: var(--green-glow);
+            line-height: 1;
+            font-family: var(--font-mono);
+            text-shadow: 0 0 25px rgba(0, 255, 136, 0.5);
+        }
+        .trade-return-label {
+            font-size: 1.1rem;
+            color: var(--light-slate);
+        }
+        
+        .trade-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .trade-detail {
+            font-family: var(--font-mono);
+        }
+        .trade-detail-label {
+            font-size: 0.8rem;
+            color: var(--light-slate);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .trade-detail-value {
+            font-size: 1.2rem;
+            color: var(--white);
+            font-weight: 600;
+        }
+        
+        /* --- ADVANTAGES SECTION --- */
+        .advantages-section {
+            background-color: var(--dark-navy);
+        }
+        .advantages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 5rem;
+        }
+        .advantage-card {
+            text-align: center;
+            padding: 2rem;
+        }
+        .advantage-icon {
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            color: var(--gold);
+        }
+        .advantage-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* --- RESPONSIVE ADJUSTMENTS --- */
+        @media (max-width: 1024px) {
+            .crash-test-grid {
+                grid-template-columns: 1fr;
+            }
+            .crash-test-chart-container, .crash-test-metrics {
+                grid-column: 1 / -1;
+            }
+            .crash-test-metrics {
+                flex-direction: row;
+                justify-content: space-around;
+            }
+             .year-card {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                text-align: center;
+            }
+            .year-label h3 { font-size: 3rem; }
+        }
+
+        @media (max-width: 768px) {
+            .section-padding { padding: 6rem 1rem; }
+            h1 { font-size: 2.5rem; }
+            h2 { font-size: 2rem; }
+            .hero-content p { font-size: 1.2rem; }
+            .crash-test-metrics {
+                flex-direction: column;
+            }
+             .pillars-grid, .trades-grid, .advantages-grid {
+                grid-template-columns: 1fr;
+            }
+            .march-spotlight .comparison { flex-direction: column; gap: 2rem; }
+        }
+
+        /* --- GSAP UTILITIES --- */
+        .gsap-fade-in {
+            opacity: 0;
+        }
+        .gsap-fade-in-up {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+    </style>
+</head>
+<body>
+
+    <main class="main-container">
+
+        <section class="hero-section">
+            <canvas id="particle-canvas"></canvas>
+            <div class="hero-content">
+                <h1 class="gsap-fade-in-up">Thrive in Chaos. <br>Our AI <span class="highlight-cyan">Navigates Market Storms</span>, So You Don't Have To.</h1>
+                <p class="gsap-fade-in-up">While others see panic, our system sees patterns. We've engineered a trading intelligence that doesn't just survive downturns—it's designed to find opportunity within them. Discover how data-driven discipline transforms market volatility into your strategic advantage.</p>
+                <a href="#crash-test" class="hero-cta gsap-fade-in-up">Witness its Resilience</a>
+            </div>
+            <div class="scroll-down-indicator">
+                Scroll to explore
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </section>
+
+
+        <section id="crash-test" class="crash-test-section section-padding">
+            <div class="container">
+                <div class="crash-test-grid">
+                    <div class="crash-test-intro gsap-fade-in-up">
+                        <h2>The Ultimate Litmus Test</h2>
+                        <p>Any strategy can look good in a bull run. The true measure of intelligence is how it performs under extreme pressure. We unleashed our bot during one of modern history's most volatile periods: the <span class="highlight-gold">2020 market crash</span>. The results speak for themselves.</p>
+                    </div>
+
+                    <div class="crash-test-chart-container gsap-fade-in">
+                        <svg id="equity-chart" class="chart-svg" viewBox="0 0 800 450">
+                            <g class="chart-axis-lines">
+                                <line class="chart-axis-line" x1="50" y1="400" x2="780" y2="400"></line>
+                                <line class="chart-axis-line" x1="50" y1="20" x2="50" y2="400"></line>
+                            </g>
+                            <path id="bot-performance-path" class="chart-line bot-line" d="M50,100"></path>
+                            <path id="spy-performance-path" class="chart-line spy-line" d="M50,100"></path>
+                             <g class="chart-labels">
+                                <text x="60" y="95">DarkHorse Bot</text>
+                                <text x="60" y="320">S&P 500 (SPY)</text>
+                                <text x="150" y="425">Jan 2020</text>
+                                <text x="450" y="425">Mar 2020</text>
+                                <text x="700" y="425">Apr 2020</text>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <div class="crash-test-metrics">
+                        <div class="metric-card gsap-fade-in-up">
+                            <div class="metric-card-header">
+                                <div class="metric-icon bot-icon"><i class="fas fa-robot"></i></div>
+                                <h4 class="metric-title">DarkHorse Bot Performance</h4>
+                            </div>
+                            <div id="bot-return-value" class="metric-value positive">-1%</div>
+                            <p>Preserved capital through extreme volatility.</p>
+                        </div>
+                        <div class="metric-card gsap-fade-in-up">
+                             <div class="metric-card-header">
+                                <div class="metric-icon spy-icon"><i class="fas fa-chart-area"></i></div>
+                                <h4 class="metric-title">S&P 500 (SPY) Performance</h4>
+                            </div>
+                            <div id="spy-return-value" class="metric-value negative">-16%</div>
+                            <p>Suffered significant losses during the same period.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="march-spotlight gsap-fade-in-up">
+                        <h3>Spotlight on March 2020: <span class="highlight-cyan">The Month of Fear</span></h3>
+                        <p style="text-align: center;">While markets unraveled, our system remained focused — extracting signals from the noise and identifying profitable opportunities in real time. No emotion. No hesitation. Just discipline and execution.</p>
+                        <div class="comparison">
+                            <div>
+                                <div class="label">DarkHorse Bot Return</div>
+                                <div class="metric-value positive" id="march-bot-return">+4.2%</div>
+                            </div>
+                             <div>
+                                <div class="label">S&P 500 Return</div>
+                                <div class="metric-value negative" id="march-spy-return">-13.1%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-it-works-section section-padding">
+            <div class="container">
+                <div class="section-header gsap-fade-in-up">
+                    <h2>The Anatomy of Resilience</h2>
+                    <p>Our outperformance isn't accidental. It's the result of a meticulously engineered philosophy built on three core pillars that work synergistically to turn market data into intelligent action.</p>
+                </div>
+                <div class="pillars-grid">
+                    <div class="pillar-card gsap-fade-in-up">
+                        <div class="pillar-content">
+                            <div class="pillar-icon"><i class="fas fa-bullseye"></i></div>
+                            <h3>The Signal: <br>Following the Smartest Money</h3>
+                            <p>We start by focusing on a powerful, academically-backed signal: high-conviction purchases by top executives. When CEOs and CFOs invest their own money, it's a profound vote of confidence. Our system is trained to identify these critical moments, filtering out the market noise to focus on signals that truly matter.</p>
+                        </div>
+                    </div>
+                    <div class="pillar-card gsap-fade-in-up">
+                        <div class="pillar-content">
+                            <div class="pillar-icon"><i class="fas fa-cogs"></i></div>
+                            <h3>The Discipline: <br>Emotionless, Systematic Execution</h3>
+                            <p>Fear and greed are the enemies of profit. Our bot operates with pure, cold logic. Every trade is governed by a strict set of rules for entry, position sizing, and risk allocation. This systematic discipline ensures we stick to the strategy, even when human instinct would say to panic or chase.</p>
+                        </div>
+                    </div>
+                    <div class="pillar-card gsap-fade-in-up">
+                        <div class="pillar-content">
+                            <div class="pillar-icon"><i class="fas fa-shield-alt"></i></div>
+                            <h3>The Adaptation: <br>Dynamic, Intelligent Risk Control</h3>
+                            <p>This is our secret weapon. We don't use simple, static stop-losses. Our system employs dynamic risk management that adapts to real-time market volatility (using metrics like ATR). It knows when to give a position room to breathe and when to cut losses decisively, protecting capital and locking in gains with intelligent precision.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="performance-section section-padding">
+            <div class="container">
+                 <div class="section-header gsap-fade-in-up">
+                    <h2>A Legacy of Outperformance</h2>
+                    <p>Resilience in a crisis is crucial, but consistent growth is the ultimate goal. Our strategy has demonstrated its ability to generate significant returns, navigating both bull and bear markets with a steady hand and consistently beating the benchmark.</p>
+                </div>
+                <div class="year-cards-container">
+                    <!-- Year cards will be injected here by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <section class="top-trades-section section-padding">
+            <div class="container">
+                 <div class="section-header gsap-fade-in-up">
+                    <h2>Proof in the Profits</h2>
+                    <p>Theory is one thing, but results are what count. Here are real, executed trade examples from the turbulent 2020 period, demonstrating the bot's incredible ability to capture explosive gains even as the broader market was in turmoil.</p>
+                </div>
+                <div id="trades-grid" class="trades-grid">
+                    <!-- Trade cards will be injected here by JavaScript -->
+                </div>
+            </div>
+        </section>
+        
+        <section class="advantages-section section-padding">
+            <div class="container">
+                <div class="section-header gsap-fade-in-up">
+                    <h2>The DarkHorse Advantage</h2>
+                </div>
+                <div class="advantages-grid">
+                    <div class="advantage-card gsap-fade-in-up">
+                        <div class="advantage-icon"><i class="fas fa-university"></i></div>
+                        <h3>Capital Preservation</h3>
+                        <p>Our first priority is protecting your investment. The bot's adaptive risk controls are designed to minimize drawdowns during market shocks.</p>
+                    </div>
+                    <div class="advantage-card gsap-fade-in-up">
+                        <div class="advantage-icon"><i class="fas fa-infinity"></i></div>
+                        <h3>Market-Agnostic Performance</h3>
+                        <p>This isn't just a bull market strategy. It's built to find opportunities regardless of the market's direction, seeking absolute returns.</p>
+                    </div>
+                     <div class="advantage-card gsap-fade-in-up">
+                        <div class="advantage-icon"><i class="fas fa-brain"></i></div>
+                        <h3>A True Data-Driven Edge</h3>
+                        <p>Gain access to a level of analysis and execution discipline normally reserved for quantitative hedge funds. Leverage our AI to trade with an informational and psychological edge.</p>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 5rem;">
+                     <a href="firebase-stripe-alpaca-integration.html" class="hero-cta gsap-fade-in-up">Get Started</a>
+                </div>
+            </div>
+        </section>
+
+
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+        // --- DATA ---
+        const performanceData = [
+            { year: 2024, bot: 35.32, spy: 15.1 }, { year: 2023, bot: 43.83, spy: 24.2 },
+            { year: 2022, bot: 7.27, spy: -19.4 }, { year: 2021, bot: 43.60, spy: 26.9 },
+            { year: 2020, bot: 63.41, spy: 16.3 }, { year: 2019, bot: 72.29, spy: 28.9 }
+        ];
+
+        const topTradesData = [
+            { ticker: 'AXSM', role: 'Pizzie Nick', return: 416.67, entry: '2019-06-12', exit: '2019-12-27', holding: 198 },
+            { ticker: 'ODT', role: 'Tang Kevin C', return: 336.73, entry: '2019-06-07', exit: '2019-12-04', holding: 180 },
+            { ticker: 'EIDX', role: 'Kumar Neil', return: 190.42, entry: '2019-05-30', exit: '2019-12-18', holding: 202 },
+            { ticker: 'KODK', role: 'Bullwinkle David E', return: 348.33, entry: '2020-05-21', exit: '2020-07-29', holding: 69 },
+            { ticker: 'RVP', role: 'Shaw Thomas J', return: 321.10, entry: '2020-05-14', exit: '2020-07-27', holding: 74 },
+            { ticker: 'OEG', role: 'Oneil James F', return: 214.29, entry: '2020-05-27', exit: '2020-08-11', holding: 76 },
+            { ticker: 'TUP', role: 'Harris Cassandra', return: 200.00, entry: '2020-05-05', exit: '2020-10-28', holding: 176 },
+            { ticker: 'NARI', role: 'Hoffman William', return: 191.49, entry: '2020-05-28', exit: '2020-08-03', holding: 67 },
+            { ticker: 'ETON', role: 'Brynjelsen Sean', return: 189.15, entry: '2020-05-21', exit: '2020-11-09', holding: 172 }
+        ];
+
+
+        // --- HTML INJECTION ---
+        const injectPerformanceCards = () => {
+            const container = document.querySelector('.year-cards-container');
+            if (!container) return;
+            let html = '';
+            performanceData.forEach(data => {
+                const spyBarClass = data.spy < 0 ? 'spy-bar negative-return' : 'spy-bar';
+                html += `
+                    <div class="year-card gsap-fade-in-up">
+                        <div class="year-label"><h3>${data.year}</h3></div>
+                        <div class="year-data">
+                            <div class="performance-bar"><div class="bar-fill bot-bar" data-width="${data.bot}"></div><span class="bar-label"><i class="fas fa-robot"></i> DarkHorse Bot</span><span class="bar-value">${data.bot.toFixed(2)}%</span></div>
+                            <div class="performance-bar"><div class="bar-fill ${spyBarClass}" data-width="${data.spy}"></div><span class="bar-label"><i class="fas fa-chart-area"></i> S&P 500</span><span class="bar-value">${data.spy > 0 ? '+' : ''}${data.spy.toFixed(2)}%</span></div>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        };
+
+        const injectTradeCards = () => {
+            const container = document.getElementById('trades-grid');
+            if (!container) return;
+            let html = '';
+            topTradesData.forEach(trade => {
+                html += `
+                    <div class="trade-card gsap-fade-in-up">
+                        <div>
+                            <div class="trade-card-header"><div class="trade-ticker">${trade.ticker}</div><div class="trade-role">${trade.role}</div></div>
+                            <div class="trade-return"><div class="trade-return-value" data-return="${trade.return}">+0.0%</div><div class="trade-return-label">Total Return</div></div>
+                        </div>
+                        <div class="trade-details-grid">
+                            <div class="trade-detail"><div class="trade-detail-label">Entry Date</div><div class="trade-detail-value">${trade.entry}</div></div>
+                            <div class="trade-detail"><div class="trade-detail-label">Exit Date</div><div class="trade-detail-value">${trade.exit}</div></div>
+                            <div class="trade-detail"><div class="trade-detail-label">Holding Period</div><div class="trade-detail-value">${trade.holding} Days</div></div>
+                            <div class="trade-detail"><div class="trade-detail-label">Asset Class</div><div class="trade-detail-value">US Equities</div></div>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        };
+        
+        // --- ANIMATION SETUP ---
+        const setupAnimations = () => {
+            // Animate ALL elements with .gsap-fade-in-up
+            gsap.utils.toArray('.gsap-fade-in-up').forEach(el => {
+                gsap.fromTo(el, { opacity: 0, y: 50 }, {
+                    opacity: 1, y: 0,
+                    duration: 1, ease: 'power3.out',
+                    scrollTrigger: {
+                        trigger: el,
+                        start: 'top 90%',
+                        toggleActions: 'play none none reverse',
+                    }
+                });
+            });
+            
+            gsap.utils.toArray('.gsap-fade-in').forEach(el => {
+                gsap.fromTo(el, { opacity: 0 }, {
+                    opacity: 1,
+                    duration: 1.5, ease: 'power1.inOut',
+                    scrollTrigger: {
+                        trigger: el,
+                        start: 'top 80%',
+                        toggleActions: 'play none none reverse'
+                    }
+                });
+            });
+
+            const botLine = document.getElementById('bot-performance-path');
+            const spyLine = document.getElementById('spy-performance-path');
+            if (botLine && spyLine) {
+                const botPath = "M 50 100 C 150 80, 250 120, 350 110 S 450 90, 500 120 S 600 150, 750 140";
+                const spyPath = "M 50 100 C 150 80, 250 50, 380 50 S 450 350, 500 350 S 650 250, 750 280";
+                botLine.setAttribute('d', botPath);
+                spyLine.setAttribute('d', spyPath);
+                [botLine, spyLine].forEach(line => {
+                    const length = line.getTotalLength();
+                    line.style.strokeDasharray = length;
+                    line.style.strokeDashoffset = length;
+                    gsap.to(line, {
+                        strokeDashoffset: 0, duration: 2, ease: 'power2.inOut',
+                        scrollTrigger: { trigger: line.closest('svg'), start: 'top 80%' }
+                    });
+                });
+            }
+
+            const createCounter = (el, endValue, prefix = '', suffix = '%', decimals = 0) => {
+                const counter = { val: 0 };
+                 gsap.to(counter, {
+                    val: endValue,
+                    duration: 2,
+                    ease: 'power1.out',
+                    scrollTrigger: { trigger: el, start: 'top 90%' },
+                    onUpdate: () => {
+                        const sign = counter.val < 0 ? '' : prefix;
+                        el.textContent = `${sign}${counter.val.toFixed(decimals)}${suffix}`;
+                    }
+                });
+            };
+            
+            createCounter(document.getElementById('bot-return-value'), -1, '', '%', 0);
+            createCounter(document.getElementById('spy-return-value'), -16, '', '%', 0);
+            createCounter(document.getElementById('march-bot-return'), 4.2, '+', '%', 1);
+            createCounter(document.getElementById('march-spy-return'), -13.1, '', '%', 1);
+            gsap.utils.toArray('.trade-return-value').forEach(el => createCounter(el, parseFloat(el.dataset.return), '+', '%', 1));
+            
+            gsap.utils.toArray('.bar-fill').forEach(bar => {
+                const width = parseFloat(bar.dataset.width);
+                gsap.to(bar, {
+                    width: `${Math.abs(width)}%`,
+                    duration: 2, ease: 'power3.out',
+                    scrollTrigger: { trigger: bar, start: 'top 90%' }
+                });
+            });
+        };
+
+        // --- PARTICLE BACKGROUND ---
+        const initParticleCanvas = () => {
+            const canvas = document.getElementById('particle-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const particleCount = 150;
+            const setup = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = canvas.parentElement.offsetHeight;
+                particles = Array.from({ length: particleCount }, () => ({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5 + 0.5,
+                    vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+                    alpha: Math.random() * 0.5 + 0.2
+                }));
+            };
+            const draw = () => {
+                if (!ctx) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(160, 174, 192, 0.5)';
+                particles.forEach(p => {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fill();
+                });
+                requestAnimationFrame(draw);
+            };
+            setup();
+            draw();
+            window.addEventListener('resize', setup);
+        };
+
+        // --- EXECUTION FLOW ---
+        initParticleCanvas();
+        injectPerformanceCards();
+        injectTradeCards();
+        setupAnimations();
+
+        ScrollTrigger.refresh();
+    });
+    </script>
+
+</body>
+</html>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DarkHorse Research - Navigating Market Turbulence</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --dark-navy: #02040a;
+            --space-cadet: #101727;
+            --slate-blue: #2a3b5a;
+            --light-slate: #a0aec0;
+            --white: #ffffff;
+            --gold: #ffc700;
+            --cyan: #00d1ff;
+            --green-glow: #00ff88;
+            --red-glow: #ff4d4d;
+            --font-primary: 'Inter', sans-serif;
+            --font-mono: 'Roboto Mono', monospace;
+            --container-width: 1280px;
+            --glass-bg: rgba(16, 23, 39, 0.5);
+            --glass-border: rgba(42, 59, 90, 0.5);
+        }
+
+        /* --- BASE STYLES --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--dark-navy);
+            color: var(--light-slate);
+            font-family: var(--font-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            overflow: hidden; /* Contains all animations */
+        }
+
+        .section-padding {
+            padding: 10rem 2rem;
+        }
+
+        .container {
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--white);
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        h1 { font-size: clamp(3rem, 7vw, 5.5rem); }
+        h2 { font-size: clamp(2.5rem, 5vw, 3.5rem); }
+        h3 { font-size: 1.75rem; }
+        p { font-size: 1.1rem; max-width: 70ch; }
+        
+        .highlight-cyan { 
+            color: var(--cyan);
+            text-shadow: 0 0 15px rgba(0, 209, 255, 0.3);
+        }
+        
+        .highlight-gold {
+            color: var(--gold);
+            text-shadow: 0 0 15px rgba(255, 199, 0, 0.3);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .section-header p {
+            margin-top: 1.5rem;
+            font-size: 1.25rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            text-align: center;
+            padding: 2rem;
+            background: radial-gradient(ellipse at 50% 0%, rgba(16, 23, 39, 1) 0%, var(--dark-navy) 70%);
+        }
+
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+        }
+
+        .hero-content h1 {
+            font-weight: 900;
+        }
+        
+        .hero-content p {
+            font-size: 1.5rem;
+            color: var(--light-slate);
+            margin: 2rem auto 3rem;
+            max-width: 800px;
+            font-weight: 300;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.2rem 3rem;
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--gold) 100%);
+            color: var(--dark-navy);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 10px 30px rgba(0, 209, 255, 0.2), 0 5px 15px rgba(255, 199, 0, 0.1);
+        }
+        .hero-cta:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 209, 255, 0.3), 0 10px 20px rgba(255, 199, 0, 0.2);
+        }
+
+        .scroll-down-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--light-slate);
+            font-size: 0.9rem;
+            opacity: 0;
+            animation: fadeIn 2s 2s forwards;
+        }
+        .scroll-down-indicator i {
+            display: block;
+            margin: 0.5rem auto 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        @keyframes fadeIn {
+            to { opacity: 0.7; }
+        }
+
+        /* --- CRASH TEST SECTION --- */
+        .crash-test-section {
+            position: relative;
+            background-color: var(--space-cadet);
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .crash-test-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .crash-test-intro {
+            grid-column: 1 / 13;
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .crash-test-intro h2 { font-size: 3rem; }
+        .crash-test-intro p { font-size: 1.25rem; margin-top: 1.5rem; max-width: 800px; margin-left:auto; margin-right: auto;}
+        
+        .crash-test-chart-container {
+            grid-column: 1 / 8;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .chart-svg {
+            width: 100%;
+            height: auto;
+            overflow: visible;
+        }
+        .chart-line {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .bot-line { stroke: var(--cyan); }
+        .spy-line { stroke: var(--red-glow); }
+        .chart-labels text { font-family: var(--font-mono); font-size: 14px; fill: var(--light-slate); }
+        .chart-axis-line { stroke: var(--slate-blue); stroke-width: 1; }
+        
+        .crash-test-metrics {
+            grid-column: 8 / 13;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .metric-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--cyan);
+        }
+        .metric-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .metric-icon {
+            font-size: 1.5rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .metric-icon.bot-icon { background-color: rgba(0, 209, 255, 0.1); color: var(--cyan); }
+        .metric-icon.spy-icon { background-color: rgba(255, 77, 77, 0.1); color: var(--red-glow); }
+        .metric-title { font-size: 1.1rem; color: var(--white); font-weight: 600; }
+        
+        .metric-value {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            font-family: var(--font-mono);
+            line-height: 1;
+        }
+        .metric-value.positive { color: var(--green-glow); text-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+        .metric-value.negative { color: var(--red-glow); text-shadow: 0 0 15px rgba(255, 77, 77, 0.4); }
+        
+       .march-spotlight {
+            grid-column: 1 / 13;
+            margin-top: 4rem;
+            background: linear-gradient(135deg, rgba(0, 209, 255, 0.05), rgba(255, 199, 0, 0.05));
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+        }
+
+        .march-spotlight h3 {
+            font-size: 2.25rem;
+        }
+
+        .march-spotlight p {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .march-spotlight .comparison {
+            text-align: initial;
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .comparison > div {
+            font-size: 1.2rem;
+        }
+        .comparison .label {
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            color: var(--light-slate);
+        }
+        
+        /* --- HOW IT WORKS SECTION --- */
+        .how-it-works-section {
+            background: radial-gradient(circle at 100% 0%, var(--space-cadet) 0%, var(--dark-navy) 40%);
+        }
+        
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 5rem;
+        }
+        
+        .pillar-card {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+        .pillar-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: var(--glass-bg);
+            border-color: var(--cyan);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+        }
+        .pillar-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 209, 255, 0.1) 0%, transparent 40%);
+            transform: scale(0);
+            transition: transform 0.8s ease-out;
+            z-index: 0;
+        }
+        .pillar-card:hover::before {
+            transform: scale(1);
+        }
+        
+        .pillar-content { position: relative; z-index: 1; }
+        .pillar-icon {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            color: var(--cyan);
+        }
+        .pillar-card h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .pillar-card p {
+            font-size: 1.05rem;
+        }
+        
+        /* --- LONG-TERM PERFORMANCE SECTION --- */
+        .performance-section {
+            background: var(--dark-navy);
+        }
+        
+        .year-cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            margin-top: 5rem;
+        }
+        
+        .year-card {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 3rem;
+            align-items: center;
+            background-color: var(--space-cadet);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+        }
+        .year-card:hover {
+            border-color: var(--gold);
+        }
+        
+        .year-label {
+            text-align: center;
+        }
+        .year-label h3 {
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--slate-blue);
+            transition: color 0.3s ease;
+        }
+        .year-card:hover .year-label h3 {
+            color: var(--gold);
+        }
+        
+        .year-data {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .performance-bar {
+            width: 100%;
+            height: 40px;
+            background-color: var(--dark-navy);
+            border: 1px solid var(--slate-blue);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .bar-fill {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            border-radius: 8px;
+            transform: scaleX(0);
+            transform-origin: left;
+        }
+        .bar-fill.bot-bar { background: linear-gradient(90deg, var(--cyan), var(--green-glow)); }
+        .bar-fill.spy-bar { background-color: var(--slate-blue); }
+        .bar-fill.spy-bar.negative-return { background: var(--red-glow); }
+        
+        .bar-label {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--white);
+            font-weight: 600;
+        }
+        .bar-value {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--white);
+        }
+        
+        /* --- TOP TRADES SECTION --- */
+        .top-trades-section {
+            background: radial-gradient(circle at 0% 100%, var(--space-cadet) 0%, var(--dark-navy) 40%);
+        }
+        
+        .trades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 2rem;
+            margin-top: 5rem;
+        }
+        
+        .trade-card {
+            background-color: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(5px);
+            border-radius: 16px;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        .trade-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -150%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            transform: skewX(-25deg);
+            transition: left 0.8s ease;
+        }
+        .trade-card:hover::after {
+            left: 150%;
+        }
+        
+        .trade-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+        .trade-ticker {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--white);
+        }
+        .trade-role {
+            background-color: var(--slate-blue);
+            color: var(--cyan);
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .trade-return {
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .trade-return-value {
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: var(--green-glow);
+            line-height: 1;
+            font-family: var(--font-mono);
+            text-shadow: 0 0 25px rgba(0, 255, 136, 0.5);
+        }
+        .trade-return-label {
+            font-size: 1.1rem;
+            color: var(--light-slate);
+        }
+        
+        .trade-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .trade-detail {
+            font-family: var(--font-mono);
+        }
+        .trade-detail-label {
+            font-size: 0.8rem;
+            color: var(--light-slate);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .trade-detail-value {
+            font-size: 1.2rem;
+            color: var(--white);
+            font-weight: 600;
+        }
+        
+        /* --- ADVANTAGES SECTION --- */
+        .advantages-section {
+            background-color: var(--dark-navy);
+        }
+        .advantages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 5rem;
+        }
+        .advantage-card {
+            text-align: center;
+            padding: 2rem;
+        }
+        .advantage-icon {
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            color: var(--gold);
+        }
+        .advantage-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* --- RESPONSIVE ADJUSTMENTS --- */
+        @media (max-width: 1024px) {
+            .crash-test-grid {
+                grid-template-columns: 1fr;
+            }
+            .crash-test-chart-container, .crash-test-metrics {
+                grid-column: 1 / -1;
+            }
+            .crash-test-metrics {
+                flex-direction: row;
+                justify-content: space-around;
+            }
+             .year-card {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                text-align: center;
+            }
+            .year-label h3 { font-size: 3rem; }
+        }
+
+        @media (max-width: 768px) {
+            .section-padding { padding: 6rem 1rem; }
+            h1 { font-size: 2.5rem; }
+            h2 { font-size: 2rem; }
+            .hero-content p { font-size: 1.2rem; }
+            .crash-test-metrics {
+                flex-direction: column;
+            }
+             .pillars-grid, .trades-grid, .advantages-grid {
+                grid-template-columns: 1fr;
+            }
+            .march-spotlight .comparison { flex-direction: column; gap: 2rem; }
+        }
+
+        /* --- GSAP UTILITIES --- */
+        .gsap-fade-in {
+            opacity: 0;
+        }
+        .gsap-fade-in-up {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+    </style>
+</head>
+<body>
+
+    <main class="main-container">
+
+        <section class="hero-section">
+            <canvas id="particle-canvas"></canvas>
+            <div class="hero-content">
+                <h1 class="gsap-fade-in-up">Thrive in Chaos. <br>Our AI <span class="highlight-cyan">Navigates Market Storms</span>, So You Don't Have To.</h1>
+                <p class="gsap-fade-in-up">While others see panic, our system sees patterns. We've engineered a trading intelligence that doesn't just survive downturns—it's designed to find opportunity within them. Discover how data-driven discipline transforms market volatility into your strategic advantage.</p>
+                <a href="#crash-test" class="hero-cta gsap-fade-in-up">Witness its Resilience</a>
+            </div>
+            <div class="scroll-down-indicator">
+                Scroll to explore
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </section>
+
+
+        <section id="crash-test" class="crash-test-section section-padding">
+            <div class="container">
+                <div class="crash-test-grid">
+                    <div class="crash-test-intro gsap-fade-in-up">
+                        <h2>The Ultimate Litmus Test</h2>
+                        <p>Any strategy can look good in a bull run. The true measure of intelligence is how it performs under extreme pressure. We unleashed our bot during one of modern history's most volatile periods: the <span class="highlight-gold">2020 market crash</span>. The results speak for themselves.</p>
+                    </div>
+
+                    <div class="crash-test-chart-container gsap-fade-in">
+                        <svg id="equity-chart" class="chart-svg" viewBox="0 0 800 450">
+                            <g class="chart-axis-lines">
+                                <line class="chart-axis-line" x1="50" y1="400" x2="780" y2="400"></line>
+                                <line class="chart-axis-line" x1="50" y1="20" x2="50" y2="400"></line>
+                            </g>
+                            <path id="bot-performance-path" class="chart-line bot-line" d="M50,100"></path>
+                            <path id="spy-performance-path" class="chart-line spy-line" d="M50,100"></path>
+                             <g class="chart-labels">
+                                <text x="60" y="95">DarkHorse Bot</text>
+                                <text x="60" y="320">S&P 500 (SPY)</text>
+                                <text x="150" y="425">Jan 2020</text>
+                                <text x="450" y="425">Mar 2020</text>
+                                <text x="700" y="425">Apr 2020</text>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <div class="crash-test-metrics">
+                        <div class="metric-card gsap-fade-in-up">
+                            <div class="metric-card-header">
+                                <div class="metric-icon bot-icon"><i class="fas fa-robot"></i></div>
+                                <h4 class="metric-title">DarkHorse Bot Performance</h4>
+                            </div>
+                            <div id="bot-return-value" class="metric-value positive">-1%</div>
+                            <p>Preserved capital through extreme volatility.</p>
+                        </div>
+                        <div class="metric-card gsap-fade-in-up">
+                             <div class="metric-card-header">
+                                <div class="metric-icon spy-icon"><i class="fas fa-chart-area"></i></div>
+                                <h4 class="metric-title">S&P 500 (SPY) Performance</h4>
+                            </div>
+                            <div id="spy-return-value" class="metric-value negative">-16%</div>
+                            <p>Suffered significant losses during the same period.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="march-spotlight gsap-fade-in-up">
+                        <h3>Spotlight on March 2020: <span class="highlight-cyan">The Month of Fear</span></h3>
+                        <p style="text-align: center;">While markets unraveled, our system remained focused — extracting signals from the noise and identifying profitable opportunities in real time. No emotion. No hesitation. Just discipline and execution.</p>
+                        <div class="comparison">
+                            <div>
+                                <div class="label">DarkHorse Bot Return</div>
+                                <div class="metric-value positive" id="march-bot-return">+4.2%</div>
+                            </div>
+                             <div>
+                                <div class="label">S&P 500 Return</div>
+                                <div class="metric-value negative" id="march-spy-return">-13.1%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-it-works-section section-padding">
+            <div class="container">
+                <div class="section-header gsap-fade-in-up">
+                    <h2>The Anatomy of Resilience</h2>
+                    <p>Our outperformance isn't accidental. It's the result of a meticulously engineered philosophy built on three core pillars that work synergistically to turn market data into intelligent action.</p>
+                </div>
+                <div class="pillars-grid">
+                    <div class="pillar-card gsap-fade-in-up">
+                        <div class="pillar-content">
+                            <div class="pillar-icon"><i class="fas fa-bullseye"></i></div>
+                            <h3>The Signal: <br>Following the Smartest Money</h3>
+                            <p>We start by focusing on a powerful, academically-backed signal: high-conviction purchases by top executives. When CEOs and CFOs invest their own money, it's a profound vote of confidence. Our system is trained to identify these critical moments, filtering out the market noise to focus on signals that truly matter.</p>
+                        </div>
+                    </div>
+                    <div class="pillar-card gsap-fade-in-up">
+                        <div class="pillar-content">
+                            <div class="pillar-icon"><i class="fas fa-cogs"></i></div>
+                            <h3>The Discipline: <br>Emotionless, Systematic Execution</h3>
+                            <p>Fear and greed are the enemies of profit. Our bot operates with pure, cold logic. Every trade is governed by a strict set of rules for entry, position sizing, and risk allocation. This systematic discipline ensures we stick to the strategy, even when human instinct would say to panic or chase.</p>
+                        </div>
+                    </div>
+                    <div class="pillar-card gsap-fade-in-up">
+                        <div class="pillar-content">
+                            <div class="pillar-icon"><i class="fas fa-shield-alt"></i></div>
+                            <h3>The Adaptation: <br>Dynamic, Intelligent Risk Control</h3>
+                            <p>This is our secret weapon. We don't use simple, static stop-losses. Our system employs dynamic risk management that adapts to real-time market volatility (using metrics like ATR). It knows when to give a position room to breathe and when to cut losses decisively, protecting capital and locking in gains with intelligent precision.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="performance-section section-padding">
+            <div class="container">
+                 <div class="section-header gsap-fade-in-up">
+                    <h2>A Legacy of Outperformance</h2>
+                    <p>Resilience in a crisis is crucial, but consistent growth is the ultimate goal. Our strategy has demonstrated its ability to generate significant returns, navigating both bull and bear markets with a steady hand and consistently beating the benchmark.</p>
+                </div>
+                <div class="year-cards-container">
+                    <!-- Year cards will be injected here by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <section class="top-trades-section section-padding">
+            <div class="container">
+                 <div class="section-header gsap-fade-in-up">
+                    <h2>Proof in the Profits</h2>
+                    <p>Theory is one thing, but results are what count. Here are real, executed trade examples from the turbulent 2020 period, demonstrating the bot's incredible ability to capture explosive gains even as the broader market was in turmoil.</p>
+                </div>
+                <div id="trades-grid" class="trades-grid">
+                    <!-- Trade cards will be injected here by JavaScript -->
+                </div>
+            </div>
+        </section>
+        
+        <section class="advantages-section section-padding">
+            <div class="container">
+                <div class="section-header gsap-fade-in-up">
+                    <h2>The DarkHorse Advantage</h2>
+                </div>
+                <div class="advantages-grid">
+                    <div class="advantage-card gsap-fade-in-up">
+                        <div class="advantage-icon"><i class="fas fa-university"></i></div>
+                        <h3>Capital Preservation</h3>
+                        <p>Our first priority is protecting your investment. The bot's adaptive risk controls are designed to minimize drawdowns during market shocks.</p>
+                    </div>
+                    <div class="advantage-card gsap-fade-in-up">
+                        <div class="advantage-icon"><i class="fas fa-infinity"></i></div>
+                        <h3>Market-Agnostic Performance</h3>
+                        <p>This isn't just a bull market strategy. It's built to find opportunities regardless of the market's direction, seeking absolute returns.</p>
+                    </div>
+                     <div class="advantage-card gsap-fade-in-up">
+                        <div class="advantage-icon"><i class="fas fa-brain"></i></div>
+                        <h3>A True Data-Driven Edge</h3>
+                        <p>Gain access to a level of analysis and execution discipline normally reserved for quantitative hedge funds. Leverage our AI to trade with an informational and psychological edge.</p>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 5rem;">
+                     <a href="firebase-stripe-alpaca-integration.html" class="hero-cta gsap-fade-in-up">Get Started</a>
+                </div>
+            </div>
+        </section>
+
+
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+        // --- DATA ---
+        const performanceData = [
+            { year: 2024, bot: 35.32, spy: 15.1 }, { year: 2023, bot: 43.83, spy: 24.2 },
+            { year: 2022, bot: 7.27, spy: -19.4 }, { year: 2021, bot: 43.60, spy: 26.9 },
+            { year: 2020, bot: 63.41, spy: 16.3 }, { year: 2019, bot: 72.29, spy: 28.9 }
+        ];
+
+        const topTradesData = [
+            { ticker: 'AXSM', role: 'Pizzie Nick', return: 416.67, entry: '2019-06-12', exit: '2019-12-27', holding: 198 },
+            { ticker: 'ODT', role: 'Tang Kevin C', return: 336.73, entry: '2019-06-07', exit: '2019-12-04', holding: 180 },
+            { ticker: 'EIDX', role: 'Kumar Neil', return: 190.42, entry: '2019-05-30', exit: '2019-12-18', holding: 202 },
+            { ticker: 'KODK', role: 'Bullwinkle David E', return: 348.33, entry: '2020-05-21', exit: '2020-07-29', holding: 69 },
+            { ticker: 'RVP', role: 'Shaw Thomas J', return: 321.10, entry: '2020-05-14', exit: '2020-07-27', holding: 74 },
+            { ticker: 'OEG', role: 'Oneil James F', return: 214.29, entry: '2020-05-27', exit: '2020-08-11', holding: 76 },
+            { ticker: 'TUP', role: 'Harris Cassandra', return: 200.00, entry: '2020-05-05', exit: '2020-10-28', holding: 176 },
+            { ticker: 'NARI', role: 'Hoffman William', return: 191.49, entry: '2020-05-28', exit: '2020-08-03', holding: 67 },
+            { ticker: 'ETON', role: 'Brynjelsen Sean', return: 189.15, entry: '2020-05-21', exit: '2020-11-09', holding: 172 }
+        ];
+
+
+        // --- HTML INJECTION ---
+        const injectPerformanceCards = () => {
+            const container = document.querySelector('.year-cards-container');
+            if (!container) return;
+            let html = '';
+            performanceData.forEach(data => {
+                const spyBarClass = data.spy < 0 ? 'spy-bar negative-return' : 'spy-bar';
+                html += `
+                    <div class="year-card gsap-fade-in-up">
+                        <div class="year-label"><h3>${data.year}</h3></div>
+                        <div class="year-data">
+                            <div class="performance-bar"><div class="bar-fill bot-bar" data-width="${data.bot}"></div><span class="bar-label"><i class="fas fa-robot"></i> DarkHorse Bot</span><span class="bar-value">${data.bot.toFixed(2)}%</span></div>
+                            <div class="performance-bar"><div class="bar-fill ${spyBarClass}" data-width="${data.spy}"></div><span class="bar-label"><i class="fas fa-chart-area"></i> S&P 500</span><span class="bar-value">${data.spy > 0 ? '+' : ''}${data.spy.toFixed(2)}%</span></div>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        };
+
+        const injectTradeCards = () => {
+            const container = document.getElementById('trades-grid');
+            if (!container) return;
+            let html = '';
+            topTradesData.forEach(trade => {
+                html += `
+                    <div class="trade-card gsap-fade-in-up">
+                        <div>
+                            <div class="trade-card-header"><div class="trade-ticker">${trade.ticker}</div><div class="trade-role">${trade.role}</div></div>
+                            <div class="trade-return"><div class="trade-return-value" data-return="${trade.return}">+0.0%</div><div class="trade-return-label">Total Return</div></div>
+                        </div>
+                        <div class="trade-details-grid">
+                            <div class="trade-detail"><div class="trade-detail-label">Entry Date</div><div class="trade-detail-value">${trade.entry}</div></div>
+                            <div class="trade-detail"><div class="trade-detail-label">Exit Date</div><div class="trade-detail-value">${trade.exit}</div></div>
+                            <div class="trade-detail"><div class="trade-detail-label">Holding Period</div><div class="trade-detail-value">${trade.holding} Days</div></div>
+                            <div class="trade-detail"><div class="trade-detail-label">Asset Class</div><div class="trade-detail-value">US Equities</div></div>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        };
+        
+        // --- ANIMATION SETUP ---
+        const setupAnimations = () => {
+            // Animate ALL elements with .gsap-fade-in-up
+            gsap.utils.toArray('.gsap-fade-in-up').forEach(el => {
+                gsap.fromTo(el, { opacity: 0, y: 50 }, {
+                    opacity: 1, y: 0,
+                    duration: 1, ease: 'power3.out',
+                    scrollTrigger: {
+                        trigger: el,
+                        start: 'top 90%',
+                        toggleActions: 'play none none reverse',
+                    }
+                });
+            });
+            
+            gsap.utils.toArray('.gsap-fade-in').forEach(el => {
+                gsap.fromTo(el, { opacity: 0 }, {
+                    opacity: 1,
+                    duration: 1.5, ease: 'power1.inOut',
+                    scrollTrigger: {
+                        trigger: el,
+                        start: 'top 80%',
+                        toggleActions: 'play none none reverse'
+                    }
+                });
+            });
+
+            const botLine = document.getElementById('bot-performance-path');
+            const spyLine = document.getElementById('spy-performance-path');
+            if (botLine && spyLine) {
+                const botPath = "M 50 100 C 150 80, 250 120, 350 110 S 450 90, 500 120 S 600 150, 750 140";
+                const spyPath = "M 50 100 C 150 80, 250 50, 380 50 S 450 350, 500 350 S 650 250, 750 280";
+                botLine.setAttribute('d', botPath);
+                spyLine.setAttribute('d', spyPath);
+                [botLine, spyLine].forEach(line => {
+                    const length = line.getTotalLength();
+                    line.style.strokeDasharray = length;
+                    line.style.strokeDashoffset = length;
+                    gsap.to(line, {
+                        strokeDashoffset: 0, duration: 2, ease: 'power2.inOut',
+                        scrollTrigger: { trigger: line.closest('svg'), start: 'top 80%' }
+                    });
+                });
+            }
+
+            const createCounter = (el, endValue, prefix = '', suffix = '%', decimals = 0) => {
+                const counter = { val: 0 };
+                 gsap.to(counter, {
+                    val: endValue,
+                    duration: 2,
+                    ease: 'power1.out',
+                    scrollTrigger: { trigger: el, start: 'top 90%' },
+                    onUpdate: () => {
+                        const sign = counter.val < 0 ? '' : prefix;
+                        el.textContent = `${sign}${counter.val.toFixed(decimals)}${suffix}`;
+                    }
+                });
+            };
+            
+            createCounter(document.getElementById('bot-return-value'), -1, '', '%', 0);
+            createCounter(document.getElementById('spy-return-value'), -16, '', '%', 0);
+            createCounter(document.getElementById('march-bot-return'), 4.2, '+', '%', 1);
+            createCounter(document.getElementById('march-spy-return'), -13.1, '', '%', 1);
+            gsap.utils.toArray('.trade-return-value').forEach(el => createCounter(el, parseFloat(el.dataset.return), '+', '%', 1));
+            
+            gsap.utils.toArray('.bar-fill').forEach(bar => {
+                const width = parseFloat(bar.dataset.width);
+                gsap.to(bar, {
+                    width: `${Math.abs(width)}%`,
+                    duration: 2, ease: 'power3.out',
+                    scrollTrigger: { trigger: bar, start: 'top 90%' }
+                });
+            });
+        };
+
+        // --- PARTICLE BACKGROUND ---
+        const initParticleCanvas = () => {
+            const canvas = document.getElementById('particle-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const particleCount = 150;
+            const setup = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = canvas.parentElement.offsetHeight;
+                particles = Array.from({ length: particleCount }, () => ({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5 + 0.5,
+                    vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+                    alpha: Math.random() * 0.5 + 0.2
+                }));
+            };
+            const draw = () => {
+                if (!ctx) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(160, 174, 192, 0.5)';
+                particles.forEach(p => {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fill();
+                });
+                requestAnimationFrame(draw);
+            };
+            setup();
+            draw();
+            window.addEventListener('resize', setup);
+        };
+
+        // --- EXECUTION FLOW ---
+        initParticleCanvas();
+        injectPerformanceCards();
+        injectTradeCards();
+        setupAnimations();
+
+        ScrollTrigger.refresh();
+    });
+    </script>
+
+</body>
+</html>
+>>>>>>> 483dc6cfa8b3ec876445a5ed2e9592600c4ca06c

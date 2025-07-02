@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - DarkHorse</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #0a74da;
+            --accent-cyan: #00c6ff;
+            --dark-bg: #0a0f1c;
+            --darker-bg: #07121e;
+            --card-bg: rgba(16, 34, 58, 0.8);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a8b8;
+            --gradient-primary: linear-gradient(135deg, #0a74da 0%, #00c6ff 100%);
+            --gradient-bg: linear-gradient(135deg, #0a0f1c 0%, #1a2332 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--gradient-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            background: rgba(10, 15, 28, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-cyan);
+        }
+
+        /* Main Content */
+        .content-wrapper {
+            padding-top: 100px;
+            flex: 1;
+        }
+
+        .legal-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .effective-date {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .legal-content {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .legal-content h2 {
+            font-size: 1.8rem;
+            color: var(--accent-cyan);
+            margin: 2.5rem 0 1rem 0;
+            font-weight: 600;
+        }
+
+        .legal-content h3 {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            margin: 2rem 0 1rem 0;
+            font-weight: 600;
+        }
+
+        .legal-content p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .legal-content ul {
+            margin: 1rem 0 1rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .legal-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.8;
+        }
+
+        .legal-content strong {
+            color: var(--text-primary);
+        }
+
+        /* Footer Styles */
+        .universal-footer {
+            background: var(--darker-bg);
+            padding: 2rem 1rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            margin-top: auto;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .footer-divider {
+            color: #4a5568;
+            margin: 0 0.5rem;
+        }
+
+        .footer-copyright {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .legal-content {
+                padding: 2rem 1.5rem;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .footer-divider {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">DarkHorse</a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="content-wrapper">
+        <div class="legal-container">
+            <div class="page-header">
+                <h1>Terms of Service</h1>
+                <p class="effective-date">Effective Date: June 19, 2025</p>
+            </div>
+
+            <div class="legal-content">
+                <p><strong>Website:</strong> <a href="https://darkhorsetrader.com" style="color: var(--accent-cyan);">https://darkhorsetrader.com</a><br>
+                <strong>Platform:</strong> DarkHorse Trader</p>
+
+                <p>Please read these Terms of Use ("Terms") carefully before using the DarkHorse Trader platform. By accessing or using our website, services, or connecting your Alpaca account to DarkHorse Trader, you agree to be bound by these Terms and all applicable laws and regulations. If you do not agree with any part of these Terms, you must not use our services.</p>
+
+                <h3>1. Overview</h3>
+                <p>DarkHorse Trader ("we," "our," or "us") provides a web-based tool that allows users to connect their <strong>Alpaca brokerage accounts</strong> and apply custom, rules-based trading strategies. Our platform analyzes publicly available financial data — including insider transactions, institutional filings, and options activity — to help users identify high-conviction trading signals.</p>
+                <p>We are not a broker-dealer, investment advisor, or financial institution. All trades executed through our platform are <strong>initiated by the user</strong> and executed by Alpaca Securities LLC.</p>
+
+                <h3>2. Eligibility</h3>
+                <p>To use DarkHorse Trader, you must:</p>
+                <ul>
+                    <li>Be at least 18 years old;</li>
+                    <li>Have an active Alpaca brokerage account;</li>
+                    <li>Comply with all applicable securities laws and brokerage agreements;</li>
+                    <li>Not use the platform from any country subject to U.S. sanctions or export restrictions.</li>
+                </ul>
+
+                <h3>3. Account Authorization and Responsibility</h3>
+                <p>When connecting your Alpaca account to our platform via OAuth:</p>
+                <ul>
+                    <li>You grant DarkHorse Trader permission to access account data and submit trade instructions <strong>on your behalf</strong>.</li>
+                    <li>You can revoke this access at any time through your Alpaca dashboard.</li>
+                    <li>You are solely responsible for monitoring all account activity and ensuring that trades align with your risk tolerance and investment objectives.</li>
+                </ul>
+                <p>We do <strong>not have access to your Alpaca login credentials</strong>, and we do <strong>not store or manage your funds</strong>.</p>
+
+                <h3>4. No Investment Advice</h3>
+                <p>Nothing on DarkHorse Trader constitutes investment, financial, legal, or tax advice.<br>
+                We do not:</p>
+                <ul>
+                    <li>Make personalized recommendations;</li>
+                    <li>Offer portfolio management;</li>
+                    <li>Guarantee returns or performance.</li>
+                </ul>
+                <p>You acknowledge that all decisions to buy, sell, or hold securities are made <strong>solely by you</strong>, and at your own risk. Past performance does not guarantee future results.</p>
+
+                <h3>5. Platform Availability and Limitations</h3>
+                <p>We aim to maintain high platform uptime and real-time trade signal delivery, but we cannot guarantee uninterrupted service. You understand that:</p>
+                <ul>
+                    <li>The platform may become unavailable due to maintenance, outages, or third-party failures.</li>
+                    <li>Signal delays or missed trades may occur due to market conditions, data errors, or API limitations.</li>
+                    <li>We are not liable for any financial losses caused by service disruptions or technical issues.</li>
+                </ul>
+
+                <h3>6. Fees and Subscriptions</h3>
+                <p>DarkHorse Trader may offer both free and paid subscription tiers. Any paid features, if applicable, will be clearly described, and pricing will be displayed prior to purchase.</p>
+                <ul>
+                    <li>All fees are billed in U.S. dollars and are non-refundable unless otherwise stated.</li>
+                    <li>We reserve the right to modify pricing or features at any time with advance notice.</li>
+                </ul>
+
+                <h3>7. Acceptable Use</h3>
+                <p>You agree not to use the platform to:</p>
+                <ul>
+                    <li>Engage in illegal or manipulative trading activity;</li>
+                    <li>Disrupt or exploit our systems or data feeds;</li>
+                    <li>Reverse engineer, copy, or distribute platform logic or UI;</li>
+                    <li>Interfere with other users or violate Alpaca's API usage policies.</li>
+                </ul>
+                <p>We may suspend or terminate your access if we determine that your use violates these rules.</p>
+
+                <h3>8. Intellectual Property</h3>
+                <p>All logos, code, graphics, and original content on DarkHorse Trader are the intellectual property of the platform and may not be used without permission. You retain ownership of your data and account.</p>
+
+                <h3>9. Disclaimer of Warranties</h3>
+                <p>The platform is provided <strong>"as is" and "as available."</strong><br>
+                We make no warranties — express or implied — about the accuracy, reliability, or fitness for a particular purpose of the content or services provided. Use of the platform is at your own risk.</p>
+
+                <h3>10. Limitation of Liability</h3>
+                <p>To the maximum extent allowed by law, DarkHorse Trader and its team shall not be liable for:</p>
+                <ul>
+                    <li>Any loss of profits, capital, or data;</li>
+                    <li>Trading losses or missed opportunities;</li>
+                    <li>Indirect, incidental, or consequential damages arising from your use of the platform.</li>
+                </ul>
+
+                <h3>11. Changes to Terms</h3>
+                <p>We may update these Terms from time to time. Any changes will be posted to this page with a new effective date. Continued use after changes means you accept the updated Terms.</p>
+
+                <h3>12. Contact Us</h3>
+                <p>If you have any questions about these Terms, please contact us:<br>
+                <a href="mailto:aethnora@gmail.com" style="color: var(--accent-cyan);">aethnora@gmail.com</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="universal-footer">
+        <div class="footer-container">
+            <div class="footer-links">
+                <a href="/terms-of-service.html">Terms of Service</a>
+                <span class="footer-divider">|</span>
+                <a href="/privacy-policy.html">Privacy Policy</a>
+            </div>
+            <div class="footer-copyright">
+                <span>© 2025 DarkHorse. All rights reserved.</span>
+                <span class="footer-divider">|</span>
+                <span>Securities trading involves risk of loss.</span>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

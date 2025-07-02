@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DarkHorse Alerts - Insider Trade Notifications</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <style>
+        :root {
+            --primary-blue: #0a74da;
+            --accent-cyan: #00c6ff;
+            --dark-bg: #0a0f1c;
+            --card-bg: #10182c;
+            --card-bg-glass: rgba(16, 24, 44, 0.7);
+            --border-color: rgba(0, 198, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a8b8;
+            --text-tertiary: #6b7f99;
+            --gradient-primary: linear-gradient(135deg, #0a74da 0%, #00c6ff 100%);
+            --success-green: #00ff88;
+            --warning-yellow: #ffd700;
+            --error-red: #ff6b6b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- UTILITY & LAYOUT --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .hidden { display: none !important; }
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.5; background: var(--dark-bg); overflow: hidden; }
+        .bg-animation::before { content: ''; position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(circle at 20% 50%, rgba(0, 198, 255, 0.15) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(10, 116, 218, 0.15) 0%, transparent 40%); animation: floatAnimation 30s ease-in-out infinite; }
+        @keyframes floatAnimation { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(40px, -30px) rotate(5deg); } }
+
+        /* --- BUTTONS & INPUTS --- */
+        .btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 600; font-size: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease; border: none; text-decoration: none; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .btn-primary { background: var(--gradient-primary); color: var(--text-primary); box-shadow: 0 5px 20px rgba(10, 116, 218, 0.3); }
+        .btn-primary:not(:disabled):hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 198, 255, 0.4); }
+        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-secondary:not(:disabled):hover { background-color: rgba(0, 198, 255, 0.1); border-color: var(--accent-cyan); }
+        .input-field { width: 100%; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1rem; color: var(--text-primary); font-size: 1rem; transition: all 0.3s ease; }
+        .input-field:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 0 2px rgba(0, 198, 255, 0.2); }
+
+        /* --- HEADER & AUTH --- */
+        .page-header { padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: rgba(10, 15, 28, 0.8); backdrop-filter: blur(10px); z-index: 100; border-bottom: 1px solid var(--border-color); }
+        .logo { font-size: 1.5rem; font-weight: 900; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .user-controls .user-email { color: var(--text-secondary); margin-right: 1rem; }
+        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+        .auth-overlay.show { opacity: 1; pointer-events: auto; }
+        .auth-modal { background: var(--card-bg-glass); border-radius: 16px; padding: 2.5rem; width: 90%; max-width: 400px; border: 1px solid var(--border-color); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); transform: scale(0.95); transition: transform 0.3s ease; }
+        .auth-overlay.show .auth-modal { transform: scale(1); }
+        .auth-modal h2 { text-align: center; margin-bottom: 2rem; font-size: 2rem; font-weight: 700; }
+        .auth-form .form-group { margin-bottom: 1.5rem; }
+        .status-message { border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; text-align: center; margin-bottom: 1.5rem; }
+        .status-message.error { background: rgba(255, 107, 107, 0.2); border: 1px solid var(--error-red); color: var(--error-red); }
+        .status-message.success { background: rgba(0, 255, 136, 0.1); border: 1px solid var(--success-green); color: var(--success-green); }
+        .auth-toggle { text-align: center; margin-top: 1.5rem; color: var(--text-secondary); }
+        .auth-toggle a { color: var(--accent-cyan); text-decoration: none; font-weight: 600; }
+
+        /* --- PRICING SECTION --- */
+        .pricing-section h1 { text-align: center; font-size: 3rem; font-weight: 900; margin-bottom: 1rem; }
+        .pricing-section .subtitle { text-align: center; font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 4rem; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; align-items: center; }
+        .pricing-card { background: var(--card-bg-glass); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem 2rem; transition: all 0.3s ease; display: flex; flex-direction: column; height: 100%; }
+        .pricing-card h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary); }
+        .pricing-card .plan-desc { color: var(--text-secondary); margin-bottom: 2rem; min-height: 40px; }
+        .price { font-size: 3.5rem; font-weight: 900; margin-bottom: 0.5rem; }
+        .price .period { font-size: 1rem; font-weight: 500; color: var(--text-secondary); }
+        .features-list { list-style: none; margin: 2rem 0; flex-grow: 1; }
+        .features-list li { margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); }
+        .features-list li i.fa-check-circle { color: var(--success-green); }
+        .features-list li i.fa-lock { color: var(--warning-yellow); }
+        .pricing-card.recommended { transform: scale(1.05); border: 2px solid var(--accent-cyan); box-shadow: 0 0 40px rgba(0, 198, 255, 0.2); position: relative; }
+        .recommended-badge { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--gradient-primary); color: white; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; }
+
+        /* --- DASHBOARD LAYOUT --- */
+        .dashboard-header { margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; }
+        .dashboard-header h1 { font-size: 2.5rem; }
+        .dashboard-tabs { display: flex; gap: 1rem; margin-top: 1rem; }
+        .tab-btn { background: none; border: none; color: var(--text-secondary); font-size: 1rem; font-weight: 600; padding: 0.5rem 0; cursor: pointer; position: relative; transition: color 0.3s ease; }
+        .tab-btn::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--accent-cyan); transform: scaleX(0); transition: transform 0.3s ease; }
+        .tab-btn.active { color: var(--text-primary); }
+        .tab-btn.active::after { transform: scaleX(1); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- SETTINGS REDESIGN --- */
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; }
+        .settings-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; }
+        .settings-card h3 { font-size: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+        .settings-card h3 i { color: var(--accent-cyan); }
+        .settings-group { margin-bottom: 1.5rem; }
+        .settings-group:last-child { margin-bottom: 0; }
+        .settings-group label { display: block; margin-bottom: 0.75rem; font-weight: 500; color: var(--text-secondary); }
+        .switch-group { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: 8px; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--text-tertiary); transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success-green); }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .multi-select-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .multi-select-group label { background: rgba(0,0,0,0.2); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+        .multi-select-group input:checked + span { background: var(--gradient-primary); color: white; }
+        .recommended-tag { font-size: 0.7rem; color: var(--warning-yellow); margin-left: 0.5rem; }
+        .save-settings-container { margin-top: 2rem; text-align: right; }
+
+        /* --- TRADES FEED & TRADINGVIEW --- */
+        .trades-table { width: 100%; border-collapse: collapse; }
+        .trades-table th { text-align: left; padding: 1rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        .trades-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; white-space: nowrap; }
+        .trades-table tbody tr.trade-row { cursor: pointer; transition: background-color 0.2s; }
+        .trades-table tbody tr.trade-row:hover { background-color: rgba(0, 198, 255, 0.05); }
+        .trades-table tr.active-row { background-color: rgba(0, 198, 255, 0.1); }
+        .company-name { font-weight: 600; }
+        .ticker { color: var(--text-secondary); font-size: 0.9rem; }
+        .trade-details-row { display: none; }
+        .trade-details-row.active { display: table-row; }
+        .trade-details-cell { padding: 0 !important; }
+        .trade-details-content { background: var(--dark-bg); padding: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; animation: slideDown 0.5s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .tradingview-widget-container { width: 100%; height: 550px; }
+        .skeleton-loader { background: linear-gradient(90deg, var(--card-bg) 25%, var(--text-tertiary) 50%, var(--card-bg) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 4px; color: transparent !important; }
+        .skeleton-row td > div { height: 20px; width: 80%; }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .feed-container { overflow-x: auto; }
+
+        /* --- LOCKED DASHBOARD VIEW --- */
+        .locked-dashboard { position: relative; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; }
+        .locked-content { filter: blur(8px); pointer-events: none; }
+        .lock-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 15, 28, 0.8); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2rem; }
+        .lock-overlay i { font-size: 4rem; color: var(--warning-yellow); margin-bottom: 1.5rem; }
+        .lock-overlay h2 { font-size: 2rem; margin-bottom: 1rem; }
+        .lock-overlay p { color: var(--text-secondary); margin-bottom: 2rem; max-width: 400px; }
+        
+        /* --- DISCLAIMER --- */
+        .disclaimer { text-align: center; padding: 2rem; font-size: 0.8rem; color: var(--text-tertiary); border-top: 1px solid var(--border-color); margin-top: 4rem; }
+
+        /* --- DEBUG PANEL --- */
+        .debug-panel { position: fixed; bottom: 20px; right: 20px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; max-width: 300px; font-size: 0.8rem; z-index: 1000; }
+        .debug-panel.hidden { display: none; }
+        .debug-toggle { position: fixed; bottom: 20px; right: 20px; background: var(--primary-blue); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; z-index: 1001; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-animation"></div>
+
+    <!-- Debug Toggle -->
+    <button class="debug-toggle" onclick="toggleDebug()" title="Toggle Debug Panel">
+        <i class="fas fa-bug"></i>
+    </button>
+
+    <!-- Debug Panel -->
+    <div class="debug-panel hidden" id="debugPanel">
+        <h4>Debug Info</h4>
+        <div id="debugInfo">Loading...</div>
+        <button class="btn btn-secondary" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.7rem;" onclick="refreshDebugInfo()">Refresh</button>
+    </div>
+
+    <!-- Auth & Processing Modals -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal" id="authModal">
+            <h2 id="authTitle">Sign In</h2>
+            <form class="auth-form" id="authForm">
+                <div class="form-group"> <input type="email" id="email" class="input-field" required placeholder="your@email.com"> </div>
+                <div class="form-group"> <input type="password" id="password" class="input-field" required placeholder="••••••••"> </div>
+                <div class="status-message error hidden" id="authError"></div>
+                <button type="submit" class="btn btn-primary" id="authSubmit">Sign In</button>
+            </form>
+            <div class="auth-toggle"> <span id="authToggleText">Don't have an account?</span> <a href="#" id="authToggleLink">Sign Up</a> </div>
+        </div>
+    </div>
+    
+    <div class="auth-overlay hidden" id="processingOverlay">
+        <div class="auth-modal" style="text-align: center;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--accent-cyan); margin-bottom: 1.5rem;"></i>
+            <h2>Finalizing Your Subscription</h2>
+            <p class="text-secondary">Please wait a moment while we activate your account...</p>
+            <div id="processingProgress" style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-tertiary);"></div>
+        </div>
+    </div>
+
+    <header class="page-header">
+        <div class="logo">DarkHorse</div>
+        <div class="user-controls">
+            <div id="loggedOutView"> <button class="btn btn-primary" onclick="showAuthModal(false)">Sign In</button> </div>
+            <div id="loggedInView" class="hidden"> <span class="user-email" id="userEmailDisplay"></span> <button class="btn btn-secondary" onclick="signOut()">Sign Out</button> </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Pricing Section -->
+        <section id="pricingSection" class="container">
+            <h1>Get Insider Trading Alerts, Instantly.</h1>
+            <p class="subtitle">Stop guessing. Start receiving real-time notifications when CEOs, CFOs, and other top executives make significant stock purchases.</p>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Basic</h3> <p class="plan-desc">Essential email alerts for the casual investor.</p>
+                    <div class="price">$3.99<span class="period">/month</span></div>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check-circle"></i> Real-time email reports</li>
+                        <li><i class="fas fa-check-circle"></i> Up to 4 trade alerts per week</li>
+                        <li><i class="fas fa-lock"></i> Locked Insider Feed</li>
+                    </ul>
+                    <button class="btn btn-secondary plan-button" onclick="selectPlan('price_1Rg9zaP1BWtn2d85l7ENCAmm', 'basic')" disabled>Choose Basic</button>
+                </div>
+                <div class="pricing-card recommended">
+                    <div class="recommended-badge">RECOMMENDED</div>
+                    <h3>Professional</h3> <p class="plan-desc">For the serious investor who needs every edge.</p>
+                    <div class="price">$8.99<span class="period">/month</span></div>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check-circle"></i> Real-time SMS & Email alerts</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Unlimited</strong> trade alerts</li>
+                        <li><i class="fas fa-check-circle"></i> Full customization options</li>
+                        <li><i class="fas fa-check-circle"></i> Live dashboard of all trades</li>
+                        <li><i class="fas fa-check-circle"></i> Priority support</li>
+                    </ul>
+                    <button class="btn btn-primary plan-button" onclick="selectPlan('price_1RgA04P1BWtn2d850aqHB5UE', 'professional')" disabled>Choose Professional</button>
+                </div>
+                <div class="pricing-card">
+                    <h3>Advanced</h3> <p class="plan-desc">More alerts and customization with SMS.</p>
+                    <div class="price">$5.99<span class="period">/month</span></div>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check-circle"></i> Real-time SMS & Email alerts</li>
+                        <li><i class="fas fa-check-circle"></i> Up to 7 trade alerts per week</li>
+                        <li><i class="fas fa-check-circle"></i> Customize notification channels</li>
+                        <li><i class="fas fa-check-circle"></i> Live dashboard of all trades</li>
+                    </ul>
+                    <button class="btn btn-secondary plan-button" onclick="selectPlan('price_1Rg9zsP1BWtn2d85oZ3gjpQe', 'advanced')" disabled>Choose Advanced</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboardSection" class="container hidden">
+            <div class="dashboard-header">
+                <h1 id="dashboard-title">Insider Trades Feed</h1>
+                <div class="dashboard-tabs">
+                    <button class="tab-btn active" data-tab="feed">Feed</button>
+                    <button class="tab-btn" data-tab="settings">Settings</button>
+                    <button class="tab-btn hidden" id="upgrade-tab-btn" onclick="scrollToPricing()">Upgrade Plan</button>
+                </div>
+            </div>
+
+            <div id="tab-content-feed" class="tab-content active"></div>
+            <div id="tab-content-settings" class="tab-content">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-bell"></i> Notification Settings</h3>
+                        <div class="settings-group">
+                            <label>Channels</label>
+                            <div class="switch-group"><span>Email Alerts</span> <label class="switch"><input type="checkbox" id="emailToggle"><span class="slider"></span></label></div>
+                            <div class="switch-group" style="margin-top:0.5rem;"><span>SMS Alerts</span> <label class="switch"><input type="checkbox" id="smsToggle"><span class="slider"></span></label></div>
+                        </div>
+                        <div class="settings-group">
+                            <label>Timing</label>
+                            <div class="switch-group"><span>Real-Time</span> <label class="switch"><input type="radio" name="timing" value="realtime"><span class="slider"></span></label></div>
+                            <div class="switch-group" style="margin-top:0.5rem;"><span>Daily Summary</span> <label class="switch"><input type="radio" name="timing" value="summary"><span class="slider"></span></label></div>
+                            <input type="time" id="summaryTime" class="input-field hidden" style="margin-top: 0.5rem;">
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3><i class="fas fa-filter"></i> Alert Filters</h3>
+                        <div class="settings-group">
+                            <label for="stockPrice">Stock Price (at least) <span class="recommended-tag">Recommended: $3+</span></label>
+                            <input type="range" id="stockPrice" min="0" max="100" value="3">
+                            <div id="stockPriceValue" class="text-secondary" style="text-align:right;">$3.00</div>
+                        </div>
+                        <div class="settings-group">
+                            <label for="tradeValue">Trade Value (at least)</label>
+                            <input type="range" id="tradeValue" min="0" max="1000000" step="10000" value="0">
+                            <div id="tradeValueValue" class="text-secondary" style="text-align:right;">Any</div>
+                        </div>
+                        <div class="settings-group">
+                            <label>Insider Title <span class="recommended-tag">Recommended: CEO/CFO</span></label>
+                            <div class="multi-select-group">
+                                <label><input type="checkbox" name="insiderTitle" value="CEO" hidden><span>CEO</span></label>
+                                <label><input type="checkbox" name="insiderTitle" value="CFO" hidden><span>CFO</span></label>
+                                <label><input type="checkbox" name="insiderTitle" value="Director" hidden><span>Director</span></label>
+                                <label><input type="checkbox" name="insiderTitle" value="Officer" hidden><span>Officer</span></label>
+                                <label><input type="checkbox" name="insiderTitle" value="President" hidden><span>President</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="save-settings-container">
+                    <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="disclaimer">
+        <p>Disclaimer: DarkHorse is not a registered investment advisor. The information provided is for informational purposes only and does not constitute financial, investment, or other professional advice. All trading involves risk. Past performance is not indicative of future results.</p>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQY_Q9NBc3hmd44QhovkytcXRyzvV4Ips",
+            authDomain: "darkhorsetrades-bd89e.firebaseapp.com",
+            projectId: "darkhorsetrades-bd89e",
+            storageBucket: "darkhorsetrades-bd89e.appspot.com",
+            messagingSenderId: "528610189023",
+            appId: "1:528610189023:web:1f8741bfb0f8635bf9d36a"
+        };
+        const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOtJMJ8Y86P001uNGik7B';
+        const SERVER_URL = 'https://darkhorse-backend.onrender.com';
+        const RENDER_DATA_URL = 'https://api.jsonbin.io/v3/b/6735ab3fe41b4d34e4513c8b/latest';
+
+        // --- INITIALIZATION ---
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+
+        // --- DOM Elements ---
+        const authOverlay = document.getElementById('authOverlay'), authModal = document.getElementById('authModal'), authForm = document.getElementById('authForm'), authError = document.getElementById('authError'), authSubmit = document.getElementById('authSubmit'), authToggleLink = document.getElementById('authToggleLink'), authTitle = document.getElementById('authTitle'), authToggleText = document.getElementById('authToggleText');
+        const processingOverlay = document.getElementById('processingOverlay'), processingProgress = document.getElementById('processingProgress');
+        const loggedOutView = document.getElementById('loggedOutView'), loggedInView = document.getElementById('loggedInView'), userEmailDisplay = document.getElementById('userEmailDisplay');
+        const pricingSection = document.getElementById('pricingSection'), dashboardSection = document.getElementById('dashboardSection');
+        const feedTabContent = document.getElementById('tab-content-feed'), upgradeTabBtn = document.getElementById('upgrade-tab-btn'), dashboardTitle = document.getElementById('dashboard-title');
+        const tabs = document.querySelectorAll('.tab-btn'), tabContents = document.querySelectorAll('.tab-content');
+
+        // --- App State ---
+        let appState = {
+            currentUser: null,
+            userProfile: null,
+            isSignUp: false,
+            unsubscribeUserProfile: null,
+            activeTradeDetails: null,
+            pollingInterval: null,
+            debugMode: false
+        };
+
+        // --- DEBUG FUNCTIONS ---
+        window.toggleDebug = () => {
+            appState.debugMode = !appState.debugMode;
+            const debugPanel = document.getElementById('debugPanel');
+            debugPanel.classList.toggle('hidden', !appState.debugMode);
+            if (appState.debugMode) refreshDebugInfo();
+        };
+
+        window.refreshDebugInfo = async () => {
+            const debugInfo = document.getElementById('debugInfo');
+            const info = {
+                'User': appState.currentUser ? `${appState.currentUser.uid} (${appState.currentUser.email})` : 'Not logged in',
+                'Profile': appState.userProfile ? `Plan: ${appState.userProfile.subscription?.planId || 'none'}, Status: ${appState.userProfile.subscription?.status || 'none'}` : 'No profile',
+                'Server Health': 'Checking...'
+            };
+
+            debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
+
+            try {
+                const response = await fetch(`${SERVER_URL}/health`);
+                const data = await response.json();
+                info['Server Health'] = response.ok ? '✅ OK' : '❌ Error';
+            } catch (error) {
+                info['Server Health'] = '❌ Unreachable';
+            }
+
+            debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
+        };
+
+        // --- ENHANCED LOGGING ---
+        const log = (level, message, data = null) => {
+            const timestamp = new Date().toISOString();
+            const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}`;
+            console.log(logMessage, data || '');
+            
+            if (appState.debugMode) {
+                refreshDebugInfo();
+            }
+        };
+
+        // --- AUTHENTICATION & PAGE LOAD ---
+        auth.onAuthStateChanged(user => {
+            appState.currentUser = user;
+            const planButtons = document.querySelectorAll('.plan-button');
+            if (user) {
+                log('info', 'User authenticated', { uid: user.uid, email: user.email });
+                handleUserLogin();
+                planButtons.forEach(button => button.disabled = false);
+            } else {
+                log('info', 'User logged out');
+                handleUserLogout();
+                planButtons.forEach(button => button.disabled = true);
+            }
+            handlePostPaymentRedirect();
+        });
+
+        function handlePostPaymentRedirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('success')) {
+                log('info', 'Post-payment redirect detected, starting subscription polling');
+                processingOverlay.classList.remove('hidden');
+                processingOverlay.classList.add('show');
+                window.history.replaceState(null, '', window.location.pathname);
+                
+                let attempts = 0;
+                const maxAttempts = 30; // Increased from 15
+                if (appState.pollingInterval) clearInterval(appState.pollingInterval);
+                
+                appState.pollingInterval = setInterval(async () => {
+                    attempts++;
+                    const remainingAttempts = maxAttempts - attempts;
+                    processingProgress.textContent = `Checking subscription status... (${remainingAttempts} attempts remaining)`;
+                    
+                    if (appState.currentUser) {
+                        try {
+                            log('debug', 'Polling subscription status', { attempt: attempts, userId: appState.currentUser.uid });
+                            const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
+                            if (userDoc.exists) {
+                                const userData = userDoc.data();
+                                log('debug', 'User data retrieved', userData.subscription);
+                                if (userData.subscription && userData.subscription.status === 'active') {
+                                    log('success', 'Subscription activated successfully');
+                                    clearInterval(appState.pollingInterval);
+                                    appState.pollingInterval = null;
+                                    appState.userProfile = { uid: userDoc.id, ...userData };
+                                    processingOverlay.classList.remove('show');
+                                    processingOverlay.classList.add('hidden');
+                                    updateDashboardView();
+                                    return;
+                                }
+                            }
+                        } catch (error) {
+                            log('error', 'Error checking subscription status', error);
+                        }
+                    }
+                    if (attempts >= maxAttempts) {
+                        log('error', 'Subscription polling timeout');
+                        clearInterval(appState.pollingInterval);
+                        appState.pollingInterval = null;
+                        processingOverlay.classList.remove('show');
+                        processingOverlay.classList.add('hidden');
+                        alert('Subscription activation is taking longer than expected. Please refresh the page or contact support if the issue persists.');
+                    }
+                }, 2000); // Check every 2 seconds
+            }
+            if (urlParams.has('canceled')) {
+                log('info', 'Payment canceled');
+                alert('Your payment was canceled. You can choose a plan at any time.');
+                window.history.replaceState(null, '', window.location.pathname);
+            }
+        }
+
+        function handleUserLogin() {
+            loggedInView.classList.remove('hidden');
+            loggedOutView.classList.add('hidden');
+            userEmailDisplay.textContent = appState.currentUser.email;
+
+            const userDocRef = db.collection('users').doc(appState.currentUser.uid);
+            appState.unsubscribeUserProfile = userDocRef.onSnapshot(async (doc) => {
+                if (doc.exists) {
+                    appState.userProfile = { uid: doc.id, ...doc.data() };
+                    log('info', 'User profile updated', appState.userProfile.subscription);
+                } else {
+                    log('info', 'Creating initial user profile');
+                    await createInitialUserProfile(userDocRef);
+                }
+                updateDashboardView();
+            }, (error) => {
+                log('error', 'Error listening to user profile', error);
+            });
+        }
+
+        async function createInitialUserProfile(userDocRef) {
+            const initialProfile = {
+                email: appState.currentUser.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                subscription: { planId: null, status: 'none' },
+                settings: {
+                    notifyByEmail: true, notifyBySms: false, timing: 'realtime', summaryTime: '17:00',
+                    filters: { stockPrice: 3, tradeValue: 0, titles: ['CEO', 'CFO'] }
+                }
+            };
+            try {
+                await userDocRef.set(initialProfile);
+                appState.userProfile = initialProfile;
+                log('success', 'Initial user profile created');
+            } catch (error) {
+                log('error', 'Error creating user profile', error);
+            }
+        }
+
+        function handleUserLogout() {
+            if (appState.unsubscribeUserProfile) appState.unsubscribeUserProfile();
+            if (appState.pollingInterval) clearInterval(appState.pollingInterval);
+            appState.userProfile = null;
+            loggedInView.classList.add('hidden');
+            loggedOutView.classList.remove('hidden');
+            dashboardSection.classList.add('hidden');
+            pricingSection.classList.remove('hidden');
+        }
+
+        window.signOut = () => {
+            log('info', 'User signing out');
+            auth.signOut();
+        };
+        
+        window.showAuthModal = (signUp) => {
+            appState.isSignUp = signUp;
+            authOverlay.classList.add('show');
+            authTitle.textContent = signUp ? 'Create an Account' : 'Sign In';
+            authSubmit.textContent = signUp ? 'Sign Up' : 'Sign In';
+            authToggleText.textContent = signUp ? "Already have an account?" : "Don't have an account?";
+            authToggleLink.textContent = signUp ? 'Sign In' : 'Sign Up';
+            authError.classList.add('hidden');
+        };
+        
+        window.closeAuthModal = () => authOverlay.classList.remove('show');
+        authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeAuthModal(); });
+        authToggleLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal(!appState.isSignUp); });
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            authSubmit.disabled = true;
+            authSubmit.textContent = 'Processing...';
+            authError.classList.add('hidden');
+
+            try {
+                if (appState.isSignUp) {
+                    log('info', 'Attempting user registration', { email });
+                    await auth.createUserWithEmailAndPassword(email, password);
+                } else {
+                    log('info', 'Attempting user sign in', { email });
+                    await auth.signInWithEmailAndPassword(email, password);
+                }
+                closeAuthModal();
+            } catch (error) {
+                log('error', 'Authentication failed', error);
+                authError.textContent = error.message;
+                authError.classList.remove('hidden');
+            } finally {
+                authSubmit.disabled = false;
+                authSubmit.textContent = appState.isSignUp ? 'Sign Up' : 'Sign In';
+            }
+        });
+
+        // --- ENHANCED SUBSCRIPTION SELECTION ---
+        window.selectPlan = async (priceId, planName) => {
+            if (!appState.currentUser) { 
+                log('warn', 'User not authenticated, showing auth modal');
+                showAuthModal(false); 
+                return; 
+            }
+            
+            const checkoutButton = event.target;
+            const originalText = checkoutButton.textContent;
+            checkoutButton.disabled = true;
+            checkoutButton.textContent = 'Redirecting...';
+
+            log('info', 'Creating checkout session', { priceId, planName, userId: appState.currentUser.uid });
+
+            try {
+                // Verify user exists in Firebase first
+                log('debug', 'Verifying user profile exists');
+                const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
+                if (!userDoc.exists) {
+                    throw new Error('User profile not found. Please refresh and try again.');
+                }
+
+                log('debug', 'Making API request to create checkout session');
+                const response = await fetch(`${SERVER_URL}/create-checkout-session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        priceId: priceId,
+                        planName: planName,
+                        userId: appState.currentUser.uid,
+                        userEmail: appState.currentUser.email
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    log('error', 'Server response error', { status: response.status, text: errorText });
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+
+                const responseData = await response.json();
+                log('success', 'Checkout session created', responseData);
+
+                if (!responseData.sessionId) {
+                    throw new Error('No session ID received from server');
+                }
+
+                log('info', 'Redirecting to Stripe Checkout');
+                const { error } = await stripe.redirectToCheckout({ 
+                    sessionId: responseData.sessionId 
+                });
+                
+                if (error) {
+                    throw error;
+                }
+            } catch (error) {
+                log('error', 'Checkout session creation failed', error);
+                alert(`Could not initiate payment: ${error.message}`);
+                checkoutButton.disabled = false;
+                checkoutButton.textContent = originalText;
+            }
+        };
+
+        // --- VIEW MANAGEMENT & RENDERING ---
+        function updateDashboardView() {
+            if (!appState.userProfile) {
+                log('debug', 'No user profile, skipping dashboard update');
+                return;
+            }
+
+            const subscription = appState.userProfile.subscription;
+            log('debug', 'Updating dashboard view', subscription);
+
+            if (subscription && subscription.status === 'active') {
+                processingOverlay.classList.remove('show');
+                processingOverlay.classList.add('hidden');
+                pricingSection.classList.add('hidden');
+                dashboardSection.classList.remove('hidden');
+
+                const planId = subscription.planId;
+                upgradeTabBtn.classList.toggle('hidden', planId !== 'basic');
+                
+                if (planId === 'basic') {
+                    dashboardTitle.textContent = "Dashboard Preview";
+                    renderLockedDashboard();
+                } else {
+                    dashboardTitle.textContent = "Insider Trades Feed";
+                    renderFullDashboard();
+                }
+                populateSettingsView();
+            } else {
+                if (!processingOverlay.classList.contains('show')) {
+                    dashboardSection.classList.add('hidden');
+                    pricingSection.classList.remove('hidden');
+                }
+            }
+        }
+
+        function renderLockedDashboard() {
+            log('debug', 'Rendering locked dashboard');
+            feedTabContent.innerHTML = `
+                <div class="locked-dashboard">
+                    <div class="locked-content">
+                        <div class="feed-container">
+                        <table class="trades-table">
+                            <thead><tr><th>Filing Date</th><th>Company</th><th>Insider</th><th>Value</th></tr></thead>
+                            <tbody><tr><td>2024-10-26</td><td>Cyberdyne Systems</td><td>Miles Dyson</td><td>$4,502,500</td></tr><tr><td>2024-10-25</td><td>Stark Industries</td><td>Pepper Potts</td><td>$853,900</td></tr><tr><td>2024-10-25</td><td>Wayne Enterprises</td><td>Lucius Fox</td><td>$1,120,880</td></tr></tbody>
+                        </table>
+                        </div>
+                    </div>
+                    <div class="lock-overlay">
+                        <i class="fas fa-lock"></i><h2>Full Feed Locked</h2>
+                        <p>Upgrade to an Advanced or Professional plan to unlock the live feed, real-time alerts, and TradingView charts.</p>
+                        <button class="btn btn-primary" onclick="scrollToPricing()">Upgrade Your Plan</button>
+                    </div>
+                </div>`;
+        }
+        
+        async function renderFullDashboard() {
+            log('debug', 'Rendering full dashboard');
+            feedTabContent.innerHTML = `
+                <div class="feed-container">
+                    <table class="trades-table">
+                        <thead><tr><th>Filing Date</th><th>Company</th><th>Insider</th><th>Price</th><th>Quantity</th><th>Value</th></tr></thead>
+                        <tbody id="trades-tbody"></tbody>
+                    </table>
+                </div>`;
+            await populateTradesTable();
+        }
+
+        async function populateTradesTable() {
+            const tbody = document.getElementById('trades-tbody');
+            if (!tbody) return;
+            
+            log('debug', 'Populating trades table');
+            tbody.innerHTML = '';
+            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="6"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
+
+            try {
+                log('debug', 'Fetching trades data from API');
+                const response = await fetch(RENDER_DATA_URL);
+                if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                const trades = await response.json();
+                
+                log('success', 'Trades data fetched successfully', { count: trades.length });
+                tbody.innerHTML = '';
+                if (trades.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem;">No recent insider trades found.</td></tr>`;
+                    return;
+                }
+
+                trades.forEach(trade => {
+                    const tradeId = `${trade.Ticker}-${trade['Trade Date']}`.replace(/[^a-zA-Z0-9]/g, '');
+                    const row = document.createElement('tr');
+                    row.className = 'trade-row';
+                    row.dataset.ticker = trade.Ticker;
+                    row.dataset.id = tradeId;
+                    row.innerHTML = `
+                        <td>${trade['Filing Date']}</td>
+                        <td><div class="company-name">${trade['Company Name']}</div><div class="ticker">${trade.Ticker}</div></td>
+                        <td><div>${trade['Insider Name']}</div><div class="text-secondary">${trade.Title}</div></td>
+                        <td>$${parseFloat(trade.Price).toFixed(2)}</td>
+                        <td>${parseInt(trade.Qty).toLocaleString()}</td>
+                        <td>$${parseInt(trade.Value).toLocaleString()}</td>`;
+                    
+                    const detailsRow = document.createElement('tr');
+                    detailsRow.className = 'trade-details-row';
+                    detailsRow.innerHTML = `<td colspan="6" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}">Loading charts...</div></td>`;
+
+                    tbody.appendChild(row);
+                    tbody.appendChild(detailsRow);
+
+                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, trade.Ticker));
+                });
+            } catch (error) {
+                log('error', 'Failed to fetch trades', error);
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
+            }
+        }
+        
+        function toggleTradeDetails(row, detailsRow, ticker) {
+            const rowId = row.dataset.id;
+            const isActive = row.classList.contains('active-row');
+            
+            log('debug', 'Toggling trade details', { ticker, rowId, isActive });
+            
+            if (appState.activeTradeDetails && appState.activeTradeDetails !== rowId) {
+                const oldActiveRow = document.querySelector(`.trade-row[data-id="${appState.activeTradeDetails}"]`);
+                if (oldActiveRow) {
+                    const oldDetailsRow = oldActiveRow.nextElementSibling;
+                    oldActiveRow.classList.remove('active-row');
+                    if (oldDetailsRow && oldDetailsRow.classList.contains('trade-details-row')) {
+                        oldDetailsRow.classList.remove('active');
+                    }
+                }
+            }
+
+            row.classList.toggle('active-row', !isActive);
+            detailsRow.classList.toggle('active', !isActive);
+
+            if (!isActive) {
+                appState.activeTradeDetails = rowId;
+                loadTradingViewWidgets(ticker, `details-content-${rowId}`);
+            } else {
+                appState.activeTradeDetails = null;
+            }
+        }
+
+        function loadTradingViewWidgets(ticker, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container || container.dataset.loaded === 'true') return;
+            
+            log('debug', 'Loading TradingView widgets', { ticker, containerId });
+            container.innerHTML = '';
+            container.dataset.loaded = 'true';
+
+            const createWidget = (src, config) => {
+                const div = document.createElement('div');
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = src;
+                script.async = true;
+                script.text = JSON.stringify(config);
+                div.appendChild(script);
+                return div;
+            };
+
+            const overviewConfig = { "symbols": [[ticker, `${ticker}|1D`]], "chartOnly": false, "width": "100%", "height": "100%", "locale": "en", "colorTheme": "dark", "autosize": true, "showVolume": false, "hideDateRanges": false, "hideMarketStatus": false, "hideSymbolLogo": false, "scalePosition": "right", "scaleMode": "Normal", "fontFamily": "Inter", "fontSize": "10", "noTimeScale": false, "valuesTracking": "1", "changeMode": "price-and-percent", "chartType": "area", "backgroundColor": "rgba(16, 24, 44, 0)", "lineColor": "#2962FF", "topColor": "rgba(41, 98, 255, 0.3)", "bottomColor": "rgba(41, 98, 255, 0)" };
+            const profileConfig = { "symbol": ticker, "width": "100%", "height": "100%", "colorTheme": "dark", "isTransparent": true, "locale": "en" };
+            const timelineConfig = { "feedMode": "symbol", "symbol": ticker, "colorTheme": "dark", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": "100%", "locale": "en" };
+
+            container.append(
+                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js', overviewConfig),
+                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js', profileConfig),
+                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-timeline.js', timelineConfig)
+            );
+        }
+
+        // --- SETTINGS MANAGEMENT ---
+        function populateSettingsView() {
+            if (!appState.userProfile || !appState.userProfile.settings) return;
+            
+            const { planId } = appState.userProfile.subscription;
+            const { settings } = appState.userProfile;
+            const isCustomizable = (planId === 'advanced' || planId === 'professional');
+            
+            log('debug', 'Populating settings view', { planId, isCustomizable });
+            
+            document.querySelectorAll('.settings-card input, .settings-card button').forEach(el => el.disabled = !isCustomizable);
+            document.querySelectorAll('.settings-card').forEach(el => el.style.opacity = isCustomizable ? '1' : '0.5');
+
+            document.getElementById('emailToggle').checked = settings.notifyByEmail;
+            document.getElementById('smsToggle').checked = settings.notifyBySms;
+            document.querySelector(`input[name="timing"][value="${settings.timing}"]`).checked = true;
+            document.getElementById('summaryTime').classList.toggle('hidden', settings.timing !== 'summary');
+            document.getElementById('summaryTime').value = settings.summaryTime;
+
+            const { stockPrice, tradeValue, titles } = settings.filters;
+            document.getElementById('stockPrice').value = stockPrice;
+            updateSliderValue('stockPriceValue', stockPrice, val => `$${parseFloat(val).toFixed(2)}`);
+            document.getElementById('tradeValue').value = tradeValue;
+            updateSliderValue('tradeValueValue', tradeValue, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any');
+            document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
+                if (el.nextElementSibling) {
+                    el.checked = titles.includes(el.value);
+                    el.nextElementSibling.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
+                }
+            });
+        }
+
+        window.saveSettings = async () => {
+            const saveButton = event.target;
+            const originalText = saveButton.textContent;
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+
+            const settingsToSave = {
+                notifyByEmail: document.getElementById('emailToggle').checked,
+                notifyBySms: document.getElementById('smsToggle').checked,
+                timing: document.querySelector('input[name="timing"]:checked').value,
+                summaryTime: document.getElementById('summaryTime').value,
+                filters: {
+                    stockPrice: parseFloat(document.getElementById('stockPrice').value),
+                    tradeValue: parseInt(document.getElementById('tradeValue').value),
+                    titles: Array.from(document.querySelectorAll('input[name="insiderTitle"]:checked')).map(el => el.value)
+                }
+            };
+            
+            log('info', 'Saving settings', settingsToSave);
+            
+            try {
+                await db.collection('users').doc(appState.currentUser.uid).update({ settings: settingsToSave });
+                log('success', 'Settings saved successfully');
+                alert('Settings saved successfully!');
+            } catch (error) {
+                log('error', 'Failed to save settings', error);
+                alert("Failed to save settings. Please try again.");
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = originalText;
+            }
+        };
+        
+        // --- EVENT LISTENERS ---
+        tabs.forEach(tab => tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            tabContents.forEach(c => c.classList.toggle('active', c.id === `tab-content-${tab.dataset.tab}`));
+        }));
+        
+        document.querySelectorAll('input[name="timing"]').forEach(el => {
+            el.addEventListener('change', e => {
+                document.getElementById('summaryTime').classList.toggle('hidden', e.target.value !== 'summary');
+            });
+        });
+        
+        document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
+            el.addEventListener('change', e => {
+                e.target.nextElementSibling.parentElement.style.background = e.target.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
+            });
+        });
+        
+        function updateSliderValue(elementId, value, formatter) { 
+            document.getElementById(elementId).textContent = formatter(value); 
+        }
+        
+        document.getElementById('stockPrice').addEventListener('input', e => updateSliderValue('stockPriceValue', e.target.value, val => `$${parseFloat(val).toFixed(2)}`));
+        document.getElementById('tradeValue').addEventListener('input', e => updateSliderValue('tradeValueValue', e.target.value, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any'));
+        window.scrollToPricing = () => pricingSection.scrollIntoView({ behavior: 'smooth' });
+
+        // Initialize debug info if debug mode is on
+        if (appState.debugMode) refreshDebugInfo();
+    });
+    </script>
+</body>
+</html>

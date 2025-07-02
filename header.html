@@ -1,0 +1,278 @@
+<!-- Navigation Header -->
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <a href="index.html" class="logo">DarkHorse</a>
+        
+        <!-- Desktop Navigation -->
+        <ul class="nav-links">
+            <li><a href="index.html" id="homeLink">Home</a></li>
+            <li><a href="firebase-stripe-alpaca-integration.html" id="pricingLink">Pricing</a></li>
+            <li><a href="#" class="disabled" id="aboutLink">About</a></li>
+        </ul>
+
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars" id="menuIcon"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" id="mobileNav">
+        <ul>
+            <li><a href="index.html" id="mobileHomeLink">Home</a></li>
+            <li><a href="firebase-stripe-alpaca-integration.html" id="mobilePricingLink">Pricing</a></li>
+            <li><a href="#" class="disabled" id="mobileAboutLink">About</a></li>
+        </ul>
+    </div>
+</nav>
+
+<style>
+    /* Navigation Header */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        padding: 1rem 2rem;
+        background: rgba(10, 15, 28, 0.95);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+
+    .nav-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .logo {
+        font-size: 1.8rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #0a74da 0%, #00c6ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .logo:hover {
+        transform: scale(1.05);
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+        align-items: center;
+    }
+
+    .nav-links li {
+        position: relative;
+    }
+
+    .nav-links a {
+        color: #a0a8b8;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-links a::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 198, 255, 0.1);
+        transition: all 0.3s ease;
+        z-index: -1;
+    }
+
+    .nav-links a:hover {
+        color: #00c6ff;
+        transform: translateY(-2px);
+    }
+
+    .nav-links a:hover::before {
+        left: 0;
+    }
+
+    .nav-links a.active,
+    .nav-links a.current-page {
+        color: #00c6ff;
+        background: rgba(0, 198, 255, 0.1);
+        border: 1px solid rgba(0, 198, 255, 0.3);
+    }
+
+    .nav-links a.disabled {
+        color: rgba(160, 168, 184, 0.5);
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .nav-links a.disabled::after {
+        content: '(Coming Soon)';
+        font-size: 0.75rem;
+        margin-left: 0.5rem;
+        opacity: 0.7;
+    }
+
+    /* Mobile Menu */
+    .mobile-menu-btn {
+        display: none;
+        background: none;
+        border: none;
+        color: #ffffff;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-menu-btn:hover {
+        color: #00c6ff;
+    }
+
+    .mobile-nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(10, 15, 28, 0.98);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1rem 0;
+    }
+
+    .mobile-nav.show {
+        display: block;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .mobile-nav ul {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        list-style: none;
+        padding: 0 2rem;
+    }
+
+    .mobile-nav a {
+        color: #a0a8b8;
+        text-decoration: none;
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .mobile-nav a:hover {
+        color: #00c6ff;
+        padding-left: 1rem;
+    }
+
+    .mobile-nav a.active {
+        color: #00c6ff;
+        border-left: 3px solid #00c6ff;
+        padding-left: 1rem;
+    }
+
+    .mobile-nav a.disabled {
+        color: rgba(160, 168, 184, 0.5);
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .nav-links {
+            display: none;
+        }
+
+        .mobile-menu-btn {
+            display: block;
+        }
+
+        .navbar {
+            padding: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+        }
+    }
+
+    /* Navbar scroll effect */
+    .navbar.scrolled {
+        background: rgba(7, 18, 30, 0.98);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+</style>
+
+<script>
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+        const mobileNav = document.getElementById('mobileNav');
+        const menuIcon = document.getElementById('menuIcon');
+        
+        mobileNav.classList.toggle('show');
+        
+        if (mobileNav.classList.contains('show')) {
+            menuIcon.className = 'fas fa-times';
+        } else {
+            menuIcon.className = 'fas fa-bars';
+        }
+    }
+
+    // Close mobile menu when clicking on a link
+    document.querySelectorAll('.mobile-nav a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (!link.classList.contains('disabled')) {
+                toggleMobileMenu();
+            }
+        });
+    });
+
+    // Add scroll effect to navbar
+    window.addEventListener('scroll', () => {
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+        const mobileNav = document.getElementById('mobileNav');
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        
+        if (menuBtn && !menuBtn.contains(e.target) && !mobileNav.contains(e.target)) {
+            if (mobileNav.classList.contains('show')) {
+                toggleMobileMenu();
+            }
+        }
+    });
+</script>
