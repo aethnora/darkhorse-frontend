@@ -5,16 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DarkHorse Alerts - Insider Trade Notifications</title>
     
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     
+    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
+    <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
 
     <style>
@@ -143,7 +147,6 @@
             text-align: left;
         }
 
-        /* Adjusted widths for better date visibility */
         .trades-table th:nth-child(1), .trades-table td:nth-child(1) { width: 14%; min-width: 130px; } /* Filing Date */
         .trades-table th:nth-child(2), .trades-table td:nth-child(2) { width: 14%; min-width: 110px; } /* Trade Date */
         .trades-table th:nth-child(3) { width: 15%; } /* Company */
@@ -163,28 +166,21 @@
         .trade-details-row.active { display: table-row; }
         .trade-details-cell { padding: 0 !important; }
         
-        /* REVISED: Switched to a more stable grid for widget layout */
         .trade-details-content { 
             background: var(--dark-bg); 
             padding: 1rem; 
             display: grid; 
-            /* Forcing a 2-column layout: 2/3 for chart, 1/3 for profile */
             grid-template-columns: 2fr 1fr;
             gap: 1rem; 
             animation: slideDown 0.5s ease; 
         }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* REVISED: Adjusted widget container styles */
         .tradingview-widget-container { 
             width: 100%; 
-            height: 500px; /* Increased height for the advanced chart */
-        }
-        .tradingview-widget-container.profile {
-             height: 500px; /* Match height for alignment */
+            height: 450px;
         }
 
-        /* Styles for the dropdown indicator */
         .trade-toggle-icon {
             margin-left: 0.5rem;
             transition: transform 0.3s ease;
@@ -221,16 +217,19 @@
 
     <div class="bg-animation"></div>
 
+    <!-- Debug Toggle -->
     <button class="debug-toggle" onclick="toggleDebug()" title="Toggle Debug Panel">
         <i class="fas fa-bug"></i>
     </button>
 
+    <!-- Debug Panel -->
     <div class="debug-panel hidden" id="debugPanel">
         <h4>Debug Info</h4>
         <div id="debugInfo">Loading...</div>
         <button class="btn btn-secondary" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.7rem;" onclick="refreshDebugInfo()">Refresh</button>
     </div>
 
+    <!-- Auth & Processing Modals -->
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-modal" id="authModal">
             <h2 id="authTitle">Sign In</h2>
@@ -262,6 +261,7 @@
     </header>
 
     <main>
+        <!-- Pricing Section -->
         <section id="pricingSection" class="container">
             <h1>Get Insider Trading Alerts, Instantly.</h1>
             <p class="subtitle">Stop guessing. Start receiving real-time notifications when CEOs, CFOs, and other top executives make significant stock purchases.</p>
@@ -303,6 +303,7 @@
             </div>
         </section>
 
+        <!-- Dashboard Section -->
         <section id="dashboardSection" class="container hidden">
             <div class="dashboard-header">
                 <h1 id="dashboard-title">Insider Trades Feed</h1>
@@ -379,7 +380,7 @@
         };
         const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOJTMJ8Y86P001uNGik7B';
         const SERVER_URL = 'https://darkhorse-backend.onrender.com';
-        const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders'; // UPDATE THIS WITH YOUR ACTUAL API URL
+        const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
 
         // --- INITIALIZATION ---
         firebase.initializeApp(firebaseConfig);
@@ -409,8 +410,7 @@
         // --- DEBUG FUNCTIONS ---
         window.toggleDebug = () => {
             appState.debugMode = !appState.debugMode;
-            const debugPanel = document.getElementById('debugPanel');
-            debugPanel.classList.toggle('hidden', !appState.debugMode);
+            document.getElementById('debugPanel').classList.toggle('hidden', !appState.debugMode);
             if (appState.debugMode) refreshDebugInfo();
         };
 
@@ -421,29 +421,20 @@
                 'Profile': appState.userProfile ? `Plan: ${appState.userProfile.subscription?.planId || 'none'}, Status: ${appState.userProfile.subscription?.status || 'none'}` : 'No profile',
                 'Server Health': 'Checking...'
             };
-
             debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
-
             try {
                 const response = await fetch(`${SERVER_URL}/health`);
-                const data = await response.json();
                 info['Server Health'] = response.ok ? '✅ OK' : '❌ Error';
             } catch (error) {
                 info['Server Health'] = '❌ Unreachable';
             }
-
             debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
         };
 
-        // --- ENHANCED LOGGING ---
         const log = (level, message, data = null) => {
             const timestamp = new Date().toISOString();
-            const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}`;
-            console.log(logMessage, data || '');
-            
-            if (appState.debugMode) {
-                refreshDebugInfo();
-            }
+            console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, data || '');
+            if (appState.debugMode) refreshDebugInfo();
         };
 
         // --- AUTHENTICATION & PAGE LOAD ---
@@ -465,37 +456,28 @@
         function handlePostPaymentRedirect() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('success')) {
-                log('info', 'Post-payment redirect detected, starting subscription polling');
+                log('info', 'Post-payment redirect detected');
                 processingOverlay.classList.remove('hidden');
                 processingOverlay.classList.add('show');
                 window.history.replaceState(null, '', window.location.pathname);
-                
                 let attempts = 0;
-                const maxAttempts = 30; // Increased from 15
+                const maxAttempts = 30;
                 if (appState.pollingInterval) clearInterval(appState.pollingInterval);
-                
                 appState.pollingInterval = setInterval(async () => {
                     attempts++;
-                    const remainingAttempts = maxAttempts - attempts;
-                    processingProgress.textContent = `Checking subscription status... (${remainingAttempts} attempts remaining)`;
-                    
+                    processingProgress.textContent = `Checking subscription status... (${maxAttempts - attempts} attempts left)`;
                     if (appState.currentUser) {
                         try {
-                            log('debug', 'Polling subscription status', { attempt: attempts, userId: appState.currentUser.uid });
                             const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
-                            if (userDoc.exists) {
-                                const userData = userDoc.data();
-                                log('debug', 'User data retrieved', userData.subscription);
-                                if (userData.subscription && userData.subscription.status === 'active') {
-                                    log('success', 'Subscription activated successfully');
-                                    clearInterval(appState.pollingInterval);
-                                    appState.pollingInterval = null;
-                                    appState.userProfile = { uid: userDoc.id, ...userData };
-                                    processingOverlay.classList.remove('show');
-                                    processingOverlay.classList.add('hidden');
-                                    updateDashboardView();
-                                    return;
-                                }
+                            if (userDoc.exists && userDoc.data().subscription?.status === 'active') {
+                                log('success', 'Subscription activated');
+                                clearInterval(appState.pollingInterval);
+                                appState.pollingInterval = null;
+                                appState.userProfile = { uid: userDoc.id, ...userDoc.data() };
+                                processingOverlay.classList.remove('show');
+                                processingOverlay.classList.add('hidden');
+                                updateDashboardView();
+                                return;
                             }
                         } catch (error) {
                             log('error', 'Error checking subscription status', error);
@@ -507,9 +489,9 @@
                         appState.pollingInterval = null;
                         processingOverlay.classList.remove('show');
                         processingOverlay.classList.add('hidden');
-                        displayMessage('Subscription activation is taking longer than expected. Please refresh the page or contact support if the issue persists.', 'error');
+                        displayMessage('Subscription activation is taking longer than expected. Please refresh the page.', 'error');
                     }
-                }, 2000); // Check every 2 seconds
+                }, 2000);
             }
             if (urlParams.has('canceled')) {
                 log('info', 'Payment canceled');
@@ -522,22 +504,13 @@
             const messageBox = document.createElement('div');
             messageBox.className = `status-message ${type}`;
             messageBox.textContent = message;
-            messageBox.style.position = 'fixed';
-            messageBox.style.top = '20px';
-            messageBox.style.left = '50%';
-            messageBox.style.transform = 'translateX(-50%)';
-            messageBox.style.zIndex = '10000';
-            messageBox.style.padding = '15px 25px';
-            messageBox.style.borderRadius = '8px';
-            messageBox.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
-            messageBox.style.transition = 'opacity 0.5s ease-in-out';
-            messageBox.style.opacity = '0';
+            Object.assign(messageBox.style, {
+                position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
+                zIndex: '10000', padding: '15px 25px', borderRadius: '8px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)', transition: 'opacity 0.5s ease-in-out', opacity: '0'
+            });
             document.body.appendChild(messageBox);
-
-            setTimeout(() => {
-                messageBox.style.opacity = '1';
-            }, 10);
-
+            setTimeout(() => { messageBox.style.opacity = '1'; }, 10);
             setTimeout(() => {
                 messageBox.style.opacity = '0';
                 messageBox.addEventListener('transitionend', () => messageBox.remove());
@@ -548,7 +521,6 @@
             loggedInView.classList.remove('hidden');
             loggedOutView.classList.add('hidden');
             userEmailDisplay.textContent = appState.currentUser.email;
-
             const userDocRef = db.collection('users').doc(appState.currentUser.uid);
             appState.unsubscribeUserProfile = userDocRef.onSnapshot(async (doc) => {
                 if (doc.exists) {
@@ -559,9 +531,7 @@
                     await createInitialUserProfile(userDocRef);
                 }
                 updateDashboardView();
-            }, (error) => {
-                log('error', 'Error listening to user profile', error);
-            });
+            }, (error) => log('error', 'Error listening to user profile', error));
         }
 
         async function createInitialUserProfile(userDocRef) {
@@ -593,11 +563,7 @@
             pricingSection.classList.remove('hidden');
         }
 
-        window.signOut = () => {
-            log('info', 'User signing out');
-            auth.signOut();
-        };
-        
+        window.signOut = () => auth.signOut();
         window.showAuthModal = (signUp) => {
             appState.isSignUp = signUp;
             authOverlay.classList.add('show');
@@ -607,7 +573,6 @@
             authToggleLink.textContent = signUp ? 'Sign In' : 'Sign Up';
             authError.classList.add('hidden');
         };
-        
         window.closeAuthModal = () => authOverlay.classList.remove('show');
         authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeAuthModal(); });
         authToggleLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal(!appState.isSignUp); });
@@ -619,18 +584,14 @@
             authSubmit.disabled = true;
             authSubmit.textContent = 'Processing...';
             authError.classList.add('hidden');
-
             try {
                 if (appState.isSignUp) {
-                    log('info', 'Attempting user registration', { email });
                     await auth.createUserWithEmailAndPassword(email, password);
                 } else {
-                    log('info', 'Attempting user sign in', { email });
                     await auth.signInWithEmailAndPassword(email, password);
                 }
                 closeAuthModal();
             } catch (error) {
-                log('error', 'Authentication failed', error);
                 authError.textContent = error.message;
                 authError.classList.remove('hidden');
             } finally {
@@ -640,81 +601,40 @@
         });
 
         window.selectPlan = async (priceId, planName) => {
-            if (!appState.currentUser) { 
-                log('warn', 'User not authenticated, showing auth modal');
-                showAuthModal(false); 
-                return; 
-            }
-            
+            if (!appState.currentUser) { showAuthModal(false); return; }
             const checkoutButton = event.target;
-            const originalText = checkoutButton.textContent;
             checkoutButton.disabled = true;
             checkoutButton.textContent = 'Redirecting...';
-
-            log('info', 'Creating checkout session', { priceId, planName, userId: appState.currentUser.uid });
-
             try {
-                const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
-                if (!userDoc.exists) {
-                    throw new Error('User profile not found. Please refresh and try again.');
-                }
-
                 const response = await fetch(`${SERVER_URL}/create-checkout-session`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        priceId: priceId,
-                        planName: planName,
-                        userId: appState.currentUser.uid,
-                        userEmail: appState.currentUser.email
-                    })
+                    body: JSON.stringify({ priceId, planName, userId: appState.currentUser.uid, userEmail: appState.currentUser.email })
                 });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    log('error', 'Server response error', { status: response.status, text: errorText });
-                    throw new Error(`Server error: ${response.status} - ${errorText}`);
-                }
-
-                const responseData = await response.json();
-                if (!responseData.sessionId) {
-                    throw new Error('No session ID received from server');
-                }
-
-                const { error } = await stripe.redirectToCheckout({ 
-                    sessionId: responseData.sessionId 
-                });
-                
-                if (error) {
-                    throw error;
-                }
+                if (!response.ok) throw new Error(`Server error: ${await response.text()}`);
+                const { sessionId } = await response.json();
+                if (!sessionId) throw new Error('No session ID received');
+                const { error } = await stripe.redirectToCheckout({ sessionId });
+                if (error) throw error;
             } catch (error) {
-                log('error', 'Checkout session creation failed', error);
+                log('error', 'Checkout failed', error);
                 displayMessage(`Could not initiate payment: ${error.message}`, 'error');
                 checkoutButton.disabled = false;
-                checkoutButton.textContent = originalText;
+                checkoutButton.textContent = 'Choose ' + planName.charAt(0).toUpperCase() + planName.slice(1);
             }
         };
 
+        // --- VIEW MANAGEMENT & RENDERING ---
         function updateDashboardView() {
-            if (!appState.userProfile) {
-                log('debug', 'No user profile, skipping dashboard update');
-                return;
-            }
-
-            const subscription = appState.userProfile.subscription;
-            log('debug', 'Updating dashboard view', subscription);
-
-            if (subscription && subscription.status === 'active') {
+            if (!appState.userProfile) return;
+            const { subscription } = appState.userProfile;
+            if (subscription?.status === 'active') {
                 processingOverlay.classList.remove('show');
                 processingOverlay.classList.add('hidden');
                 pricingSection.classList.add('hidden');
                 dashboardSection.classList.remove('hidden');
-
-                const planId = subscription.planId;
-                upgradeTabBtn.classList.toggle('hidden', planId !== 'basic');
-                
-                if (planId === 'basic') {
+                upgradeTabBtn.classList.toggle('hidden', subscription.planId !== 'basic');
+                if (subscription.planId === 'basic') {
                     dashboardTitle.textContent = "Dashboard Preview";
                     renderLockedDashboard();
                 } else {
@@ -722,16 +642,13 @@
                     renderFullDashboard();
                 }
                 populateSettingsView();
-            } else {
-                if (!processingOverlay.classList.contains('show')) {
-                    dashboardSection.classList.add('hidden');
-                    pricingSection.classList.remove('hidden');
-                }
+            } else if (!processingOverlay.classList.contains('show')) {
+                dashboardSection.classList.add('hidden');
+                pricingSection.classList.remove('hidden');
             }
         }
 
         function renderLockedDashboard() {
-            log('debug', 'Rendering locked dashboard');
             feedTabContent.innerHTML = `
                 <div class="locked-dashboard">
                     <div class="locked-content">
@@ -751,7 +668,6 @@
         }
         
         async function renderFullDashboard() {
-            log('debug', 'Rendering full dashboard');
             feedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
@@ -762,31 +678,32 @@
             await populateTradesTable();
         }
 
+        // Helper to get value from trade object with multiple possible keys
+        function getTradeValue(trade, keys, defaultValue = 'N/A') {
+            for (const key of keys) {
+                if (trade[key] !== undefined && trade[key] !== null) {
+                    return trade[key];
+                }
+            }
+            return defaultValue;
+        }
+
         async function populateTradesTable() {
             const tbody = document.getElementById('trades-tbody');
             if (!tbody) return;
-            
-            log('debug', 'Populating trades table');
-            tbody.innerHTML = '';
-            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
-
+            tbody.innerHTML = Array(5).fill('<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>').join('');
             try {
-                log('debug', 'Fetching trades data from API');
                 const response = await fetch(RENDER_DATA_URL);
-                if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                if (!response.ok) throw new Error(`API fetch failed: ${response.statusText}`);
                 const trades = await response.json();
                 
-                log('success', 'Trades data fetched successfully', { count: trades.length });
-                
+                const tradeTypeKeys = ['Trade Type', 'TradeÂ Type'];
                 const purchasesTrades = trades.filter(trade => {
-                    const tradeTypeKey = Object.keys(trade).find(key => key.toLowerCase().includes('trade') && key.toLowerCase().includes('type'));
-                    if (!tradeTypeKey) return false;
-                    const tradeType = (trade[tradeTypeKey] || '').toString().toLowerCase();
-                    return tradeType.includes('p - purchase') || tradeType.startsWith('p ');
+                    const tradeType = getTradeValue(trade, tradeTypeKeys, '').toString().toLowerCase();
+                    return tradeType.includes('purchase') || tradeType.startsWith('p -') || tradeType.startsWith('p ');
                 });
                 
-                log('debug', `Filtered for ${purchasesTrades.length} purchases out of ${trades.length} total trades.`);
-                
+                log('info', `Filtered for ${purchasesTrades.length} purchases out of ${trades.length} trades.`);
                 tbody.innerHTML = '';
                 if (purchasesTrades.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem;">No recent insider purchases found.</td></tr>`;
@@ -794,30 +711,27 @@
                 }
 
                 purchasesTrades.slice(0, 50).forEach(trade => {
-                    const tradeId = `${trade.Ticker}-${trade['Trade Date']}`.replace(/[^a-zA-Z0-9]/g, '');
+                    const tradeId = `${trade.Ticker}-${getTradeValue(trade, ['Trade Date', 'TradeÂ Date'])}`.replace(/[^a-zA-Z0-9-]/g, '');
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
                     row.dataset.ticker = trade.Ticker;
                     row.dataset.id = tradeId;
                     
-                    // Robustly get data, handling potential encoding issues (e.g., "Â" character)
-                    const filingDate = trade['Filing Date'] || trade['FilingÂ Date'] || 'N/A';
-                    const tradeDate = trade['Trade Date'] || trade['TradeÂ Date'] || 'N/A';
-                    const companyName = trade['Company Name'] || trade['CompanyÂ Name'] || 'N/A';
-                    const insiderName = trade['Insider Name'] || trade['InsiderÂ Name'] || 'N/A';
-                    const ticker = trade.Ticker || 'N/A';
-                    const title = trade.Title || '';
+                    const filingDate = getTradeValue(trade, ['Filing Date', 'FilingÂ Date']);
+                    const tradeDate = getTradeValue(trade, ['Trade Date', 'TradeÂ Date']);
+                    const companyName = getTradeValue(trade, ['Company Name', 'CompanyÂ Name']);
+                    const insiderName = getTradeValue(trade, ['Insider Name', 'InsiderÂ Name']);
+                    const deltaOwn = getTradeValue(trade, ['ΔOwn', 'Î"Own']);
                     
                     const price = parseFloat(String(trade.Price || '0').replace(/[$,]/g, '')) || 0;
                     const qty = parseInt(String(trade.Qty || '0').replace(/[,$]/g, ''), 10) || 0;
-                    const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || '';
                     const value = parseInt(String(trade.Value || '0').replace(/[$,]/g, ''), 10) || 0;
                     
                     row.innerHTML = `
                         <td>${filingDate}</td>
                         <td>${tradeDate}</td>
-                        <td><div class="company-name">${companyName}</div><div class="ticker">${ticker}</div></td>
-                        <td><div>${insiderName}</div><div class="text-secondary">${title}</div></td>
+                        <td><div class="company-name">${companyName}</div><div class="ticker">${trade.Ticker || ''}</div></td>
+                        <td><div>${insiderName}</div><div class="text-secondary">${trade.Title || ''}</div></td>
                         <td>$${price.toFixed(2)}</td>
                         <td>${qty.toLocaleString()}</td>
                         <td>${deltaOwn}</td>
@@ -830,11 +744,10 @@
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
-
-                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, ticker));
+                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, trade.Ticker));
                 });
             } catch (error) {
-                log('error', 'Failed to fetch trades', error);
+                log('error', 'Failed to populate trades table', error);
                 tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed. Please try again later.</td></tr>`;
             }
         }
@@ -844,22 +757,21 @@
             const isActive = row.classList.contains('active-row');
             const toggleIcon = row.querySelector('.trade-toggle-icon');
 
-            log('debug', 'Toggling trade details', { ticker, rowId, isActive });
-            
             if (appState.activeTradeDetails && appState.activeTradeDetails !== rowId) {
-                const oldActiveRow = document.querySelector(`.trade-row[data-id="${appState.activeTradeDetails}"]`);
+                const oldActiveRow = document.querySelector(`.trade-row.active-row`);
                 if (oldActiveRow) {
-                    const oldDetailsRow = oldActiveRow.nextElementSibling;
-                    const oldToggleIcon = oldActiveRow.querySelector('.trade-toggle-icon');
                     oldActiveRow.classList.remove('active-row');
-                    if (oldDetailsRow) oldDetailsRow.classList.remove('active');
-                    if (oldToggleIcon) oldToggleIcon.classList.remove('rotated');
+                    oldActiveRow.querySelector('.trade-toggle-icon')?.classList.remove('rotated');
+                    const oldDetailsRow = oldActiveRow.nextElementSibling;
+                    if (oldDetailsRow?.classList.contains('trade-details-row')) {
+                        oldDetailsRow.classList.remove('active');
+                    }
                 }
             }
 
             row.classList.toggle('active-row', !isActive);
             detailsRow.classList.toggle('active', !isActive);
-            if (toggleIcon) toggleIcon.classList.toggle('rotated', !isActive);
+            toggleIcon?.classList.toggle('rotated', !isActive);
 
             if (!isActive) {
                 appState.activeTradeDetails = rowId;
@@ -869,75 +781,61 @@
             }
         }
 
-        // REVISED: Function to load new, interactive widgets
         function loadTradingViewWidgets(ticker, containerId) {
             const container = document.getElementById(containerId);
             if (!container || container.dataset.loaded === 'true') return;
             
-            log('debug', 'Loading NEW TradingView widgets', { ticker, containerId });
-            container.innerHTML = '';
+            log('info', 'Loading TradingView widgets', { ticker, containerId });
+            container.innerHTML = ''; // Clear "Loading..." text
             container.dataset.loaded = 'true';
 
-            // Create a unique ID for the chart container for the script to target
-            const chartContainerId = `tradingview-chart-${containerId}`;
-            const chartDiv = document.createElement('div');
-            chartDiv.id = chartContainerId;
-            chartDiv.className = 'tradingview-widget-container';
-            
-            const profileDiv = document.createElement('div');
-            profileDiv.className = 'tradingview-widget-container profile';
-            
-            container.appendChild(chartDiv);
-            container.appendChild(profileDiv);
+            const createWidget = (src, config) => {
+                const div = document.createElement('div');
+                div.className = 'tradingview-widget-container';
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = src;
+                script.async = true;
+                script.text = JSON.stringify(config);
+                div.appendChild(script);
+                return div;
+            };
 
-            // 1. Advanced, Interactive Chart Widget
-            new TradingView.widget({
-                "autosize": true,
+            const overviewConfig = { 
                 "symbol": ticker,
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "allow_symbol_change": true, // This makes it interactive
-                "container_id": chartContainerId,
-                "backgroundColor": "rgba(16, 24, 44, 1)"
-            });
-
-            // 2. Company Profile Widget
-            new TradingView.widget({
-                "symbol": ticker,
-                "width": "100%",
-                "height": "100%",
-                "colorTheme": "dark",
-                "isTransparent": true,
-                "locale": "en",
-                "container_id": profileDiv
-            });
+                "chartOnly": false, "width": "100%", "height": "100%", "locale": "en", "colorTheme": "dark", 
+                "autosize": true, "showVolume": false, "hideMarketStatus": false, "hideSymbolLogo": false, 
+                "scalePosition": "right", "scaleMode": "Normal", "fontFamily": "Inter", "fontSize": "10", 
+                "noTimeScale": false, "valuesTracking": "1", "changeMode": "price-and-percent", "chartType": "area", 
+                "backgroundColor": "rgba(16, 24, 44, 0)", "lineColor": "#2962FF", 
+                "topColor": "rgba(41, 98, 255, 0.3)", "bottomColor": "rgba(41, 98, 255, 0)" 
+            };
+            
+            const profileConfig = { 
+                "symbol": ticker, "width": "100%", "height": "100%", "colorTheme": "dark", 
+                "isTransparent": true, "locale": "en" 
+            };
+            
+            container.append(
+                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js', overviewConfig),
+                createWidget('https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js', profileConfig)
+            );
         }
-        
+
         // --- SETTINGS MANAGEMENT ---
         function populateSettingsView() {
-            if (!appState.userProfile || !appState.userProfile.settings) return;
-            
+            if (!appState.userProfile?.settings) return;
             const { planId } = appState.userProfile.subscription;
             const { settings } = appState.userProfile;
             const isCustomizable = (planId === 'advanced' || planId === 'professional');
-            
-            log('debug', 'Populating settings view', { planId, isCustomizable });
             
             document.querySelectorAll('.settings-card input, .settings-card button').forEach(el => el.disabled = !isCustomizable);
             document.querySelectorAll('.settings-card').forEach(el => el.style.opacity = isCustomizable ? '1' : '0.5');
 
             document.getElementById('emailToggle').checked = settings.notifyByEmail;
             document.getElementById('smsToggle').checked = settings.notifyBySms;
-            
-            // Correctly set radio button
             const timingRadio = document.querySelector(`input[name="timing"][value="${settings.timing}"]`);
             if(timingRadio) timingRadio.checked = true;
-
             document.getElementById('summaryTime').classList.toggle('hidden', settings.timing !== 'summary');
             document.getElementById('summaryTime').value = settings.summaryTime;
 
@@ -948,17 +846,14 @@
             updateSliderValue('tradeValueValue', tradeValue, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any');
             document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
                 el.checked = titles.includes(el.value);
-                // Update background style on load
                 el.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
             });
         }
 
         window.saveSettings = async () => {
             const saveButton = event.target;
-            const originalText = saveButton.textContent;
             saveButton.disabled = true;
             saveButton.textContent = 'Saving...';
-
             const settingsToSave = {
                 notifyByEmail: document.getElementById('emailToggle').checked,
                 notifyBySms: document.getElementById('smsToggle').checked,
@@ -970,19 +865,14 @@
                     titles: Array.from(document.querySelectorAll('input[name="insiderTitle"]:checked')).map(el => el.value)
                 }
             };
-            
-            log('info', 'Saving settings', settingsToSave);
-            
             try {
                 await db.collection('users').doc(appState.currentUser.uid).update({ settings: settingsToSave });
-                log('success', 'Settings saved successfully');
                 displayMessage('Settings saved successfully!', 'success');
             } catch (error) {
-                log('error', 'Failed to save settings', error);
                 displayMessage("Failed to save settings. Please try again.", 'error');
             } finally {
                 saveButton.disabled = false;
-                saveButton.textContent = originalText;
+                saveButton.textContent = 'Save Settings';
             }
         };
         
@@ -994,30 +884,17 @@
         }));
         
         document.querySelectorAll('input[name="timing"]').forEach(el => {
-            el.addEventListener('change', e => {
-                document.getElementById('summaryTime').classList.toggle('hidden', e.target.value !== 'summary');
-            });
+            el.addEventListener('change', e => document.getElementById('summaryTime').classList.toggle('hidden', e.target.value !== 'summary'));
         });
         
         document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
-            el.addEventListener('change', e => {
-                e.target.parentElement.style.background = e.target.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
-            });
+            el.addEventListener('change', e => e.target.parentElement.style.background = e.target.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)');
         });
         
-        function updateSliderValue(elementId, value, formatter) { 
-            document.getElementById(elementId).textContent = formatter(value); 
-        }
-        
+        function updateSliderValue(elementId, value, formatter) { document.getElementById(elementId).textContent = formatter(value); }
         document.getElementById('stockPrice').addEventListener('input', e => updateSliderValue('stockPriceValue', e.target.value, val => `$${parseFloat(val).toFixed(2)}`));
         document.getElementById('tradeValue').addEventListener('input', e => updateSliderValue('tradeValueValue', e.target.value, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any'));
         window.scrollToPricing = () => pricingSection.scrollIntoView({ behavior: 'smooth' });
-
-        // Load TradingView's widget scripts
-        const tvScript = document.createElement('script');
-        tvScript.src = 'https://s3.tradingview.com/tv.js';
-        tvScript.async = true;
-        document.head.appendChild(tvScript);
 
         if (appState.debugMode) refreshDebugInfo();
     });
