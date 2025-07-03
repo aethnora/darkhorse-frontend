@@ -536,9 +536,11 @@
         const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOtJMJ8Y86P001uNGik7B';
         const SERVER_URL = 'https://darkhorse-backend.onrender.com';
         const INSIDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
-        
-        // *** FIX: Use the /data endpoint which returns JSON, a more reliable format. ***
         const SENATOR_DATA_URL = 'https://senator-filings.onrender.com/data';
+        
+        // *** FIX: Re-implementing a CORS proxy as the target server is blocking direct requests. ***
+        // This proxy wraps the response in a JSON object. We need to parse it and extract the 'contents'.
+        const PROXIED_SENATOR_DATA_URL = 'https://api.allorigins.win/get?url=' + encodeURIComponent(SENATOR_DATA_URL);
 
 
         // --- INITIALIZATION ---
@@ -604,7 +606,7 @@
             }
             
             try {
-                const response = await fetchWithCORS(SENATOR_DATA_URL); 
+                const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL); 
                 info['Senator API'] = response.ok ? '✅ OK' : '❌ Error';
             } catch (error) {
                 info['Senator API'] = '❌ CORS/Unreachable';
@@ -626,12 +628,7 @@
         async function fetchWithCORS(url, options = {}) {
             try {
                 const response = await fetch(url, {
-                    ...options,
-                    mode: 'cors',
-                     headers: {
-                        'Accept': 'application/json',
-                        ...options.headers
-                    }
+                    ...options
                 });
                 
                 if (!response.ok) {
@@ -1147,11 +1144,18 @@
             for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="7"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
-                log('debug', 'Attempting to fetch senator data from JSON API', { url: SENATOR_DATA_URL });
-                const response = await fetchWithCORS(SENATOR_DATA_URL);
-                const trades = await response.json();
+                log('debug', 'Attempting to fetch senator data via proxy', { url: PROXIED_SENATOR_DATA_URL });
+                const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL);
+                const proxyData = await response.json();
 
-                log('success', 'Senator trades JSON data received', { count: trades.length, sample: trades[0] });
+                if (!proxyData.contents) {
+                    throw new Error("CORS proxy did not return content. The remote server may be down or blocking the proxy.");
+                }
+                
+                // The actual data is a JSON string inside the 'contents' property
+                const trades = JSON.parse(proxyData.contents);
+
+                log('success', 'Senator trades JSON data received and parsed', { count: trades.length, sample: trades[0] });
                 
                 tbody.innerHTML = '';
                 if (!trades || trades.length === 0) {
