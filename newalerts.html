@@ -537,6 +537,12 @@
         const SERVER_URL = 'https://darkhorse-backend.onrender.com';
         const INSIDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
         const SENATOR_DATA_URL = 'https://senator-filings.onrender.com/csv';
+        
+        // *** FIX: Use a CORS proxy to bypass browser security restrictions for the senator data feed. ***
+        // The original SENATOR_DATA_URL may be blocked by the browser's Same-Origin Policy.
+        // This proxy fetches the data on a server and forwards it with the correct headers.
+        const PROXIED_SENATOR_DATA_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(SENATOR_DATA_URL);
+
 
         // --- INITIALIZATION ---
         firebase.initializeApp(firebaseConfig);
@@ -601,7 +607,7 @@
             }
             
             try {
-                const response = await fetchWithCORS(SENATOR_DATA_URL);
+                const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL); // Check the proxied URL
                 info['Senator API'] = response.ok ? '✅ OK' : '❌ Error';
             } catch (error) {
                 info['Senator API'] = '❌ CORS/Unreachable';
@@ -624,12 +630,7 @@
             try {
                 const response = await fetch(url, {
                     ...options,
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json, text/csv', // Accept CSV as well
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    }
+                    // No need to set mode: 'cors' when using a proxy, but it doesn't hurt
                 });
                 
                 if (!response.ok) {
@@ -638,7 +639,7 @@
                 
                 return response;
             } catch (error) {
-                log('error', 'CORS fetch failed', { url, error: error.message });
+                log('error', 'Fetch failed', { url, error: error.message });
                 throw error;
             }
         }
@@ -1145,8 +1146,8 @@
             for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="7"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
-                log('debug', 'Attempting to fetch senator data from API', { url: SENATOR_DATA_URL });
-                const response = await fetchWithCORS(SENATOR_DATA_URL);
+                log('debug', 'Attempting to fetch senator data via proxy', { url: PROXIED_SENATOR_DATA_URL });
+                const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL);
                 const csvText = await response.text();
 
                 Papa.parse(csvText, {
