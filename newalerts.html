@@ -622,237 +622,120 @@
     </footer>
 
     <script>
-    // --- GLOBAL CONFIGURATION ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyBQY_Q9NBc3hmd44QhovkytcXRyzvV4Ips", // Replace with your actual Firebase config
-        authDomain: "darkhorsetrades-bd89e.firebaseapp.com",
-        projectId: "darkhorsetrades-bd89e",
-        storageBucket: "darkhorsetrades-bd89e.appspot.com",
-        messagingSenderId: "528610189023",
-        appId: "1:528610189023:web:1f8741bfb0f8635bf9d36a"
-    };
-    const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOJTMJ8Y86P001uNGik7B'; // Replace with your actual Stripe key
-    const SERVER_URL = 'https://darkhorse-backend.onrender.com';
-    const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
+    document.addEventListener('DOMContentLoaded', () => {
 
-    // --- GLOBAL APP STATE ---
-    let auth, db, stripe;
-    let appState = {
-        currentUser: null,
-        userProfile: null,
-        isSignUp: false,
-        unsubscribeUserProfile: null,
-        activeTradeDetails: null,
-        pollingInterval: null,
-        debugMode: false,
-        loadedWidgets: new Set()
-    };
-
-    // --- LOGGING & MESSAGING UTILITIES ---
-    const log = (level, message, data = null) => {
-        const timestamp = new Date().toISOString();
-        console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, data || '');
-        if (appState.debugMode) {
-            refreshDebugInfo();
-        }
-    };
-
-    function displayMessage(message, type = 'info') {
-        const messageBox = document.createElement('div');
-        messageBox.className = `status-message ${type}`;
-        messageBox.textContent = message;
-        Object.assign(messageBox.style, {
-            position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
-            zIndex: '10000', padding: '15px 25px', borderRadius: '8px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)', transition: 'opacity 0.5s ease-in-out',
-            opacity: '0'
-        });
-        document.body.appendChild(messageBox);
-        setTimeout(() => { messageBox.style.opacity = '1'; }, 10);
-        setTimeout(() => {
-            messageBox.style.opacity = '0';
-            messageBox.addEventListener('transitionend', () => messageBox.remove());
-        }, 5000);
-    }
-
-    // --- GLOBAL FUNCTIONS FOR INLINE (onclick) HANDLERS ---
-    // These are attached to the window object to be accessible from HTML
-    window.toggleDebug = () => {
-        appState.debugMode = !appState.debugMode;
-        document.getElementById('debugPanel').classList.toggle('hidden', !appState.debugMode);
-        if (appState.debugMode) refreshDebugInfo();
-    };
-
-    window.refreshDebugInfo = async () => {
-        const debugInfo = document.getElementById('debugInfo');
-        const info = {
-            'User': appState.currentUser ? `${appState.currentUser.uid} (${appState.currentUser.email})` : 'Not logged in',
-            'Profile': appState.userProfile ? `Plan: ${appState.userProfile.subscription?.planId || 'none'}, Status: ${appState.userProfile.subscription?.status || 'none'}` : 'No profile',
-            'Server Health': 'Checking...',
-            'Data API': 'Checking...'
+        // --- CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQY_Q9NBc3hmd44QhovkytcXRyzvV4Ips",
+            authDomain: "darkhorsetrades-bd89e.firebaseapp.com",
+            projectId: "darkhorsetrades-bd89e",
+            storageBucket: "darkhorsetrades-bd89e.appspot.com",
+            messagingSenderId: "528610189023",
+            appId: "1:528610189023:web:1f8741bfb0f8635bf9d36a"
         };
-        debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
-        try {
-            const serverRes = await fetch(`${SERVER_URL}/health`);
-            info['Server Health'] = serverRes.ok ? '✅ OK' : `❌ Error ${serverRes.status}`;
-        } catch (e) { info['Server Health'] = '❌ Unreachable'; }
-        try {
-            const dataRes = await fetch(RENDER_DATA_URL);
-            info['Data API'] = dataRes.ok ? '✅ OK' : `❌ Error ${dataRes.status}`;
-        } catch (e) { info['Data API'] = '❌ Unreachable'; }
-        debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
-    };
+        const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOJTMJ8Y86P001uNGik7B';
+        const SERVER_URL = 'https://darkhorse-backend.onrender.com';
+        const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
 
-    window.signOut = () => {
-        log('info', 'User signing out');
-        auth.signOut();
-    };
-    
-    window.showAuthModal = (signUp) => {
-        appState.isSignUp = signUp;
-        const overlay = document.getElementById('authOverlay');
-        document.getElementById('authTitle').textContent = signUp ? 'Create an Account' : 'Sign In';
-        document.getElementById('authSubmit').textContent = signUp ? 'Sign Up' : 'Sign In';
-        document.getElementById('authToggleText').textContent = signUp ? "Already have an account?" : "Don't have an account?";
-        document.getElementById('authToggleLink').textContent = signUp ? 'Sign In' : 'Sign Up';
-        document.getElementById('authError').classList.add('hidden');
-        overlay.classList.add('show');
-    };
-    
-    window.closeAuthModal = () => {
-        document.getElementById('authOverlay').classList.remove('show');
-    };
+        // --- INITIALIZATION ---
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
 
-    window.managePlan = async () => {
-        if (!appState.currentUser || !appState.userProfile) return displayMessage('Please sign in to manage your plan.', 'error');
-        const btn = document.getElementById('managePlanBtn');
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-        try {
-            log('info', 'Creating portal session', { userId: appState.currentUser.uid });
-            const response = await fetch(`${SERVER_URL}/create-portal-session`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: appState.currentUser.uid, returnUrl: window.location.href })
-            });
-            if (!response.ok) throw new Error(`Server error: ${response.status}`);
-            const { url } = await response.json();
-            if (!url) throw new Error('No portal URL received');
-            window.location.href = url;
-        } catch (error) {
-            log('error', 'Portal session creation failed', error);
-            displayMessage(`Could not open plan management: ${error.message}`, 'error');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        }
-    };
+        // --- DOM Elements ---
+        const authOverlay = document.getElementById('authOverlay'), authModal = document.getElementById('authModal'), authForm = document.getElementById('authForm'), authError = document.getElementById('authError'), authSubmit = document.getElementById('authSubmit'), authToggleLink = document.getElementById('authToggleLink'), authTitle = document.getElementById('authTitle'), authToggleText = document.getElementById('authToggleText');
+        const processingOverlay = document.getElementById('processingOverlay'), processingProgress = document.getElementById('processingProgress');
+        const loggedOutView = document.getElementById('loggedOutView'), loggedInView = document.getElementById('loggedInView'), userEmailDisplay = document.getElementById('userEmailDisplay');
+        const pricingSection = document.getElementById('pricingSection'), dashboardSection = document.getElementById('dashboardSection');
+        const feedTabContent = document.getElementById('tab-content-feed'), upgradeTabBtn = document.getElementById('upgrade-tab-btn'), dashboardTitle = document.getElementById('dashboard-title');
+        const tabs = document.querySelectorAll('.tab-btn'), tabContents = document.querySelectorAll('.tab-content');
 
-    window.selectPlan = async (priceId, planName) => {
-        if (!appState.currentUser) return showAuthModal(false);
-        const btn = event.target;
-        const originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = 'Redirecting...';
-        try {
-            log('info', 'Creating checkout session', { priceId, userId: appState.currentUser.uid });
-            const response = await fetch(`${SERVER_URL}/create-checkout-session`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ priceId, planName, userId: appState.currentUser.uid, userEmail: appState.currentUser.email })
-            });
-            if (!response.ok) throw new Error(`Server error: ${response.status}`);
-            const { sessionId } = await response.json();
-            if (!sessionId) throw new Error('No session ID received');
-            const { error } = await stripe.redirectToCheckout({ sessionId });
-            if (error) throw error;
-        } catch (error) {
-            log('error', 'Checkout failed', error);
-            displayMessage(`Could not initiate payment: ${error.message}`, 'error');
-            btn.disabled = false;
-            btn.textContent = originalText;
-        }
-    };
-
-    window.scrollToPricing = () => {
-        document.getElementById('pricingSection').scrollIntoView({ behavior: 'smooth' });
-    };
-
-    window.saveSettings = async () => {
-        const saveButton = event.target;
-        const originalText = saveButton.textContent;
-        saveButton.disabled = true;
-        saveButton.textContent = 'Saving...';
-
-        const { planId } = appState.userProfile.subscription;
-        const planCapabilities = {
-            basic: { canCustomizeSettings: false, canUseSMS: false },
-            advanced: { canCustomizeSettings: true, canUseSMS: true },
-            professional: { canCustomizeSettings: true, canUseSMS: true }
+        // --- App State ---
+        let appState = {
+            currentUser: null,
+            userProfile: null,
+            isSignUp: false,
+            unsubscribeUserProfile: null,
+            activeTradeDetails: null,
+            pollingInterval: null,
+            debugMode: false,
+            loadedWidgets: new Set()
         };
-        const currentPlan = planCapabilities[planId] || planCapabilities.basic;
-        
-        const settingsToSave = {
-            notifyByEmail: document.getElementById('emailToggle').checked,
-            notifyBySms: currentPlan.canUseSMS ? document.getElementById('smsToggle').checked : false,
-            timing: currentPlan.canCustomizeSettings ? document.querySelector('input[name="timing"]:checked').value : 'realtime',
-            summaryTime: currentPlan.canCustomizeSettings ? document.getElementById('summaryTime').value : '17:00',
-            filters: {
-                stockPrice: currentPlan.canCustomizeSettings ? parseFloat(document.getElementById('stockPrice').value) : 3,
-                tradeValue: currentPlan.canCustomizeSettings ? parseInt(document.getElementById('tradeValue').value) : 0,
-                titles: currentPlan.canCustomizeSettings 
-                    ? Array.from(document.querySelectorAll('input[name="insiderTitle"]:checked')).map(el => el.value)
-                    : ['CEO', 'CFO']
+
+        // --- DEBUG FUNCTIONS ---
+        window.toggleDebug = () => {
+            appState.debugMode = !appState.debugMode;
+            const debugPanel = document.getElementById('debugPanel');
+            debugPanel.classList.toggle('hidden', !appState.debugMode);
+            if (appState.debugMode) refreshDebugInfo();
+        };
+
+        window.refreshDebugInfo = async () => {
+            const debugInfo = document.getElementById('debugInfo');
+            const info = {
+                'User': appState.currentUser ? `${appState.currentUser.uid} (${appState.currentUser.email})` : 'Not logged in',
+                'Profile': appState.userProfile ? `Plan: ${appState.userProfile.subscription?.planId || 'none'}, Status: ${appState.userProfile.subscription?.status || 'none'}` : 'No profile',
+                'Server Health': 'Checking...',
+                'Data API': 'Checking...'
+            };
+
+            debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
+
+            try {
+                const response = await fetch(`${SERVER_URL}/health`);
+                info['Server Health'] = response.ok ? '✅ OK' : '❌ Error';
+            } catch (error) {
+                info['Server Health'] = '❌ Unreachable';
+            }
+
+            try {
+                const response = await fetchWithCORS(RENDER_DATA_URL);
+                info['Data API'] = response.ok ? '✅ OK' : '❌ Error';
+            } catch (error) {
+                info['Data API'] = '❌ CORS/Unreachable';
+            }
+
+            debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
+        };
+
+        // --- ENHANCED LOGGING ---
+        const log = (level, message, data = null) => {
+            const timestamp = new Date().toISOString();
+            console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, data || '');
+            if (appState.debugMode) {
+                refreshDebugInfo();
             }
         };
-        
-        try {
-            await db.collection('users').doc(appState.currentUser.uid).update({ settings: settingsToSave });
-            displayMessage('Settings saved successfully!', 'success');
-            log('success', 'Settings saved', settingsToSave);
-        } catch (error) {
-            log('error', 'Failed to save settings', error);
-            displayMessage("Failed to save settings. Please try again.", 'error');
-        } finally {
-            saveButton.disabled = false;
-            saveButton.textContent = originalText;
-        }
-    };
 
-    // --- MAIN APPLICATION LOGIC ---
-    document.addEventListener('DOMContentLoaded', () => {
-        log('info', '🚀 DarkHorse application starting...');
-
-        // --- INITIALIZE SERVICES ---
-        try {
-            firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            db = firebase.firestore();
-            log('info', '✅ Firebase initialized');
-        } catch (error) {
-            log('error', '❌ Firebase initialization failed', error);
-            return displayMessage('Application could not start. Please refresh.', 'error');
-        }
-        try {
-            stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-            log('info', '✅ Stripe initialized');
-        } catch (error) {
-            log('error', '❌ Stripe initialization failed', error);
-            return displayMessage('Payment system could not start. Please refresh.', 'error');
+        // --- CORS-AWARE FETCH FUNCTION ---
+        async function fetchWithCORS(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return response;
+            } catch (error) {
+                log('error', 'CORS fetch failed', { url, error: error.message });
+                throw error;
+            }
         }
 
-        // --- DOM ELEMENTS ---
-        const loggedOutView = document.getElementById('loggedOutView');
-        const loggedInView = document.getElementById('loggedInView');
-        const userEmailDisplay = document.getElementById('userEmailDisplay');
-        const pricingSection = document.getElementById('pricingSection');
-        const dashboardSection = document.getElementById('dashboardSection');
-        const feedTabContent = document.getElementById('tab-content-feed');
-        const planButtons = document.querySelectorAll('.plan-button');
-
-        // --- AUTH STATE CHANGE HANDLER ---
+        // --- AUTHENTICATION & PAGE LOAD ---
         auth.onAuthStateChanged(user => {
             appState.currentUser = user;
+            const planButtons = document.querySelectorAll('.plan-button');
             if (user) {
                 log('info', 'User authenticated', { uid: user.uid, email: user.email });
                 handleUserLogin();
@@ -865,6 +748,83 @@
             handlePostPaymentRedirect();
         });
 
+        function handlePostPaymentRedirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('success')) {
+                log('info', 'Post-payment redirect detected, starting subscription polling');
+                processingOverlay.classList.remove('hidden');
+                processingOverlay.classList.add('show');
+                window.history.replaceState(null, '', window.location.pathname);
+                
+                let attempts = 0;
+                const maxAttempts = 30; 
+                if (appState.pollingInterval) clearInterval(appState.pollingInterval);
+                
+                appState.pollingInterval = setInterval(async () => {
+                    attempts++;
+                    const remainingAttempts = maxAttempts - attempts;
+                    processingProgress.textContent = `Checking subscription status... (${remainingAttempts} attempts remaining)`;
+                    
+                    if (appState.currentUser) {
+                        try {
+                            const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
+                            if (userDoc.exists) {
+                                const userData = userDoc.data();
+                                if (userData.subscription && userData.subscription.status === 'active') {
+                                    log('success', 'Subscription activated successfully');
+                                    clearInterval(appState.pollingInterval);
+                                    appState.pollingInterval = null;
+                                    appState.userProfile = { uid: userDoc.id, ...userData };
+                                    processingOverlay.classList.remove('show');
+                                    processingOverlay.classList.add('hidden');
+                                    updateDashboardView();
+                                    return;
+                                }
+                            }
+                        } catch (error) {
+                            log('error', 'Error checking subscription status', error);
+                        }
+                    }
+                    if (attempts >= maxAttempts) {
+                        log('error', 'Subscription polling timeout');
+                        clearInterval(appState.pollingInterval);
+                        appState.pollingInterval = null;
+                        processingOverlay.classList.remove('show');
+                        processingOverlay.classList.add('hidden');
+                        displayMessage('Subscription activation is taking longer than expected. Please refresh the page or contact support if the issue persists.', 'error');
+                    }
+                }, 2000);
+            }
+            if (urlParams.has('canceled')) {
+                log('info', 'Payment canceled');
+                displayMessage('Your payment was canceled. You can choose a plan at any time.', 'info');
+                window.history.replaceState(null, '', window.location.pathname);
+            }
+        }
+
+        function displayMessage(message, type = 'info') {
+            const messageBox = document.createElement('div');
+            messageBox.className = `status-message ${type}`;
+            messageBox.textContent = message;
+            messageBox.style.position = 'fixed';
+            messageBox.style.top = '20px';
+            messageBox.style.left = '50%';
+            messageBox.style.transform = 'translateX(-50%)';
+            messageBox.style.zIndex = '10000';
+            messageBox.style.padding = '15px 25px';
+            messageBox.style.borderRadius = '8px';
+            messageBox.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+            messageBox.style.transition = 'opacity 0.5s ease-in-out';
+            messageBox.style.opacity = '0';
+            document.body.appendChild(messageBox);
+
+            setTimeout(() => { messageBox.style.opacity = '1'; }, 10);
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+                messageBox.addEventListener('transitionend', () => messageBox.remove());
+            }, 5000);
+        }
+
         function handleUserLogin() {
             loggedInView.classList.remove('hidden');
             loggedOutView.classList.add('hidden');
@@ -874,23 +834,14 @@
             appState.unsubscribeUserProfile = userDocRef.onSnapshot(async (doc) => {
                 if (doc.exists) {
                     appState.userProfile = { uid: doc.id, ...doc.data() };
-                    log('info', 'User profile loaded/updated', appState.userProfile);
                 } else {
                     log('info', 'Creating initial user profile');
                     await createInitialUserProfile(userDocRef);
                 }
                 updateDashboardView();
-            }, (error) => log('error', 'Error listening to user profile', error));
-        }
-
-        function handleUserLogout() {
-            if (appState.unsubscribeUserProfile) appState.unsubscribeUserProfile();
-            if (appState.pollingInterval) clearInterval(appState.pollingInterval);
-            appState.userProfile = null;
-            loggedInView.classList.add('hidden');
-            loggedOutView.classList.remove('hidden');
-            dashboardSection.classList.add('hidden');
-            pricingSection.classList.remove('hidden');
+            }, (error) => {
+                log('error', 'Error listening to user profile', error);
+            });
         }
 
         async function createInitialUserProfile(userDocRef) {
@@ -906,31 +857,44 @@
             try {
                 await userDocRef.set(initialProfile);
                 appState.userProfile = initialProfile;
-                log('success', 'Initial user profile created');
             } catch (error) {
                 log('error', 'Error creating user profile', error);
             }
         }
 
-        // --- AUTH FORM EVENT LISTENERS ---
-        document.getElementById('authOverlay').addEventListener('click', (e) => { 
-            if (e.target.id === 'authOverlay') closeAuthModal(); 
-        });
-        document.getElementById('authToggleLink').addEventListener('click', (e) => { 
-            e.preventDefault(); 
-            showAuthModal(!appState.isSignUp); 
-        });
-        document.getElementById('authForm').addEventListener('submit', async (e) => {
+        function handleUserLogout() {
+            if (appState.unsubscribeUserProfile) appState.unsubscribeUserProfile();
+            if (appState.pollingInterval) clearInterval(appState.pollingInterval);
+            appState.userProfile = null;
+            loggedInView.classList.add('hidden');
+            loggedOutView.classList.remove('hidden');
+            dashboardSection.classList.add('hidden');
+            pricingSection.classList.remove('hidden');
+        }
+
+        window.signOut = () => auth.signOut();
+        
+        window.showAuthModal = (signUp) => {
+            appState.isSignUp = signUp;
+            authOverlay.classList.add('show');
+            authTitle.textContent = signUp ? 'Create an Account' : 'Sign In';
+            authSubmit.textContent = signUp ? 'Sign Up' : 'Sign In';
+            authToggleText.textContent = signUp ? "Already have an account?" : "Don't have an account?";
+            authToggleLink.textContent = signUp ? 'Sign In' : 'Sign Up';
+            authError.classList.add('hidden');
+        };
+        
+        window.closeAuthModal = () => authOverlay.classList.remove('show');
+        authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeAuthModal(); });
+        authToggleLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal(!appState.isSignUp); });
+
+        authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const btn = document.getElementById('authSubmit');
-            const errorDiv = document.getElementById('authError');
-            
-            log('info', 'Authentication attempt', { email, isSignUp: appState.isSignUp });
-            btn.disabled = true;
-            btn.textContent = 'Processing...';
-            errorDiv.classList.add('hidden');
+            authSubmit.disabled = true;
+            authSubmit.textContent = 'Processing...';
+            authError.classList.add('hidden');
 
             try {
                 if (appState.isSignUp) {
@@ -940,37 +904,131 @@
                 }
                 closeAuthModal();
             } catch (error) {
-                log('error', 'Authentication failed', error);
-                errorDiv.textContent = error.message;
-                errorDiv.classList.remove('hidden');
+                authError.textContent = error.message;
+                authError.classList.remove('hidden');
             } finally {
-                btn.disabled = false;
-                btn.textContent = appState.isSignUp ? 'Sign Up' : 'Sign In';
+                authSubmit.disabled = false;
+                authSubmit.textContent = appState.isSignUp ? 'Sign Up' : 'Sign In';
             }
         });
+
+        // --- PLAN MANAGEMENT ---
+        window.managePlan = async () => {
+            if (!appState.currentUser || !appState.userProfile) {
+                displayMessage('Please sign in to manage your plan.', 'error');
+                return;
+            }
+
+            const managePlanBtn = document.getElementById('managePlanBtn');
+            const originalText = managePlanBtn.innerHTML;
+            managePlanBtn.disabled = true;
+            managePlanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+            try {
+                const response = await fetch(`${SERVER_URL}/create-portal-session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: appState.currentUser.uid,
+                        userEmail: appState.currentUser.email,
+                        returnUrl: window.location.href
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+
+                const { url } = await response.json();
+                if (!url) throw new Error('No portal URL received from server');
+                
+                // Redirect to Stripe Customer Portal
+                window.location.href = url;
+
+            } catch (error) {
+                log('error', 'Portal session creation failed', error);
+                displayMessage(`Could not open plan management: ${error.message}`, 'error');
+                managePlanBtn.disabled = false;
+                managePlanBtn.innerHTML = originalText;
+            }
+        };
+
+        window.selectPlan = async (priceId, planName) => {
+            if (!appState.currentUser) { 
+                showAuthModal(false); 
+                return; 
+            }
+            
+            const checkoutButton = event.target;
+            const originalText = checkoutButton.textContent;
+            checkoutButton.disabled = true;
+            checkoutButton.textContent = 'Redirecting...';
+
+            try {
+                const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
+                if (!userDoc.exists) throw new Error('User profile not found. Please refresh and try again.');
+
+                const response = await fetch(`${SERVER_URL}/create-checkout-session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        priceId: priceId,
+                        planName: planName,
+                        userId: appState.currentUser.uid,
+                        userEmail: appState.currentUser.email
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+
+                const { sessionId } = await response.json();
+                if (!sessionId) throw new Error('No session ID received from server');
+                
+                const { error } = await stripe.redirectToCheckout({ sessionId });
+                if (error) throw error;
+
+            } catch (error) {
+                log('error', 'Checkout session creation failed', error);
+                displayMessage(`Could not initiate payment: ${error.message}`, 'error');
+                checkoutButton.disabled = false;
+                checkoutButton.textContent = originalText;
+            }
+        };
 
         // --- VIEW MANAGEMENT & RENDERING ---
         function updateDashboardView() {
             if (!appState.userProfile) return;
+
             const { subscription } = appState.userProfile;
-            log('info', 'Updating dashboard view based on profile', { subscription });
-            
             if (subscription && subscription.status === 'active') {
-                document.getElementById('processingOverlay').classList.remove('show');
+                processingOverlay.classList.remove('show');
+                processingOverlay.classList.add('hidden');
                 pricingSection.classList.add('hidden');
                 dashboardSection.classList.remove('hidden');
-                updatePlanInfoDisplay(subscription.planId);
-                document.getElementById('upgrade-tab-btn').classList.toggle('hidden', subscription.planId !== 'basic');
-                if (subscription.planId === 'basic') {
-                    document.getElementById('dashboard-title').textContent = "Dashboard Preview";
+
+                const { planId } = subscription;
+                
+                // Update plan info display
+                updatePlanInfoDisplay(planId);
+                
+                // Show upgrade tab for Basic users only
+                upgradeTabBtn.classList.toggle('hidden', planId !== 'basic');
+                
+                // Adjust dashboard based on plan
+                if (planId === 'basic') {
+                    dashboardTitle.textContent = "Dashboard Preview";
                     renderLockedDashboard();
                 } else {
-                    document.getElementById('dashboard-title').textContent = "Insider Trades Feed";
+                    dashboardTitle.textContent = "Insider Trades Feed";
                     renderFullDashboard();
                 }
                 populateSettingsView();
             } else {
-                if (!document.getElementById('processingOverlay').classList.contains('show')) {
+                if (!processingOverlay.classList.contains('show')) {
                     dashboardSection.classList.add('hidden');
                     pricingSection.classList.remove('hidden');
                 }
@@ -978,16 +1036,27 @@
         }
 
         function updatePlanInfoDisplay(planId) {
+            const currentPlanName = document.getElementById('currentPlanName');
+            const managePlanBtn = document.getElementById('managePlanBtn');
+            
+            if (!currentPlanName || !managePlanBtn) return;
+            
+            // Plan display mapping
             const planDisplayInfo = {
                 basic: { name: 'Basic', class: 'basic' },
                 advanced: { name: 'Advanced', class: 'advanced' },
                 professional: { name: 'Professional', class: 'professional' }
             };
+            
             const planInfo = planDisplayInfo[planId] || { name: 'Unknown', class: 'basic' };
-            const planNameEl = document.getElementById('currentPlanName');
-            planNameEl.textContent = planInfo.name;
-            planNameEl.className = `plan-name ${planInfo.class}`;
-            document.getElementById('managePlanBtn').disabled = false;
+            
+            // Update plan name with styling
+            currentPlanName.textContent = planInfo.name;
+            currentPlanName.className = `plan-name ${planInfo.class}`;
+            
+            // Enable manage plan button
+            managePlanBtn.disabled = false;
+            managePlanBtn.style.opacity = '1';
         }
 
         function renderLockedDashboard() {
@@ -996,10 +1065,10 @@
                     <div class="locked-content">
                         <div class="feed-container">
                         <table class="trades-table">
-                            <thead><tr><th>Filing Date</th><th>Company</th><th>Insider</th><th>Value</th></tr></thead>
+                            <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th></tr></thead>
                             <tbody>
-                                <tr><td>...</td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson</td><td>$4,502,500</td></tr>
-                                <tr><td>...</td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts</td><td>$853,900</td></tr>
+                                <tr><td>...</td><td>...</td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson</td><td class="insider-title">CTO</td><td>$45.25</td><td>99,500</td><td>+15.2%</td><td>$4,502,500</td></tr>
+                                <tr><td>...</td><td>...</td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts</td><td class="insider-title">CEO</td><td>$8.59</td><td>99,400</td><td>+8.3%</td><td>$853,900</td></tr>
                             </tbody>
                         </table>
                         </div>
@@ -1016,56 +1085,171 @@
             feedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
-                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Qty</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead>
+                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead>
                         <tbody id="trades-tbody"></tbody>
                     </table>
                 </div>`;
             await populateTradesTable();
         }
 
+        // Helper function to format dates
+        function formatDateCell(dateString, showTime) {
+            if (!dateString || typeof dateString !== 'string') {
+                return '<td class="date-cell"><div class="date-wrapper">N/A</div></td>';
+            }
+
+            const parts = dateString.split(' ');
+            const datePart = parts[0];
+            const timePart = parts.length > 1 ? parts[1] : null;
+
+            const date = new Date(datePart);
+            if (isNaN(date.getTime())) {
+                return `<td class="date-cell"><div class="date-wrapper">${dateString}</div></td>`;
+            }
+
+            const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            const month = monthNames[date.getMonth()];
+            const day = date.getDate();
+            
+            let timeHtml = '';
+            if (showTime && timePart) {
+                let [hours, minutes] = timePart.split(':');
+                let period = 'AM';
+                hours = parseInt(hours, 10);
+                if (hours >= 12) {
+                    period = 'PM';
+                    if (hours > 12) hours -= 12;
+                }
+                if (hours === 0) hours = 12;
+                timeHtml = `<div class="date-time">${hours}:${minutes} ${period}</div>`;
+            }
+
+            return `
+                <td class="date-cell">
+                    <div class="date-wrapper">
+                        <div class="date-icon-display">
+                            <span class="date-icon-month">${month}</span>
+                            <span class="date-icon-day">${day}</span>
+                        </div>
+                        ${timeHtml}
+                    </div>
+                </td>
+            `;
+        }
+
         async function populateTradesTable() {
             const tbody = document.getElementById('trades-tbody');
             if (!tbody) return;
+            
             log('debug', 'Populating trades table');
-            tbody.innerHTML = Array(5).fill('<tr class="skeleton-row"><td colspan="10"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>').join('');
+            tbody.innerHTML = '';
+            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="10"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
-                const response = await fetch(RENDER_DATA_URL);
-                if (!response.ok) throw new Error(`API returned status ${response.status}`);
+                log('debug', 'Attempting to fetch data from API', { url: RENDER_DATA_URL });
+                const response = await fetchWithCORS(RENDER_DATA_URL);
                 const trades = await response.json();
-                log('success', 'Raw trades data received', { count: trades.length });
                 
-                const purchases = trades
-                    .map(trade => Object.fromEntries(Object.entries(trade).map(([k, v]) => [k.trim(), v])))
-                    .filter(trade => (trade['Trade Type'] || '').toLowerCase().includes('p'));
+                log('success', 'Raw trades data received', { count: trades.length, sample: trades[0] });
                 
-                log('success', 'Trades data processed', { purchases: purchases.length });
+                // Clean and normalize the data from the CSV structure
+                const cleanedTrades = trades.map(trade => {
+                    const cleaned = {};
+                    
+                    // Handle different possible column name variations and clean them
+                    for (const [key, value] of Object.entries(trade)) {
+                        let cleanKey = key.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
+                        
+                        // Normalize key names to match expected structure
+                        if (cleanKey.toLowerCase().includes('filing') && cleanKey.toLowerCase().includes('date')) {
+                            cleaned['Filing Date'] = value;
+                        } else if (cleanKey.toLowerCase().includes('trade') && cleanKey.toLowerCase().includes('date')) {
+                            cleaned['Trade Date'] = value;
+                        } else if (cleanKey.toLowerCase().includes('company') && cleanKey.toLowerCase().includes('name')) {
+                            cleaned['Company Name'] = value;
+                        } else if (cleanKey.toLowerCase() === 'ticker') {
+                            cleaned['Ticker'] = value;
+                        } else if (cleanKey.toLowerCase().includes('insider') && cleanKey.toLowerCase().includes('name')) {
+                            cleaned['Insider Name'] = value;
+                        } else if (cleanKey.toLowerCase() === 'title') {
+                            cleaned['Title'] = value;
+                        } else if (cleanKey.toLowerCase().includes('trade') && cleanKey.toLowerCase().includes('type')) {
+                            cleaned['Trade Type'] = value;
+                        } else if (cleanKey.toLowerCase() === 'price') {
+                            cleaned['Price'] = value;
+                        } else if (cleanKey.toLowerCase() === 'qty') {
+                            cleaned['Qty'] = value;
+                        } else if (cleanKey.toLowerCase() === 'owned') {
+                            cleaned['Owned'] = value;
+                        } else if (cleanKey.includes('Own') || cleanKey.includes('Δ') || cleanKey.includes('Delta')) {
+                            cleaned['ΔOwn'] = value;
+                        } else if (cleanKey.toLowerCase() === 'value') {
+                            cleaned['Value'] = value;
+                        } else {
+                            // Keep other fields as-is
+                            cleaned[cleanKey] = value;
+                        }
+                    }
+                    
+                    return cleaned;
+                });
+
+                // Filter for purchase trades only
+                const purchasesTrades = cleanedTrades.filter(trade => {
+                    const tradeType = (trade['Trade Type'] || '').toString().toLowerCase().trim();
+                    return tradeType.includes('purchase') || tradeType.startsWith('p') || tradeType === 'p - purchase';
+                });
+                
+                log('success', 'Trades data processed', { 
+                    total: trades.length, 
+                    purchases: purchasesTrades.length,
+                    sampleCleaned: purchasesTrades[0]
+                });
+                
                 tbody.innerHTML = '';
-                if (purchases.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 2rem;">No recent insider purchases found.</td></tr>`;
+                if (purchasesTrades.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 2rem;">No insider purchases found.</td></tr>`;
                     return;
                 }
 
-                purchases.slice(0, 50).forEach(trade => {
-                    const tradeId = `${trade.Ticker || 'N/A'}-${trade['Trade Date'] || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
+                purchasesTrades.slice(0, 50).forEach(trade => {
+                    const tradeId = `${trade.Ticker || 'UNKNOWN'}-${trade['Trade Date'] || Date.now()}`.replace(/[^a-zA-Z0-9]/g, '');
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
-                    row.dataset.ticker = trade.Ticker || 'N/A';
+                    row.dataset.ticker = trade.Ticker || 'UNKNOWN';
                     row.dataset.id = tradeId;
                     
-                    const price = parseFloat((trade.Price || '0').toString().replace(/[$,]/g, '')) || 0;
-                    const qty = parseInt((trade.Qty || '0').toString().replace(/[,]/g, '')) || 0;
-                    const value = parseInt((trade.Value || '0').toString().replace(/[$,]/g, '')) || 0;
+                    const filingDateStr = trade['Filing Date'] || '';
+                    const tradeDateStr = trade['Trade Date'] || '';
+                    const companyName = trade['Company Name'] || 'Unknown Company';
+                    const ticker = trade.Ticker || 'N/A';
+                    const insiderName = trade['Insider Name'] || 'Unknown';
+                    const title = trade.Title || 'N/A';
+                    
+                    // Clean and parse numeric values
+                    const priceStr = (trade.Price || '0').toString().replace(/[$,]/g, '');
+                    const price = parseFloat(priceStr) || 0;
+                    
+                    const qtyStr = (trade.Qty || '0').toString().replace(/[,]/g, '');
+                    const qty = parseInt(qtyStr) || 0;
+                    
+                    const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || trade['Delta Own'] || 'N/A';
+                    
+                    const valueStr = (trade.Value || '0').toString().replace(/[$,]/g, '');
+                    const value = parseInt(valueStr) || 0;
+                    
+                    const filingDateCell = formatDateCell(filingDateStr, true);
+                    const tradeDateCell = formatDateCell(tradeDateStr, false);
 
                     row.innerHTML = `
-                        ${formatDateCell(trade['Filing Date'], true)}
-                        ${formatDateCell(trade['Trade Date'], false)}
-                        <td><div class="company-name">${trade['Company Name'] || 'N/A'}</div><div class="ticker">${trade.Ticker || 'N/A'}</div></td>
-                        <td>${trade['Insider Name'] || 'N/A'}</td>
-                        <td class="insider-title">${trade.Title || 'N/A'}</td>
+                        ${filingDateCell}
+                        ${tradeDateCell}
+                        <td><div class="company-name">${companyName}</div><div class="ticker">${ticker}</div></td>
+                        <td>${insiderName}</td>
+                        <td class="insider-title">${title}</td>
                         <td>$${price.toFixed(2)}</td>
                         <td>${qty.toLocaleString()}</td>
-                        <td>${trade['ΔOwn'] || 'N/A'}</td>
+                        <td>${deltaOwn}</td>
                         <td>$${value.toLocaleString()}</td>
                         <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`;
                     
@@ -1075,163 +1259,447 @@
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
-                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, trade.Ticker, trade['Company Name']));
+
+                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, ticker, companyName));
                 });
             } catch (error) {
                 log('error', 'Failed to fetch or process trades', error);
-                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 2rem; color: var(--error-red);">Could not load trades feed.<br><small>${error.message}</small></td></tr>`;
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" style="text-align:center; padding: 2rem; color: var(--error-red);">
+                            <div>Could not load trades feed.</div>
+                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                                Error: ${error.message}
+                            </div>
+                            <button class="btn btn-secondary" style="margin-top: 1rem; padding: 0.5rem 1rem;" onclick="location.reload()">Retry</button>
+                        </td>
+                    </tr>`;
             }
-        }
-
-        function formatDateCell(dateString, showTime) {
-            if (!dateString || typeof dateString !== 'string') return '<td class="date-cell"><div class="date-wrapper">N/A</div></td>';
-            const date = new Date(dateString.split(' ')[0]);
-            if (isNaN(date.getTime())) return `<td class="date-cell"><div class="date-wrapper">${dateString}</div></td>`;
-            const month = date.toLocaleString('default', { month: 'short' }).toUpperCase();
-            const day = date.getDate();
-            let timeHtml = '';
-            if (showTime && dateString.includes(':')) {
-                const time = new Date(dateString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                timeHtml = `<div class="date-time">${time}</div>`;
-            }
-            return `<td class="date-cell"><div class="date-wrapper"><div class="date-icon-display"><span class="date-icon-month">${month}</span><span class="date-icon-day">${day}</span></div>${timeHtml}</div></td>`;
         }
         
         function toggleTradeDetails(row, detailsRow, ticker, companyName) {
             const rowId = row.dataset.id;
             const isActive = row.classList.contains('active-row');
+            const toggleIcon = row.querySelector('.trade-toggle-icon');
+
+            // Close any other open details row
             if (appState.activeTradeDetails && appState.activeTradeDetails !== rowId) {
-                const oldActiveRow = document.querySelector(`.trade-row.active-row`);
+                const oldActiveRow = document.querySelector(`.trade-row[data-id="${appState.activeTradeDetails}"]`);
                 if (oldActiveRow) {
+                    const oldDetailsRow = oldActiveRow.nextElementSibling;
+                    const oldToggleIcon = oldActiveRow.querySelector('.trade-toggle-icon');
                     oldActiveRow.classList.remove('active-row');
-                    oldActiveRow.nextElementSibling.classList.remove('active');
-                    oldActiveRow.querySelector('.trade-toggle-icon').classList.remove('rotated');
+                    if (oldDetailsRow) oldDetailsRow.classList.remove('active');
+                    if (oldToggleIcon) oldToggleIcon.classList.remove('rotated');
                 }
             }
+
             row.classList.toggle('active-row', !isActive);
             detailsRow.classList.toggle('active', !isActive);
-            row.querySelector('.trade-toggle-icon').classList.toggle('rotated', !isActive);
-            appState.activeTradeDetails = !isActive ? rowId : null;
-            if (!isActive) loadAdvancedTradingViewWidgets(ticker, companyName, `details-content-${rowId}`);
+            if (toggleIcon) toggleIcon.classList.toggle('rotated', !isActive);
+
+            if (!isActive) {
+                appState.activeTradeDetails = rowId;
+                loadAdvancedTradingViewWidgets(ticker, companyName, `details-content-${rowId}`);
+            } else {
+                appState.activeTradeDetails = null;
+            }
         }
 
+        // --- ENHANCED TRADINGVIEW WIDGETS LOADING ---
         function loadAdvancedTradingViewWidgets(ticker, companyName, containerId) {
             const container = document.getElementById(containerId);
             if (!container || appState.loadedWidgets.has(containerId)) return;
-            log('debug', 'Loading TradingView widgets', { ticker, containerId });
+            
+            log('debug', 'Loading TradingView widgets', { ticker, companyName, containerId });
+            
+            // Mark as loaded to prevent duplicate loading
             appState.loadedWidgets.add(containerId);
+            
+            // Create the enhanced layout with aligned sections
             container.innerHTML = `
                 <div class="chart-section">
-                    <div class="chart-header"><h3><i class="fas fa-chart-line"></i> Price Chart <span class="ticker-badge">${ticker}</span></h3></div>
-                    <div class="tradingview-widget-container" id="chart-${containerId}"><div class="widget-loading"><i class="fas fa-spinner"></i></div></div>
+                    <div class="chart-header">
+                        <h3>
+                            <i class="fas fa-chart-line"></i>
+                            Price Chart
+                            <span class="ticker-badge">${ticker}</span>
+                        </h3>
+                    </div>
+                    <div class="tradingview-widget-container" id="chart-${containerId}">
+                        <div class="widget-loading">
+                            <i class="fas fa-spinner"></i>
+                            <div>Loading chart...</div>
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="profile-section">
-                    <div class="profile-header"><h3><i class="fas fa-building"></i> Company Profile</h3></div>
-                    <div class="profile-content" id="fundamentals-${containerId}"><div class="widget-loading"><i class="fas fa-spinner"></i></div></div>
-                </div>`;
-            setTimeout(() => initializeWidgets(ticker, containerId), 300); // Delay for smoother animation
+                    <div class="profile-header">
+                        <h3>
+                            <i class="fas fa-building"></i>
+                            Company Profile
+                        </h3>
+                    </div>
+                    <div class="profile-content">
+                        <div class="fundamentals-widget" id="fundamentals-${containerId}">
+                            <div class="widget-loading">
+                                <i class="fas fa-spinner"></i>
+                                <div>Loading company profile...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Load TradingView script if not already loaded
+            if (!window.TradingView) {
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = 'https://s3.tradingview.com/tv.js';
+                script.async = true;
+                script.onload = () => initializeWidgets(ticker, containerId);
+                document.head.appendChild(script);
+            } else {
+                initializeWidgets(ticker, containerId);
+            }
         }
 
         function initializeWidgets(ticker, containerId) {
-            try {
-                // Advanced Chart
-                new TradingView.widget({
-                    "autosize": true, "symbol": ticker, "interval": "D", "theme": "dark", "style": "1", "locale": "en",
-                    "toolbar_bg": "#0a0f1c", "enable_publishing": false, "hide_side_toolbar": false, "allow_symbol_change": true,
-                    "container_id": `chart-${containerId}`
-                });
-                // Company Profile
-                const profileContainer = document.getElementById(`fundamentals-${containerId}`);
-                if (profileContainer) {
-                    const script = document.createElement('script');
-                    script.type = 'text/javascript';
-                    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js';
-                    script.async = true;
-                    script.innerHTML = `{"symbol": "${ticker}", "colorTheme": "dark", "isTransparent": true, "locale": "en", "width": "100%", "height": "450"}`;
-                    profileContainer.innerHTML = '';
-                    profileContainer.appendChild(script);
+            setTimeout(() => {
+                try {
+                    // Advanced Chart Widget (restored)
+                    new TradingView.widget({
+                        "autosize": true,
+                        "symbol": ticker,
+                        "interval": "D",
+                        "timezone": "Etc/UTC",
+                        "theme": "dark",
+                        "style": "1",
+                        "locale": "en",
+                        "toolbar_bg": "#0a0f1c",
+                        "enable_publishing": false,
+                        "backgroundColor": "#0a0f1c",
+                        "gridColor": "#1a1a1a",
+                        "hide_side_toolbar": false,
+                        "allow_symbol_change": true,
+                        "details": true,
+                        "hotlist": true,
+                        "calendar": true,
+                        "studies": [
+                            "Volume@tv-basicstudies",
+                            "MACD@tv-basicstudies"
+                        ],
+                        "container_id": `chart-${containerId}`,
+                        "withdateranges": true,
+                        "hide_top_toolbar": false,
+                        "save_image": false,
+                        "container": document.getElementById(`chart-${containerId}`)
+                    });
+
+                    // Company Profile Widget - Proper TradingView implementation
+                    const profileContainer = document.getElementById(`fundamentals-${containerId}`);
+                    if (profileContainer) {
+                        // Clear the container
+                        profileContainer.innerHTML = '';
+                        
+                        // Create the exact structure TradingView expects
+                        const widgetHTML = `
+                            <div class="tradingview-widget-container">
+                                <div class="tradingview-widget-container__widget"></div>
+                                <div class="tradingview-widget-copyright">
+                                    <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
+                                        <span class="blue-text">Track all markets on TradingView</span>
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        
+                        profileContainer.innerHTML = widgetHTML;
+                        
+                        // Create script with configuration inside
+                        const script = document.createElement('script');
+                        script.type = 'text/javascript';
+                        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js';
+                        script.async = true;
+                        
+                        // The configuration goes INSIDE the script tag as text content
+                        script.textContent = `
+                        {
+                            "symbol": "${ticker}",
+                            "colorTheme": "dark",
+                            "isTransparent": true,
+                            "locale": "en",
+                            "width": "100%",
+                            "height": "450"
+                        }`;
+                        
+                        // Append the script to the widget container
+                        profileContainer.querySelector('.tradingview-widget-container').appendChild(script);
+                    }
+
+                    log('success', 'TradingView widgets loaded successfully', { ticker, containerId });
+                } catch (error) {
+                    log('error', 'Failed to load TradingView widgets', { ticker, containerId, error });
+                    
+                    // Show error message in containers
+                    const chartContainer = document.getElementById(`chart-${containerId}`);
+                    const fundamentalsContainer = document.getElementById(`fundamentals-${containerId}`);
+                    
+                    if (chartContainer) {
+                        chartContainer.innerHTML = `
+                            <div class="widget-loading">
+                                <i class="fas fa-exclamation-triangle" style="color: var(--error-red);"></i>
+                                <div>Failed to load chart for ` + ticker + `</div>
+                            </div>`;
+                    }
+                    
+                    if (fundamentalsContainer) {
+                        fundamentalsContainer.innerHTML = `
+                            <div class="widget-loading">
+                                <i class="fas fa-exclamation-triangle" style="color: var(--error-red);"></i>
+                                <div>Failed to load company data</div>
+                            </div>`;
+                    }
                 }
-                log('success', 'TradingView widgets loaded', { ticker });
-            } catch (error) {
-                log('error', 'Failed to load TradingView widgets', { ticker, error });
-                document.getElementById(`chart-${containerId}`).innerHTML = `<div class="widget-loading" style="color:var(--error-red)">Failed to load chart</div>`;
-            }
+            }, 500);
         }
 
+        // --- SETTINGS MANAGEMENT WITH PLAN RESTRICTIONS ---
         function populateSettingsView() {
             if (!appState.userProfile || !appState.userProfile.settings) return;
+            
             const { planId } = appState.userProfile.subscription;
             const { settings } = appState.userProfile;
+            
+            // Define plan capabilities
             const planCapabilities = {
-                basic: { canCustomize: false, canUseSMS: false },
-                advanced: { canCustomize: true, canUseSMS: true },
-                professional: { canCustomize: true, canUseSMS: true }
+                basic: {
+                    canCustomizeSettings: false,
+                    canUseSMS: false,
+                    canSeeFeed: false,
+                    maxAlertsPerWeek: 4
+                },
+                advanced: {
+                    canCustomizeSettings: true,
+                    canUseSMS: true,
+                    canSeeFeed: true,
+                    maxAlertsPerWeek: 7
+                },
+                professional: {
+                    canCustomizeSettings: true,
+                    canUseSMS: true,
+                    canSeeFeed: true,
+                    maxAlertsPerWeek: -1 // unlimited
+                }
             };
+            
             const currentPlan = planCapabilities[planId] || planCapabilities.basic;
-
-            // Enable/disable controls based on plan
+            
+            // Email toggle - always available
             document.getElementById('emailToggle').checked = settings.notifyByEmail;
-            document.getElementById('smsToggle').checked = settings.notifyBySms && currentPlan.canUseSMS;
-            document.getElementById('smsToggle').disabled = !currentPlan.canUseSMS;
-            document.getElementById('smsToggle').closest('.switch-group').style.opacity = currentPlan.canUseSMS ? '1' : '0.5';
-
-            const settingsElements = ['stockPrice', 'tradeValue', 'summaryTime', ...document.querySelectorAll('input[name="timing"]'), ...document.querySelectorAll('input[name="insiderTitle"]')];
-            settingsElements.forEach(el => (typeof el === 'string' ? document.getElementById(el) : el).disabled = !currentPlan.canCustomize);
-            document.querySelector('.settings-card:nth-child(2)').style.opacity = currentPlan.canCustomize ? '1' : '0.5';
-
-            // Populate values
-            document.querySelector(`input[name="timing"][value="${settings.timing}"]`).checked = true;
+            document.getElementById('emailToggle').disabled = false;
+            
+            // SMS toggle - plan dependent
+            const smsToggle = document.getElementById('smsToggle');
+            const smsToggleContainer = smsToggle.closest('.switch-group');
+            
+            if (currentPlan.canUseSMS) {
+                smsToggle.checked = settings.notifyBySms;
+                smsToggle.disabled = false;
+                smsToggleContainer.style.opacity = '1';
+                smsToggleContainer.style.pointerEvents = 'auto';
+                
+                // Remove any existing upgrade message
+                const existingUpgrade = smsToggleContainer.querySelector('.upgrade-required');
+                if (existingUpgrade) existingUpgrade.remove();
+            } else {
+                smsToggle.checked = false;
+                smsToggle.disabled = true;
+                smsToggleContainer.style.opacity = '0.4';
+                smsToggleContainer.style.pointerEvents = 'none';
+                
+                // Add a "upgrade required" indicator
+                if (!smsToggleContainer.querySelector('.upgrade-required')) {
+                    const upgradeNote = document.createElement('div');
+                    upgradeNote.className = 'upgrade-required';
+                    upgradeNote.style.fontSize = '0.75rem';
+                    upgradeNote.style.color = 'var(--warning-yellow)';
+                    upgradeNote.style.marginTop = '0.25rem';
+                    upgradeNote.innerHTML = '<i class="fas fa-lock"></i> Upgrade to Advanced or Professional';
+                    smsToggleContainer.appendChild(upgradeNote);
+                }
+            }
+            
+            // Timing settings
+            const selectedTiming = document.querySelector(`input[name="timing"][value="${settings.timing}"]`);
+            if (selectedTiming) selectedTiming.checked = true;
+            
+            document.getElementById('summaryTime').classList.toggle('hidden', settings.timing !== 'summary');
             document.getElementById('summaryTime').value = settings.summaryTime;
-            document.getElementById('stockPrice').value = settings.filters.stockPrice;
-            document.getElementById('tradeValue').value = settings.filters.tradeValue;
-            document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
-                el.checked = settings.filters.titles.includes(el.value);
-                el.nextElementSibling.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
-            });
-            updateSliderValue('stockPriceValue', settings.filters.stockPrice, val => `$${parseFloat(val).toFixed(2)}`);
-            updateSliderValue('tradeValueValue', settings.filters.tradeValue, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any');
-        }
-
-        function updateSliderValue(elementId, value, formatter) {
-            document.getElementById(elementId).textContent = formatter(value);
-        }
-
-        // --- GENERAL EVENT LISTENERS ---
-        document.querySelectorAll('.tab-btn').forEach(tab => tab.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-content-${tab.dataset.tab}`));
-        }));
-        document.getElementById('stockPrice').addEventListener('input', (e) => updateSliderValue('stockPriceValue', e.target.value, val => `$${parseFloat(val).toFixed(2)}`));
-        document.getElementById('tradeValue').addEventListener('input', (e) => updateSliderValue('tradeValueValue', e.target.value, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any'));
-        
-        // --- POST-PAYMENT REDIRECT HANDLING ---
-        function handlePostPaymentRedirect() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const processingOverlay = document.getElementById('processingOverlay');
-            if (urlParams.has('success')) {
-                log('info', 'Post-payment redirect detected');
-                processingOverlay.classList.add('show');
-                window.history.replaceState(null, '', window.location.pathname);
-                let attempts = 0;
-                appState.pollingInterval = setInterval(async () => {
-                    document.getElementById('processingProgress').textContent = `Checking subscription status... (${30 - attempts} checks left)`;
-                    if (appState.userProfile?.subscription?.status === 'active' || ++attempts >= 30) {
-                        clearInterval(appState.pollingInterval);
-                        processingOverlay.classList.remove('show');
-                        if (appState.userProfile?.subscription?.status !== 'active') {
-                            displayMessage('Could not confirm subscription. Please refresh or contact support.', 'error');
+            
+            // Filter settings - only customizable for Advanced/Professional
+            const insiderTitleInputs = document.querySelectorAll('input[name="insiderTitle"]');
+            
+            if (currentPlan.canCustomizeSettings) {
+                // Enable filter customization
+                const { stockPrice, tradeValue, titles } = settings.filters;
+                
+                document.getElementById('stockPrice').value = stockPrice;
+                document.getElementById('stockPrice').disabled = false;
+                updateSliderValue('stockPriceValue', stockPrice, val => `$${parseFloat(val).toFixed(2)}`);
+                
+                document.getElementById('tradeValue').value = tradeValue;
+                document.getElementById('tradeValue').disabled = false;
+                updateSliderValue('tradeValueValue', tradeValue, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any');
+                
+                insiderTitleInputs.forEach(el => {
+                    el.disabled = false;
+                    if (el.nextElementSibling) {
+                        el.checked = titles.includes(el.value);
+                        el.nextElementSibling.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
+                        el.nextElementSibling.parentElement.style.opacity = '1';
+                    }
+                });
+                
+                // Enable timing customization
+                document.querySelectorAll('input[name="timing"]').forEach(el => el.disabled = false);
+                document.getElementById('summaryTime').disabled = false;
+                
+                // Remove any existing upgrade message from filter section
+                const filterCards = document.querySelectorAll('.settings-card');
+                filterCards.forEach(card => {
+                    const existingUpgrade = card.querySelector('.upgrade-required-filter');
+                    if (existingUpgrade) existingUpgrade.remove();
+                });
+                
+            } else {
+                // Disable filter customization for Basic users
+                document.getElementById('stockPrice').disabled = true;
+                document.getElementById('tradeValue').disabled = true;
+                
+                insiderTitleInputs.forEach(el => {
+                    el.disabled = true;
+                    if (el.nextElementSibling) {
+                        el.nextElementSibling.parentElement.style.opacity = '0.4';
+                    }
+                });
+                
+                // Disable timing customization for Basic users
+                document.querySelectorAll('input[name="timing"]').forEach(el => el.disabled = true);
+                document.getElementById('summaryTime').disabled = true;
+                
+                // Add upgrade messages to filter sections
+                const filterCards = document.querySelectorAll('.settings-card');
+                filterCards.forEach(card => {
+                    const title = card.querySelector('h3');
+                    if (title && title.textContent.includes('Alert Filters')) {
+                        if (!card.querySelector('.upgrade-required-filter')) {
+                            const upgradeNote = document.createElement('div');
+                            upgradeNote.className = 'upgrade-required-filter';
+                            upgradeNote.style.padding = '1rem';
+                            upgradeNote.style.background = 'rgba(255, 215, 0, 0.1)';
+                            upgradeNote.style.border = '1px solid var(--warning-yellow)';
+                            upgradeNote.style.borderRadius = '8px';
+                            upgradeNote.style.color = 'var(--warning-yellow)';
+                            upgradeNote.style.fontSize = '0.9rem';
+                            upgradeNote.style.textAlign = 'center';
+                            upgradeNote.innerHTML = '<i class="fas fa-lock"></i> Upgrade to customize alert filters';
+                            card.appendChild(upgradeNote);
                         }
                     }
-                }, 2000);
+                });
             }
-            if (urlParams.has('canceled')) {
-                displayMessage('Your payment was canceled. You can choose a plan at any time.', 'info');
-                window.history.replaceState(null, '', window.location.pathname);
+            
+            // Save button - always enabled but will save appropriate settings
+            const saveButton = document.querySelector('.save-settings-container .btn');
+            if (saveButton) {
+                saveButton.disabled = false;
+                saveButton.textContent = currentPlan.canCustomizeSettings ? 'Save Settings' : 'Save Basic Settings';
             }
         }
 
-        log('success', 'DarkHorse application initialized successfully');
+        window.saveSettings = async () => {
+            const saveButton = event.target;
+            const originalText = saveButton.textContent;
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+
+            const { planId } = appState.userProfile.subscription;
+            const planCapabilities = {
+                basic: { canCustomizeSettings: false, canUseSMS: false },
+                advanced: { canCustomizeSettings: true, canUseSMS: true },
+                professional: { canCustomizeSettings: true, canUseSMS: true }
+            };
+            
+            const currentPlan = planCapabilities[planId] || planCapabilities.basic;
+            
+            // Base settings that all users can modify
+            const settingsToSave = {
+                notifyByEmail: document.getElementById('emailToggle').checked,
+                notifyBySms: currentPlan.canUseSMS ? document.getElementById('smsToggle').checked : false,
+            };
+            
+            // Add customizable settings only for eligible plans
+            if (currentPlan.canCustomizeSettings) {
+                settingsToSave.timing = document.querySelector('input[name="timing"]:checked').value;
+                settingsToSave.summaryTime = document.getElementById('summaryTime').value;
+                settingsToSave.filters = {
+                    stockPrice: parseFloat(document.getElementById('stockPrice').value),
+                    tradeValue: parseInt(document.getElementById('tradeValue').value),
+                    titles: Array.from(document.querySelectorAll('input[name="insiderTitle"]:checked')).map(el => el.value)
+                };
+            } else {
+                // Use default settings for Basic users
+                settingsToSave.timing = 'realtime';
+                settingsToSave.summaryTime = '17:00';
+                settingsToSave.filters = {
+                    stockPrice: 3,
+                    tradeValue: 0,
+                    titles: ['CEO', 'CFO'] // Default recommended settings
+                };
+            }
+            
+            try {
+                await db.collection('users').doc(appState.currentUser.uid).update({ settings: settingsToSave });
+                displayMessage('Settings saved successfully!', 'success');
+            } catch (error) {
+                log('error', 'Failed to save settings', error);
+                displayMessage("Failed to save settings. Please try again.", 'error');
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = originalText;
+            }
+        };
+        
+        // --- EVENT LISTENERS ---
+        tabs.forEach(tab => tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            tabContents.forEach(c => c.classList.toggle('active', c.id === `tab-content-${tab.dataset.tab}`));
+        }));
+        
+        document.querySelectorAll('input[name="timing"]').forEach(el => {
+            el.addEventListener('change', e => {
+                document.getElementById('summaryTime').classList.toggle('hidden', e.target.value !== 'summary');
+            });
+        });
+        
+        document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
+            el.addEventListener('change', e => {
+                e.target.nextElementSibling.parentElement.style.background = e.target.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
+            });
+        });
+        
+        function updateSliderValue(elementId, value, formatter) { 
+            document.getElementById(elementId).textContent = formatter(value); 
+        }
+        
+        document.getElementById('stockPrice').addEventListener('input', e => updateSliderValue('stockPriceValue', e.target.value, val => `$${parseFloat(val).toFixed(2)}`));
+        document.getElementById('tradeValue').addEventListener('input', e => updateSliderValue('tradeValueValue', e.target.value, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any'));
+        window.scrollToPricing = () => pricingSection.scrollIntoView({ behavior: 'smooth' });
+
+        if (appState.debugMode) refreshDebugInfo();
     });
     </script>
 </body>
