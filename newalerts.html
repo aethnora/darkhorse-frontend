@@ -1148,11 +1148,13 @@
             try {
                 log('debug', 'Attempting to fetch senator data via proxy', { url: PROXIED_SENATOR_DATA_URL });
                 const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL);
-                const proxyResponse = await response.json();
-                const csvText = proxyResponse.contents;
+                
+                // *** FIX: The /raw endpoint of the proxy returns raw text, not JSON. ***
+                const csvText = await response.text();
 
-                if (!csvText) {
-                    throw new Error("CORS proxy did not return content.");
+                // Check if the response is an HTML error page from the proxy.
+                if (!csvText || csvText.trim().startsWith('<')) {
+                    throw new Error("Failed to fetch valid CSV data. The proxy may have returned an error page or the source is unavailable.");
                 }
 
                 Papa.parse(csvText, {
@@ -1161,7 +1163,8 @@
                     complete: function(results) {
                         if (results.errors.length > 0) {
                             log('error', 'CSV Parsing errors', results.errors);
-                            throw new Error('Failed to parse CSV data from senators.');
+                            const firstError = results.errors[0];
+                            throw new Error(`CSV Parsing Error on row ${firstError.row}: ${firstError.message}`);
                         }
 
                         log('success', 'Senator trades CSV data parsed', { count: results.data.length, sample: results.data[0] });
@@ -1229,6 +1232,9 @@
                     </tr>`;
             }
         }
+        
+        // Make the function globally available for the retry button
+        window.populateSenatorTradesTable = populateSenatorTradesTable;
         
         function toggleTradeDetails(row, detailsRow, ticker, companyName) {
             const rowId = row.dataset.id;
