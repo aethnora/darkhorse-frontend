@@ -536,12 +536,9 @@
         const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOtJMJ8Y86P001uNGik7B';
         const SERVER_URL = 'https://darkhorse-backend.onrender.com';
         const INSIDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
-        const SENATOR_DATA_URL = 'https://senator-filings.onrender.com/csv';
         
-        // *** FIX: Use a CORS proxy to bypass browser security restrictions for the senator data feed. ***
-        // The original SENATOR_DATA_URL may be blocked by the browser's Same-Origin Policy.
-        // This proxy fetches the data on a server and forwards it with the correct headers.
-        const PROXIED_SENATOR_DATA_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(SENATOR_DATA_URL);
+        // *** FIX: Use the /data endpoint which returns JSON, a more reliable format. ***
+        const SENATOR_DATA_URL = 'https://senator-filings.onrender.com/data';
 
 
         // --- INITIALIZATION ---
@@ -607,7 +604,7 @@
             }
             
             try {
-                const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL); // Check the proxied URL
+                const response = await fetchWithCORS(SENATOR_DATA_URL); 
                 info['Senator API'] = response.ok ? '✅ OK' : '❌ Error';
             } catch (error) {
                 info['Senator API'] = '❌ CORS/Unreachable';
@@ -630,7 +627,11 @@
             try {
                 const response = await fetch(url, {
                     ...options,
-                    // No need to set mode: 'cors' when using a proxy, but it doesn't hurt
+                    mode: 'cors',
+                     headers: {
+                        'Accept': 'application/json',
+                        ...options.headers
+                    }
                 });
                 
                 if (!response.ok) {
@@ -1146,77 +1147,47 @@
             for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="7"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
-                log('debug', 'Attempting to fetch senator data via proxy', { url: PROXIED_SENATOR_DATA_URL });
-                const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL);
-                
-                // *** FIX: The /raw endpoint of the proxy returns raw text, not JSON. ***
-                const csvText = await response.text();
+                log('debug', 'Attempting to fetch senator data from JSON API', { url: SENATOR_DATA_URL });
+                const response = await fetchWithCORS(SENATOR_DATA_URL);
+                const trades = await response.json();
 
-                // Check if the response is an HTML error page from the proxy.
-                if (!csvText || csvText.trim().startsWith('<')) {
-                    throw new Error("Failed to fetch valid CSV data. The proxy may have returned an error page or the source is unavailable.");
+                log('success', 'Senator trades JSON data received', { count: trades.length, sample: trades[0] });
+                
+                tbody.innerHTML = '';
+                if (!trades || trades.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem;">No senator trades found.</td></tr>`;
+                    return;
                 }
 
-                Papa.parse(csvText, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        if (results.errors.length > 0) {
-                            log('error', 'CSV Parsing errors', results.errors);
-                            const firstError = results.errors[0];
-                            throw new Error(`CSV Parsing Error on row ${firstError.row}: ${firstError.message}`);
-                        }
+                trades.slice(0, 50).forEach(trade => {
+                    const ticker = trade.ticker || 'N/A';
+                    const companyName = trade.asset_description || 'Unknown Company';
+                    const tradeId = `senator-${ticker}-${trade.transaction_date || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
+                    const row = document.createElement('tr');
+                    row.className = 'trade-row';
+                    row.dataset.ticker = ticker;
+                    row.dataset.id = tradeId;
 
-                        log('success', 'Senator trades CSV data parsed', { count: results.data.length, sample: results.data[0] });
-                        const trades = results.data;
-                        
-                        tbody.innerHTML = '';
-                        if (trades.length === 0) {
-                            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem;">No senator trades found.</td></tr>`;
-                            return;
-                        }
+                    const transactionDateCell = formatDateCell(trade.transaction_date, false);
 
-                        trades.slice(0, 50).forEach(trade => {
-                            const cleanedTrade = {};
-                            for (const key in trade) {
-                                if (Object.hasOwnProperty.call(trade, key)) {
-                                    cleanedTrade[key.trim()] = trade[key];
-                                }
-                            }
+                    row.innerHTML = `
+                        ${transactionDateCell}
+                        <td>${trade.senator || 'N/A'}</td>
+                        <td><div class="company-name">${companyName}</div></td>
+                        <td><div class="ticker">${ticker}</div></td>
+                        <td>${trade.type || 'N/A'}</td>
+                        <td>${trade.amount || 'N/A'}</td>
+                        <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>
+                    `;
+                    
+                    const detailsRow = document.createElement('tr');
+                    detailsRow.className = 'trade-details-row';
+                    detailsRow.innerHTML = `<td colspan="7" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
 
-                            const ticker = cleanedTrade.ticker || 'N/A';
-                            const companyName = cleanedTrade.asset_description || 'Unknown Company';
-                            const tradeId = `senator-${ticker}-${cleanedTrade.transaction_date || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
-                            const row = document.createElement('tr');
-                            row.className = 'trade-row';
-                            row.dataset.ticker = ticker;
-                            row.dataset.id = tradeId;
+                    tbody.appendChild(row);
+                    tbody.appendChild(detailsRow);
 
-                            const transactionDateCell = formatDateCell(cleanedTrade.transaction_date, false);
-
-                            row.innerHTML = `
-                                ${transactionDateCell}
-                                <td>${cleanedTrade.senator || 'N/A'}</td>
-                                <td><div class="company-name">${companyName}</div></td>
-                                <td><div class="ticker">${ticker}</div></td>
-                                <td>${cleanedTrade.type || 'N/A'}</td>
-                                <td>${cleanedTrade.amount || 'N/A'}</td>
-                                <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>
-                            `;
-                            
-                            const detailsRow = document.createElement('tr');
-                            detailsRow.className = 'trade-details-row';
-                            detailsRow.innerHTML = `<td colspan="7" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
-
-                            tbody.appendChild(row);
-                            tbody.appendChild(detailsRow);
-
-                            row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, ticker, companyName));
-                        });
-                    },
-                    error: function(error) {
-                        throw new Error(`CSV Parsing Network Error: ${error.message}`);
-                    }
+                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, ticker, companyName));
                 });
             } catch (error) {
                 log('error', 'Failed to fetch or process senator trades', error);
@@ -1233,7 +1204,8 @@
             }
         }
         
-        // Make the function globally available for the retry button
+        // Make the functions globally available for the retry buttons
+        window.populateTradesTable = populateTradesTable;
         window.populateSenatorTradesTable = populateSenatorTradesTable;
         
         function toggleTradeDetails(row, detailsRow, ticker, companyName) {
