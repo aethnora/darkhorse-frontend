@@ -538,8 +538,6 @@
         const INSIDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
         const SENATOR_DATA_URL = 'https://senator-filings.onrender.com/data';
         
-        // *** FIX: Re-implementing a CORS proxy as the target server is blocking direct requests. ***
-        // This proxy wraps the response in a JSON object. We need to parse it and extract the 'contents'.
        const PROXIED_SENATOR_DATA_URL = SENATOR_DATA_URL;
 
 
@@ -1145,21 +1143,44 @@
             for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="7"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
-                log('debug', 'Attempting to fetch senator data via proxy', { url: PROXIED_SENATOR_DATA_URL });
+                log('debug', 'Attempting to fetch senator data', { url: PROXIED_SENATOR_DATA_URL });
                 const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL);
                 const trades = await response.json();
 
+                log('success', 'Raw senator trades data received', { count: trades.length, sample: trades[0] });
+                
+                // FIX: Clean and map the senator trade data to a consistent format.
+                const cleanedTrades = trades.map(trade => {
+                    const newTrade = {};
+                    for (const key in trade) {
+                        const lowerKey = key.toLowerCase().trim();
+                        if (lowerKey.includes('transaction') && lowerKey.includes('date')) {
+                            newTrade.transaction_date = trade[key];
+                        } else if (lowerKey === 'senator') {
+                            newTrade.senator = trade[key];
+                        } else if (lowerKey.includes('asset') || lowerKey.includes('company') || lowerKey.includes('description')) {
+                            newTrade.asset_description = trade[key];
+                        } else if (lowerKey === 'ticker') {
+                            newTrade.ticker = trade[key];
+                        } else if (lowerKey === 'type' || (lowerKey.includes('transaction') && lowerKey.includes('type'))) {
+                            newTrade.type = trade[key];
+                        } else if (lowerKey === 'amount' || lowerKey === 'value') {
+                            newTrade.amount = trade[key];
+                        }
+                    }
+                    return newTrade;
+                });
 
-                log('success', 'Senator trades JSON data received and parsed', { count: trades.length, sample: trades[0] });
+                log('success', 'Senator trades data processed', { count: cleanedTrades.length, sample: cleanedTrades[0] });
                 
                 tbody.innerHTML = '';
-                if (!trades || trades.length === 0) {
+                if (!cleanedTrades || cleanedTrades.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem;">No senator trades found.</td></tr>`;
                     return;
                 }
 
-                trades.slice(0, 50).forEach(trade => {
-                    const ticker = trade.ticker || 'N/A';
+                cleanedTrades.slice(0, 50).forEach(trade => {
+                    const ticker = (trade.ticker || '--').trim();
                     const companyName = trade.asset_description || 'Unknown Company';
                     const tradeId = `senator-${ticker}-${trade.transaction_date || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
                     const row = document.createElement('tr');
@@ -1229,11 +1250,12 @@
 
             if (!isActive) {
                 appState.activeTradeDetails = rowId;
-                if (ticker && ticker !== 'N/A') {
+                // FIX: Add a guard against invalid tickers like '--'
+                if (ticker && ticker !== 'N/A' && ticker.trim() !== '--') {
                     loadAdvancedTradingViewWidgets(ticker, companyName, `details-content-${rowId}`);
                 } else {
                     const container = document.getElementById(`details-content-${rowId}`);
-                    if(container) container.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--text-secondary);">No ticker available for this asset.</div>`;
+                    if(container) container.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--text-secondary);">No valid ticker available for this asset.</div>`;
                 }
             } else {
                 appState.activeTradeDetails = null;
@@ -1298,21 +1320,60 @@
         function initializeWidgets(ticker, containerId) {
             setTimeout(() => {
                 try {
+                    // Initialize Chart Widget
                     new TradingView.widget({
-                        "autosize": true, "symbol": ticker, "interval": "D", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "en", "toolbar_bg": "#0a0f1c", "enable_publishing": false, "backgroundColor": "#0a0f1c", "gridColor": "#1a1a1a", "hide_side_toolbar": false, "allow_symbol_change": true, "details": true, "hotlist": true, "calendar": true, "studies": ["Volume@tv-basicstudies", "MACD@tv-basicstudies"], "container_id": `chart-${containerId}`, "withdateranges": true, "hide_top_toolbar": false, "save_image": false, "container": document.getElementById(`chart-${containerId}`)
+                        "autosize": true,
+                        "symbol": ticker,
+                        "interval": "D",
+                        "timezone": "Etc/UTC",
+                        "theme": "dark",
+                        "style": "1",
+                        "locale": "en",
+                        "toolbar_bg": "#0a0f1c",
+                        "enable_publishing": false,
+                        "backgroundColor": "#0a0f1c",
+                        "gridColor": "rgba(0, 198, 255, 0.2)",
+                        "hide_side_toolbar": false,
+                        "allow_symbol_change": true,
+                        "details": true,
+                        "hotlist": true,
+                        "calendar": true,
+                        "studies": ["Volume@tv-basicstudies", "MACD@tv-basicstudies"],
+                        "container_id": `chart-${containerId}`,
+                        "withdateranges": true,
+                        "hide_top_toolbar": false,
+                        "save_image": false
                     });
 
+                    // FIX: Re-initialize the profile widget more robustly.
                     const profileContainer = document.getElementById(`fundamentals-${containerId}`);
                     if (profileContainer) {
-                        profileContainer.innerHTML = '';
-                        const widgetHTML = `<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div></div>`;
-                        profileContainer.innerHTML = widgetHTML;
+                        // Clear any previous widget content to ensure a fresh instance
+                        profileContainer.innerHTML = ''; 
+                        
+                        const widgetContainer = document.createElement('div');
+                        widgetContainer.className = 'tradingview-widget-container';
+                        widgetContainer.style.height = '100%';
+                        widgetContainer.style.width = '100%';
+                        widgetContainer.innerHTML = '<div class="tradingview-widget-container__widget" style="height:100%;width:100%;"></div>';
+                        profileContainer.appendChild(widgetContainer);
+
                         const script = document.createElement('script');
                         script.type = 'text/javascript';
                         script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js';
                         script.async = true;
-                        script.textContent = `{"symbol": "${ticker}","colorTheme": "dark","isTransparent": true,"locale": "en","width": "100%","height": "450"}`;
-                        profileContainer.querySelector('.tradingview-widget-container').appendChild(script);
+                        
+                        // Use JSON.stringify for safety and set height to 100%
+                        const widgetConfig = {
+                            "symbol": ticker,
+                            "colorTheme": "dark",
+                            "isTransparent": true,
+                            "locale": "en",
+                            "width": "100%",
+                            "height": "100%" 
+                        };
+                        script.innerHTML = JSON.stringify(widgetConfig);
+                        widgetContainer.appendChild(script);
                     }
 
                     log('success', 'TradingView widgets loaded successfully', { ticker, containerId });
