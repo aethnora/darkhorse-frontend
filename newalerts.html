@@ -540,7 +540,8 @@
         
         // *** FIX: Re-implementing a CORS proxy as the target server is blocking direct requests. ***
         // This proxy wraps the response in a JSON object. We need to parse it and extract the 'contents'.
-        const PROXIED_SENATOR_DATA_URL = 'https://api.allorigins.win/get?url=' + encodeURIComponent(SENATOR_DATA_URL);
+       const PROXIED_SENATOR_DATA_URL = SENATOR_DATA_URL;
+
 
 
         // --- INITIALIZATION ---
