@@ -622,21 +622,304 @@
     </footer>
 
     <script>
+    // --- GLOBAL CONFIGURATION ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBQY_Q9NBc3hmd44QhovkytcXRyzvV4Ips",
+        authDomain: "darkhorsetrades-bd89e.firebaseapp.com",
+        projectId: "darkhorsetrades-bd89e",
+        storageBucket: "darkhorsetrades-bd89e.appspot.com",
+        messagingSenderId: "528610189023",
+        appId: "1:528610189023:web:1f8741bfb0f8635bf9d36a"
+    };
+    const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOJTMJ8Y86P001uNGik7B';
+    const SERVER_URL = 'https://darkhorse-backend.onrender.com';
+    const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
+
+    // --- GLOBAL VARIABLES ---
+    let auth, db, stripe;
+    let appState = {
+        currentUser: null,
+        userProfile: null,
+        isSignUp: false,
+        unsubscribeUserProfile: null,
+        activeTradeDetails: null,
+        pollingInterval: null,
+        debugMode: false,
+        loadedWidgets: new Set()
+    };
+
+    // --- GLOBAL UTILITY FUNCTIONS ---
+    const log = (level, message, data = null) => {
+        const timestamp = new Date().toISOString();
+        console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, data || '');
+        if (appState.debugMode) {
+            refreshDebugInfo();
+        }
+    };
+
+    function displayMessage(message, type = 'info') {
+        const messageBox = document.createElement('div');
+        messageBox.className = `status-message ${type}`;
+        messageBox.textContent = message;
+        messageBox.style.position = 'fixed';
+        messageBox.style.top = '20px';
+        messageBox.style.left = '50%';
+        messageBox.style.transform = 'translateX(-50%)';
+        messageBox.style.zIndex = '10000';
+        messageBox.style.padding = '15px 25px';
+        messageBox.style.borderRadius = '8px';
+        messageBox.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+        messageBox.style.transition = 'opacity 0.5s ease-in-out';
+        messageBox.style.opacity = '0';
+        document.body.appendChild(messageBox);
+
+        setTimeout(() => { messageBox.style.opacity = '1'; }, 10);
+        setTimeout(() => {
+            messageBox.style.opacity = '0';
+            messageBox.addEventListener('transitionend', () => messageBox.remove());
+        }, 5000);
+    }
+
+    async function fetchWithCORS(url, options = {}) {
+        try {
+            const response = await fetch(url, {
+                ...options,
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return response;
+        } catch (error) {
+            log('error', 'CORS fetch failed', { url, error: error.message });
+            throw error;
+        }
+    }
+
+    // --- GLOBAL FUNCTIONS FOR INLINE HANDLERS ---
+    window.toggleDebug = () => {
+        appState.debugMode = !appState.debugMode;
+        const debugPanel = document.getElementById('debugPanel');
+        debugPanel.classList.toggle('hidden', !appState.debugMode);
+        if (appState.debugMode) refreshDebugInfo();
+    };
+
+    window.refreshDebugInfo = async () => {
+        const debugInfo = document.getElementById('debugInfo');
+        const info = {
+            'User': appState.currentUser ? `${appState.currentUser.uid} (${appState.currentUser.email})` : 'Not logged in',
+            'Profile': appState.userProfile ? `Plan: ${appState.userProfile.subscription?.planId || 'none'}, Status: ${appState.userProfile.subscription?.status || 'none'}` : 'No profile',
+            'Server Health': 'Checking...',
+            'Data API': 'Checking...'
+        };
+
+        debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
+
+        try {
+            const response = await fetch(`${SERVER_URL}/health`);
+            info['Server Health'] = response.ok ? '✅ OK' : '❌ Error';
+        } catch (error) {
+            info['Server Health'] = '❌ Unreachable';
+        }
+
+        try {
+            const response = await fetchWithCORS(RENDER_DATA_URL);
+            info['Data API'] = response.ok ? '✅ OK' : '❌ Error';
+        } catch (error) {
+            info['Data API'] = '❌ CORS/Unreachable';
+        }
+
+        debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
+    };
+
+    window.signOut = () => {
+        log('info', 'User signing out');
+        auth.signOut();
+    };
+    
+    window.showAuthModal = (signUp) => {
+        appState.isSignUp = signUp;
+        const authOverlay = document.getElementById('authOverlay');
+        const authTitle = document.getElementById('authTitle');
+        const authSubmit = document.getElementById('authSubmit');
+        const authToggleText = document.getElementById('authToggleText');
+        const authToggleLink = document.getElementById('authToggleLink');
+        const authError = document.getElementById('authError');
+        
+        authOverlay.classList.add('show');
+        authTitle.textContent = signUp ? 'Create an Account' : 'Sign In';
+        authSubmit.textContent = signUp ? 'Sign Up' : 'Sign In';
+        authToggleText.textContent = signUp ? "Already have an account?" : "Don't have an account?";
+        authToggleLink.textContent = signUp ? 'Sign In' : 'Sign Up';
+        authError.classList.add('hidden');
+    };
+    
+    window.closeAuthModal = () => {
+        const authOverlay = document.getElementById('authOverlay');
+        authOverlay.classList.remove('show');
+    };
+
+    window.managePlan = async () => {
+        if (!appState.currentUser || !appState.userProfile) {
+            displayMessage('Please sign in to manage your plan.', 'error');
+            return;
+        }
+
+        const managePlanBtn = document.getElementById('managePlanBtn');
+        const originalText = managePlanBtn.innerHTML;
+        managePlanBtn.disabled = true;
+        managePlanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+        try {
+            log('info', 'Creating portal session', { userId: appState.currentUser.uid });
+            
+            const response = await fetch(`${SERVER_URL}/create-portal-session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: appState.currentUser.uid,
+                    userEmail: appState.currentUser.email,
+                    returnUrl: window.location.href
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server error: ${response.status} - ${errorText}`);
+            }
+
+            const { url } = await response.json();
+            if (!url) throw new Error('No portal URL received from server');
+            
+            log('success', 'Portal session created, redirecting');
+            window.location.href = url;
+
+        } catch (error) {
+            log('error', 'Portal session creation failed', error);
+            displayMessage(`Could not open plan management: ${error.message}`, 'error');
+            managePlanBtn.disabled = false;
+            managePlanBtn.innerHTML = originalText;
+        }
+    };
+
+    window.selectPlan = async (priceId, planName) => {
+        if (!appState.currentUser) { 
+            log('info', 'User not authenticated, showing auth modal');
+            showAuthModal(false); 
+            return; 
+        }
+        
+        const checkoutButton = event.target;
+        const originalText = checkoutButton.textContent;
+        checkoutButton.disabled = true;
+        checkoutButton.textContent = 'Redirecting...';
+
+        try {
+            log('info', 'Creating checkout session', { priceId, planName, userId: appState.currentUser.uid });
+            
+            const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
+            if (!userDoc.exists) throw new Error('User profile not found. Please refresh and try again.');
+
+            const response = await fetch(`${SERVER_URL}/create-checkout-session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    priceId: priceId,
+                    planName: planName,
+                    userId: appState.currentUser.uid,
+                    userEmail: appState.currentUser.email
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server error: ${response.status} - ${errorText}`);
+            }
+
+            const { sessionId } = await response.json();
+            if (!sessionId) throw new Error('No session ID received from server');
+            
+            log('info', 'Redirecting to Stripe checkout', { sessionId });
+            const { error } = await stripe.redirectToCheckout({ sessionId });
+            if (error) throw error;
+
+        } catch (error) {
+            log('error', 'Checkout session creation failed', error);
+            displayMessage(`Could not initiate payment: ${error.message}`, 'error');
+            checkoutButton.disabled = false;
+            checkoutButton.textContent = originalText;
+        }
+    };
+
+    window.scrollToPricing = () => {
+        const pricingSection = document.getElementById('pricingSection');
+        pricingSection.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.saveSettings = async () => {
+        const saveButton = event.target;
+        const originalText = saveButton.textContent;
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving...';
+
+        const { planId } = appState.userProfile.subscription;
+        const planCapabilities = {
+            basic: { canCustomizeSettings: false, canUseSMS: false },
+            advanced: { canCustomizeSettings: true, canUseSMS: true },
+            professional: { canCustomizeSettings: true, canUseSMS: true }
+        };
+        
+        const currentPlan = planCapabilities[planId] || planCapabilities.basic;
+        
+        // Base settings that all users can modify
+        const settingsToSave = {
+            notifyByEmail: document.getElementById('emailToggle').checked,
+            notifyBySms: currentPlan.canUseSMS ? document.getElementById('smsToggle').checked : false,
+        };
+        
+        // Add customizable settings only for eligible plans
+        if (currentPlan.canCustomizeSettings) {
+            settingsToSave.timing = document.querySelector('input[name="timing"]:checked').value;
+            settingsToSave.summaryTime = document.getElementById('summaryTime').value;
+            settingsToSave.filters = {
+                stockPrice: parseFloat(document.getElementById('stockPrice').value),
+                tradeValue: parseInt(document.getElementById('tradeValue').value),
+                titles: Array.from(document.querySelectorAll('input[name="insiderTitle"]:checked')).map(el => el.value)
+            };
+        } else {
+            // Use default settings for Basic users
+            settingsToSave.timing = 'realtime';
+            settingsToSave.summaryTime = '17:00';
+            settingsToSave.filters = {
+                stockPrice: 3,
+                tradeValue: 0,
+                titles: ['CEO', 'CFO'] // Default recommended settings
+            };
+        }
+        
+        try {
+            await db.collection('users').doc(appState.currentUser.uid).update({ settings: settingsToSave });
+            displayMessage('Settings saved successfully!', 'success');
+            log('success', 'Settings saved', settingsToSave);
+        } catch (error) {
+            log('error', 'Failed to save settings', error);
+            displayMessage("Failed to save settings. Please try again.", 'error');
+        } finally {
+            saveButton.disabled = false;
+            saveButton.textContent = originalText;
+        }
+    };
+
+    // --- DOM CONTENT LOADED ---
     document.addEventListener('DOMContentLoaded', () => {
         console.log('🚀 DarkHorse application starting...');
-
-        // --- CONFIGURATION ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBQY_Q9NBc3hmd44QhovkytcXRyzvV4Ips",
-            authDomain: "darkhorsetrades-bd89e.firebaseapp.com",
-            projectId: "darkhorsetrades-bd89e",
-            storageBucket: "darkhorsetrades-bd89e.appspot.com",
-            messagingSenderId: "528610189023",
-            appId: "1:528610189023:web:1f8741bfb0f8635bf9d36a"
-        };
-        const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOJTMJ8Y86P001uNGik7B';
-        const SERVER_URL = 'https://darkhorse-backend.onrender.com';
-        const RENDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
 
         // --- INITIALIZE FIREBASE ---
         try {
@@ -648,9 +931,8 @@
             return;
         }
 
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        let stripe;
+        auth = firebase.auth();
+        db = firebase.firestore();
 
         // --- INITIALIZE STRIPE ---
         try {
@@ -683,109 +965,6 @@
         const dashboardTitle = document.getElementById('dashboard-title');
         const tabs = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
-
-        // --- APP STATE ---
-        let appState = {
-            currentUser: null,
-            userProfile: null,
-            isSignUp: false,
-            unsubscribeUserProfile: null,
-            activeTradeDetails: null,
-            pollingInterval: null,
-            debugMode: false,
-            loadedWidgets: new Set()
-        };
-
-        // --- UTILITY FUNCTIONS ---
-        const log = (level, message, data = null) => {
-            const timestamp = new Date().toISOString();
-            console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, data || '');
-            if (appState.debugMode) {
-                refreshDebugInfo();
-            }
-        };
-
-        function displayMessage(message, type = 'info') {
-            const messageBox = document.createElement('div');
-            messageBox.className = `status-message ${type}`;
-            messageBox.textContent = message;
-            messageBox.style.position = 'fixed';
-            messageBox.style.top = '20px';
-            messageBox.style.left = '50%';
-            messageBox.style.transform = 'translateX(-50%)';
-            messageBox.style.zIndex = '10000';
-            messageBox.style.padding = '15px 25px';
-            messageBox.style.borderRadius = '8px';
-            messageBox.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
-            messageBox.style.transition = 'opacity 0.5s ease-in-out';
-            messageBox.style.opacity = '0';
-            document.body.appendChild(messageBox);
-
-            setTimeout(() => { messageBox.style.opacity = '1'; }, 10);
-            setTimeout(() => {
-                messageBox.style.opacity = '0';
-                messageBox.addEventListener('transitionend', () => messageBox.remove());
-            }, 5000);
-        }
-
-        async function fetchWithCORS(url, options = {}) {
-            try {
-                const response = await fetch(url, {
-                    ...options,
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                return response;
-            } catch (error) {
-                log('error', 'CORS fetch failed', { url, error: error.message });
-                throw error;
-            }
-        }
-
-        // --- DEBUG FUNCTIONS ---
-        window.toggleDebug = () => {
-            appState.debugMode = !appState.debugMode;
-            const debugPanel = document.getElementById('debugPanel');
-            debugPanel.classList.toggle('hidden', !appState.debugMode);
-            if (appState.debugMode) refreshDebugInfo();
-        };
-
-        window.refreshDebugInfo = async () => {
-            const debugInfo = document.getElementById('debugInfo');
-            const info = {
-                'User': appState.currentUser ? `${appState.currentUser.uid} (${appState.currentUser.email})` : 'Not logged in',
-                'Profile': appState.userProfile ? `Plan: ${appState.userProfile.subscription?.planId || 'none'}, Status: ${appState.userProfile.subscription?.status || 'none'}` : 'No profile',
-                'Server Health': 'Checking...',
-                'Data API': 'Checking...'
-            };
-
-            debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
-
-            try {
-                const response = await fetch(`${SERVER_URL}/health`);
-                info['Server Health'] = response.ok ? '✅ OK' : '❌ Error';
-            } catch (error) {
-                info['Server Health'] = '❌ Unreachable';
-            }
-
-            try {
-                const response = await fetchWithCORS(RENDER_DATA_URL);
-                info['Data API'] = response.ok ? '✅ OK' : '❌ Error';
-            } catch (error) {
-                info['Data API'] = '❌ CORS/Unreachable';
-            }
-
-            debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
-        };
 
         // --- AUTHENTICATION & PAGE LOAD ---
         auth.onAuthStateChanged(user => {
@@ -912,24 +1091,6 @@
             pricingSection.classList.remove('hidden');
         }
 
-        // --- GLOBAL AUTH FUNCTIONS ---
-        window.signOut = () => {
-            log('info', 'User signing out');
-            auth.signOut();
-        };
-        
-        window.showAuthModal = (signUp) => {
-            appState.isSignUp = signUp;
-            authOverlay.classList.add('show');
-            authTitle.textContent = signUp ? 'Create an Account' : 'Sign In';
-            authSubmit.textContent = signUp ? 'Sign Up' : 'Sign In';
-            authToggleText.textContent = signUp ? "Already have an account?" : "Don't have an account?";
-            authToggleLink.textContent = signUp ? 'Sign In' : 'Sign Up';
-            authError.classList.add('hidden');
-        };
-        
-        window.closeAuthModal = () => authOverlay.classList.remove('show');
-
         // --- AUTH EVENT LISTENERS ---
         authOverlay.addEventListener('click', (e) => { 
             if (e.target === authOverlay) closeAuthModal(); 
@@ -969,103 +1130,6 @@
                 authSubmit.textContent = appState.isSignUp ? 'Sign Up' : 'Sign In';
             }
         });
-
-        // --- PLAN MANAGEMENT ---
-        window.managePlan = async () => {
-            if (!appState.currentUser || !appState.userProfile) {
-                displayMessage('Please sign in to manage your plan.', 'error');
-                return;
-            }
-
-            const managePlanBtn = document.getElementById('managePlanBtn');
-            const originalText = managePlanBtn.innerHTML;
-            managePlanBtn.disabled = true;
-            managePlanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-
-            try {
-                log('info', 'Creating portal session', { userId: appState.currentUser.uid });
-                
-                const response = await fetch(`${SERVER_URL}/create-portal-session`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: appState.currentUser.uid,
-                        userEmail: appState.currentUser.email,
-                        returnUrl: window.location.href
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server error: ${response.status} - ${errorText}`);
-                }
-
-                const { url } = await response.json();
-                if (!url) throw new Error('No portal URL received from server');
-                
-                log('success', 'Portal session created, redirecting');
-                window.location.href = url;
-
-            } catch (error) {
-                log('error', 'Portal session creation failed', error);
-                displayMessage(`Could not open plan management: ${error.message}`, 'error');
-                managePlanBtn.disabled = false;
-                managePlanBtn.innerHTML = originalText;
-            }
-        };
-
-        window.selectPlan = async (priceId, planName) => {
-            if (!appState.currentUser) { 
-                log('info', 'User not authenticated, showing auth modal');
-                showAuthModal(false); 
-                return; 
-            }
-            
-            const checkoutButton = event.target;
-            const originalText = checkoutButton.textContent;
-            checkoutButton.disabled = true;
-            checkoutButton.textContent = 'Redirecting...';
-
-            try {
-                log('info', 'Creating checkout session', { priceId, planName, userId: appState.currentUser.uid });
-                
-                const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
-                if (!userDoc.exists) throw new Error('User profile not found. Please refresh and try again.');
-
-                const response = await fetch(`${SERVER_URL}/create-checkout-session`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        priceId: priceId,
-                        planName: planName,
-                        userId: appState.currentUser.uid,
-                        userEmail: appState.currentUser.email
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server error: ${response.status} - ${errorText}`);
-                }
-
-                const { sessionId } = await response.json();
-                if (!sessionId) throw new Error('No session ID received from server');
-                
-                log('info', 'Redirecting to Stripe checkout', { sessionId });
-                const { error } = await stripe.redirectToCheckout({ sessionId });
-                if (error) throw error;
-
-            } catch (error) {
-                log('error', 'Checkout session creation failed', error);
-                displayMessage(`Could not initiate payment: ${error.message}`, 'error');
-                checkoutButton.disabled = false;
-                checkoutButton.textContent = originalText;
-            }
-        };
-
-        window.scrollToPricing = () => {
-            pricingSection.scrollIntoView({ behavior: 'smooth' });
-        };
 
         // --- VIEW MANAGEMENT & RENDERING ---
         function updateDashboardView() {
