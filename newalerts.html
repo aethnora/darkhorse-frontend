@@ -1148,12 +1148,22 @@
             try {
                 log('debug', 'Attempting to fetch senator data via proxy', { url: PROXIED_SENATOR_DATA_URL });
                 const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL);
-                const csvText = await response.text();
+                const proxyResponse = await response.json();
+                const csvText = proxyResponse.contents;
+
+                if (!csvText) {
+                    throw new Error("CORS proxy did not return content.");
+                }
 
                 Papa.parse(csvText, {
                     header: true,
                     skipEmptyLines: true,
                     complete: function(results) {
+                        if (results.errors.length > 0) {
+                            log('error', 'CSV Parsing errors', results.errors);
+                            throw new Error('Failed to parse CSV data from senators.');
+                        }
+
                         log('success', 'Senator trades CSV data parsed', { count: results.data.length, sample: results.data[0] });
                         const trades = results.data;
                         
@@ -1164,23 +1174,30 @@
                         }
 
                         trades.slice(0, 50).forEach(trade => {
-                            const ticker = trade.ticker || 'N/A';
-                            const companyName = trade.asset_description || 'Unknown Company';
-                            const tradeId = `senator-${ticker}-${trade.transaction_date || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
+                            const cleanedTrade = {};
+                            for (const key in trade) {
+                                if (Object.hasOwnProperty.call(trade, key)) {
+                                    cleanedTrade[key.trim()] = trade[key];
+                                }
+                            }
+
+                            const ticker = cleanedTrade.ticker || 'N/A';
+                            const companyName = cleanedTrade.asset_description || 'Unknown Company';
+                            const tradeId = `senator-${ticker}-${cleanedTrade.transaction_date || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
                             const row = document.createElement('tr');
                             row.className = 'trade-row';
                             row.dataset.ticker = ticker;
                             row.dataset.id = tradeId;
 
-                            const transactionDateCell = formatDateCell(trade.transaction_date, false);
+                            const transactionDateCell = formatDateCell(cleanedTrade.transaction_date, false);
 
                             row.innerHTML = `
                                 ${transactionDateCell}
-                                <td>${trade.senator || 'N/A'}</td>
+                                <td>${cleanedTrade.senator || 'N/A'}</td>
                                 <td><div class="company-name">${companyName}</div></td>
                                 <td><div class="ticker">${ticker}</div></td>
-                                <td>${trade.type || 'N/A'}</td>
-                                <td>${trade.amount || 'N/A'}</td>
+                                <td>${cleanedTrade.type || 'N/A'}</td>
+                                <td>${cleanedTrade.amount || 'N/A'}</td>
                                 <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>
                             `;
                             
@@ -1195,7 +1212,7 @@
                         });
                     },
                     error: function(error) {
-                        throw new Error(`CSV Parsing Error: ${error.message}`);
+                        throw new Error(`CSV Parsing Network Error: ${error.message}`);
                     }
                 });
             } catch (error) {
