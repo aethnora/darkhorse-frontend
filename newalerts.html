@@ -538,9 +538,10 @@
         const INSIDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
         const SENATOR_DATA_URL = 'https://senator-filings.onrender.com/data';
         
-        // *** FIX: Using a CORS proxy that wraps the response in a JSON object. ***
-        // This is necessary because the target server does not allow direct cross-origin requests.
-        const PROXIED_SENATOR_DATA_URL = 'https://api.allorigins.win/get?url=' + encodeURIComponent(SENATOR_DATA_URL);
+        // *** FIX: Re-implementing a CORS proxy as the target server is blocking direct requests. ***
+        // This proxy wraps the response in a JSON object. We need to parse it and extract the 'contents'.
+       const PROXIED_SENATOR_DATA_URL = SENATOR_DATA_URL;
+
 
 
         // --- INITIALIZATION ---
@@ -586,7 +587,7 @@
                 'Profile': appState.userProfile ? `Plan: ${appState.userProfile.subscription?.planId || 'none'}, Status: ${appState.userProfile.subscription?.status || 'none'}` : 'No profile',
                 'Server Health': 'Checking...',
                 'Insider API': 'Checking...',
-                'Senator API (via Proxy)': 'Checking...'
+                'Senator API': 'Checking...'
             };
 
             debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
@@ -607,9 +608,9 @@
             
             try {
                 const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL); 
-                info['Senator API (via Proxy)'] = response.ok ? '✅ OK' : '❌ Error';
+                info['Senator API'] = response.ok ? '✅ OK' : '❌ Error';
             } catch (error) {
-                info['Senator API (via Proxy)'] = '❌ CORS/Unreachable';
+                info['Senator API'] = '❌ CORS/Unreachable';
             }
 
             debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
@@ -1148,8 +1149,8 @@
                 const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL);
                 const proxyData = await response.json();
 
-                if (!proxyData.contents || proxyData.status.http_code >= 400) {
-                     throw new Error(`CORS proxy failed to fetch data. Status: ${proxyData.status.http_code}. URL: ${proxyData.status.url}`);
+                if (!proxyData.contents) {
+                    throw new Error("CORS proxy did not return content. The remote server may be down or blocking the proxy.");
                 }
                 
                 // The actual data is a JSON string inside the 'contents' property
