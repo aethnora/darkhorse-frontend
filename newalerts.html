@@ -3,35 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self'; 
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' 
-            https://js.stripe.com 
-            https://checkout.stripe.com 
-            https://api.stripe.com 
-            https://b.stripecdn.com 
-            https://www.gstatic.com 
-            https://cdnjs.cloudflare.com 
-            https://s3.tradingview.com; 
-        style-src 'self' 'unsafe-inline' 
-            https://fonts.googleapis.com 
-            https://cdnjs.cloudflare.com; 
-        font-src 'self' 
-            https://fonts.gstatic.com 
-            https://cdnjs.cloudflare.com; 
-        img-src 'self' data: 
-            https://*.stripe.com 
-            https://*.stripecdn.com; 
-        connect-src 'self' 
-            https://api.stripe.com 
-            https://checkout.stripe.com 
-            https://darkhorse-backend.onrender.com 
-            https://insider-trading-api.onrender.com; 
-        frame-src 'self' 
-            https://checkout.stripe.com 
-            https://js.stripe.com 
-            https://hooks.stripe.com;
-    ">
     <title>DarkHorse Alerts - Insider Trade Notifications</title>
     
     <!-- Google Fonts: Inter -->
@@ -133,29 +104,8 @@
 
         /* --- DASHBOARD LAYOUT --- */
         .dashboard-header { margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; }
-        .dashboard-header-content { display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; }
-        .dashboard-header-left { flex: 1; }
-        .dashboard-header-right { flex-shrink: 0; }
-        .dashboard-header h1 { font-size: 2.5rem; margin-bottom: 1rem; }
-        .dashboard-tabs { display: flex; gap: 1rem; }
-        
-        /* --- PLAN INFO SECTION --- */
-        .plan-info { display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem; }
-        .current-plan { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
-        .plan-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-        .plan-name { font-size: 1.1rem; font-weight: 700; margin-top: 0.25rem; }
-        .plan-name.basic { color: var(--text-secondary); }
-        .plan-name.advanced { color: var(--accent-cyan); }
-        .plan-name.professional { color: var(--success-green); }
-        .manage-plan-btn { padding: 0.5rem 1rem; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-        .manage-plan-btn:hover { transform: translateY(-2px); }
-        
-        @media (max-width: 768px) {
-            .dashboard-header-content { flex-direction: column; align-items: stretch; }
-            .dashboard-header-right { align-self: stretch; }
-            .plan-info { flex-direction: row; justify-content: space-between; align-items: center; }
-            .current-plan { align-items: flex-start; text-align: left; }
-        }
+        .dashboard-header h1 { font-size: 2.5rem; }
+        .dashboard-tabs { display: flex; gap: 1rem; margin-top: 1rem; }
         .tab-btn { background: none; border: none; color: var(--text-secondary); font-size: 1rem; font-weight: 600; padding: 0.5rem 0; cursor: pointer; position: relative; transition: color 0.3s ease; }
         .tab-btn::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--accent-cyan); transform: scaleX(0); transition: transform 0.3s ease; }
         .tab-btn.active { color: var(--text-primary); }
@@ -184,48 +134,6 @@
         .multi-select-group input:checked + span { background: var(--gradient-primary); color: white; }
         .recommended-tag { font-size: 0.7rem; color: var(--warning-yellow); margin-left: 0.5rem; }
         .save-settings-container { margin-top: 2rem; text-align: right; }
-
-        /* --- PLAN RESTRICTION STYLES --- */
-        .upgrade-required, .upgrade-required-filter {
-            animation: pulseGlow 2s ease-in-out infinite;
-            position: relative;
-            z-index: 2;
-        }
-
-        @keyframes pulseGlow {
-            0%, 100% { 
-                box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); 
-            }
-            50% { 
-                box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); 
-            }
-        }
-
-        .upgrade-cta {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(0, 198, 255, 0.1) 100%);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 12px;
-            padding: 1rem;
-            text-align: center;
-            margin: 1rem 0;
-        }
-
-        .upgrade-cta h4 {
-            color: var(--warning-yellow);
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .upgrade-cta p {
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-
-        .upgrade-cta .btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-        }
 
         /* --- ENHANCED TRADES FEED & DROPDOWN --- */
         .trades-table { width: 100%; border-collapse: collapse; table-layout: auto; }
@@ -546,26 +454,11 @@
         <!-- Dashboard Section -->
         <section id="dashboardSection" class="container hidden">
             <div class="dashboard-header">
-                <div class="dashboard-header-content">
-                    <div class="dashboard-header-left">
-                        <h1 id="dashboard-title">Insider Trades Feed</h1>
-                        <div class="dashboard-tabs">
-                            <button class="tab-btn active" data-tab="feed">Feed</button>
-                            <button class="tab-btn" data-tab="settings">Settings</button>
-                            <button class="tab-btn hidden" id="upgrade-tab-btn" onclick="scrollToPricing()">Upgrade Plan</button>
-                        </div>
-                    </div>
-                    <div class="dashboard-header-right">
-                        <div class="plan-info" id="planInfo">
-                            <div class="current-plan">
-                                <span class="plan-label">Current Plan:</span>
-                                <span class="plan-name" id="currentPlanName">Loading...</span>
-                            </div>
-                            <button class="btn btn-secondary manage-plan-btn" onclick="managePlan()" id="managePlanBtn">
-                                <i class="fas fa-cog"></i> Manage Plan
-                            </button>
-                        </div>
-                    </div>
+                <h1 id="dashboard-title">Insider Trades Feed</h1>
+                <div class="dashboard-tabs">
+                    <button class="tab-btn active" data-tab="feed">Feed</button>
+                    <button class="tab-btn" data-tab="settings">Settings</button>
+                    <button class="tab-btn hidden" id="upgrade-tab-btn" onclick="scrollToPricing()">Upgrade Plan</button>
                 </div>
             </div>
 
@@ -912,48 +805,6 @@
             }
         });
 
-        // --- PLAN MANAGEMENT ---
-        window.managePlan = async () => {
-            if (!appState.currentUser || !appState.userProfile) {
-                displayMessage('Please sign in to manage your plan.', 'error');
-                return;
-            }
-
-            const managePlanBtn = document.getElementById('managePlanBtn');
-            const originalText = managePlanBtn.innerHTML;
-            managePlanBtn.disabled = true;
-            managePlanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-
-            try {
-                const response = await fetch(`${SERVER_URL}/create-portal-session`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: appState.currentUser.uid,
-                        userEmail: appState.currentUser.email,
-                        returnUrl: window.location.href
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server error: ${response.status} - ${errorText}`);
-                }
-
-                const { url } = await response.json();
-                if (!url) throw new Error('No portal URL received from server');
-                
-                // Redirect to Stripe Customer Portal
-                window.location.href = url;
-
-            } catch (error) {
-                log('error', 'Portal session creation failed', error);
-                displayMessage(`Could not open plan management: ${error.message}`, 'error');
-                managePlanBtn.disabled = false;
-                managePlanBtn.innerHTML = originalText;
-            }
-        };
-
         window.selectPlan = async (priceId, planName) => {
             if (!appState.currentUser) { 
                 showAuthModal(false); 
@@ -1011,14 +862,8 @@
                 dashboardSection.classList.remove('hidden');
 
                 const { planId } = subscription;
-                
-                // Update plan info display
-                updatePlanInfoDisplay(planId);
-                
-                // Show upgrade tab for Basic users only
                 upgradeTabBtn.classList.toggle('hidden', planId !== 'basic');
                 
-                // Adjust dashboard based on plan
                 if (planId === 'basic') {
                     dashboardTitle.textContent = "Dashboard Preview";
                     renderLockedDashboard();
@@ -1033,30 +878,6 @@
                     pricingSection.classList.remove('hidden');
                 }
             }
-        }
-
-        function updatePlanInfoDisplay(planId) {
-            const currentPlanName = document.getElementById('currentPlanName');
-            const managePlanBtn = document.getElementById('managePlanBtn');
-            
-            if (!currentPlanName || !managePlanBtn) return;
-            
-            // Plan display mapping
-            const planDisplayInfo = {
-                basic: { name: 'Basic', class: 'basic' },
-                advanced: { name: 'Advanced', class: 'advanced' },
-                professional: { name: 'Professional', class: 'professional' }
-            };
-            
-            const planInfo = planDisplayInfo[planId] || { name: 'Unknown', class: 'basic' };
-            
-            // Update plan name with styling
-            currentPlanName.textContent = planInfo.name;
-            currentPlanName.className = `plan-name ${planInfo.class}`;
-            
-            // Enable manage plan button
-            managePlanBtn.disabled = false;
-            managePlanBtn.style.opacity = '1';
         }
 
         function renderLockedDashboard() {
@@ -1465,158 +1286,34 @@
             }, 500);
         }
 
-        // --- SETTINGS MANAGEMENT WITH PLAN RESTRICTIONS ---
+        // --- SETTINGS MANAGEMENT ---
         function populateSettingsView() {
             if (!appState.userProfile || !appState.userProfile.settings) return;
             
             const { planId } = appState.userProfile.subscription;
             const { settings } = appState.userProfile;
+            const isCustomizable = (planId === 'advanced' || planId === 'professional');
             
-            // Define plan capabilities
-            const planCapabilities = {
-                basic: {
-                    canCustomizeSettings: false,
-                    canUseSMS: false,
-                    canSeeFeed: false,
-                    maxAlertsPerWeek: 4
-                },
-                advanced: {
-                    canCustomizeSettings: true,
-                    canUseSMS: true,
-                    canSeeFeed: true,
-                    maxAlertsPerWeek: 7
-                },
-                professional: {
-                    canCustomizeSettings: true,
-                    canUseSMS: true,
-                    canSeeFeed: true,
-                    maxAlertsPerWeek: -1 // unlimited
-                }
-            };
-            
-            const currentPlan = planCapabilities[planId] || planCapabilities.basic;
-            
-            // Email toggle - always available
+            document.querySelectorAll('.settings-card input, .settings-card button').forEach(el => el.disabled = !isCustomizable);
+            document.querySelectorAll('.settings-card').forEach(el => el.style.opacity = isCustomizable ? '1' : '0.5');
+
             document.getElementById('emailToggle').checked = settings.notifyByEmail;
-            document.getElementById('emailToggle').disabled = false;
-            
-            // SMS toggle - plan dependent
-            const smsToggle = document.getElementById('smsToggle');
-            const smsToggleContainer = smsToggle.closest('.switch-group');
-            
-            if (currentPlan.canUseSMS) {
-                smsToggle.checked = settings.notifyBySms;
-                smsToggle.disabled = false;
-                smsToggleContainer.style.opacity = '1';
-                smsToggleContainer.style.pointerEvents = 'auto';
-                
-                // Remove any existing upgrade message
-                const existingUpgrade = smsToggleContainer.querySelector('.upgrade-required');
-                if (existingUpgrade) existingUpgrade.remove();
-            } else {
-                smsToggle.checked = false;
-                smsToggle.disabled = true;
-                smsToggleContainer.style.opacity = '0.4';
-                smsToggleContainer.style.pointerEvents = 'none';
-                
-                // Add a "upgrade required" indicator
-                if (!smsToggleContainer.querySelector('.upgrade-required')) {
-                    const upgradeNote = document.createElement('div');
-                    upgradeNote.className = 'upgrade-required';
-                    upgradeNote.style.fontSize = '0.75rem';
-                    upgradeNote.style.color = 'var(--warning-yellow)';
-                    upgradeNote.style.marginTop = '0.25rem';
-                    upgradeNote.innerHTML = '<i class="fas fa-lock"></i> Upgrade to Advanced or Professional';
-                    smsToggleContainer.appendChild(upgradeNote);
-                }
-            }
-            
-            // Timing settings
-            const selectedTiming = document.querySelector(`input[name="timing"][value="${settings.timing}"]`);
-            if (selectedTiming) selectedTiming.checked = true;
-            
+            document.getElementById('smsToggle').checked = settings.notifyBySms;
+            document.querySelector(`input[name="timing"][value="${settings.timing}"]`).checked = true;
             document.getElementById('summaryTime').classList.toggle('hidden', settings.timing !== 'summary');
             document.getElementById('summaryTime').value = settings.summaryTime;
-            
-            // Filter settings - only customizable for Advanced/Professional
-            const insiderTitleInputs = document.querySelectorAll('input[name="insiderTitle"]');
-            
-            if (currentPlan.canCustomizeSettings) {
-                // Enable filter customization
-                const { stockPrice, tradeValue, titles } = settings.filters;
-                
-                document.getElementById('stockPrice').value = stockPrice;
-                document.getElementById('stockPrice').disabled = false;
-                updateSliderValue('stockPriceValue', stockPrice, val => `$${parseFloat(val).toFixed(2)}`);
-                
-                document.getElementById('tradeValue').value = tradeValue;
-                document.getElementById('tradeValue').disabled = false;
-                updateSliderValue('tradeValueValue', tradeValue, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any');
-                
-                insiderTitleInputs.forEach(el => {
-                    el.disabled = false;
-                    if (el.nextElementSibling) {
-                        el.checked = titles.includes(el.value);
-                        el.nextElementSibling.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
-                        el.nextElementSibling.parentElement.style.opacity = '1';
-                    }
-                });
-                
-                // Enable timing customization
-                document.querySelectorAll('input[name="timing"]').forEach(el => el.disabled = false);
-                document.getElementById('summaryTime').disabled = false;
-                
-                // Remove any existing upgrade message from filter section
-                const filterCards = document.querySelectorAll('.settings-card');
-                filterCards.forEach(card => {
-                    const existingUpgrade = card.querySelector('.upgrade-required-filter');
-                    if (existingUpgrade) existingUpgrade.remove();
-                });
-                
-            } else {
-                // Disable filter customization for Basic users
-                document.getElementById('stockPrice').disabled = true;
-                document.getElementById('tradeValue').disabled = true;
-                
-                insiderTitleInputs.forEach(el => {
-                    el.disabled = true;
-                    if (el.nextElementSibling) {
-                        el.nextElementSibling.parentElement.style.opacity = '0.4';
-                    }
-                });
-                
-                // Disable timing customization for Basic users
-                document.querySelectorAll('input[name="timing"]').forEach(el => el.disabled = true);
-                document.getElementById('summaryTime').disabled = true;
-                
-                // Add upgrade messages to filter sections
-                const filterCards = document.querySelectorAll('.settings-card');
-                filterCards.forEach(card => {
-                    const title = card.querySelector('h3');
-                    if (title && title.textContent.includes('Alert Filters')) {
-                        if (!card.querySelector('.upgrade-required-filter')) {
-                            const upgradeNote = document.createElement('div');
-                            upgradeNote.className = 'upgrade-required-filter';
-                            upgradeNote.style.padding = '1rem';
-                            upgradeNote.style.background = 'rgba(255, 215, 0, 0.1)';
-                            upgradeNote.style.border = '1px solid var(--warning-yellow)';
-                            upgradeNote.style.borderRadius = '8px';
-                            upgradeNote.style.color = 'var(--warning-yellow)';
-                            upgradeNote.style.fontSize = '0.9rem';
-                            upgradeNote.style.textAlign = 'center';
-                            upgradeNote.innerHTML = '<i class="fas fa-lock"></i> Upgrade to customize alert filters';
-                            card.appendChild(upgradeNote);
-                        }
-                    }
-                });
-            }
-            
-            // Save button - always enabled but will save appropriate settings
-            const saveButton = document.querySelector('.save-settings-container .btn');
-            if (saveButton) {
-                saveButton.disabled = false;
-                saveButton.textContent = currentPlan.canCustomizeSettings ? 'Save Settings' : 'Save Basic Settings';
-            }
+
+            const { stockPrice, tradeValue, titles } = settings.filters;
+            document.getElementById('stockPrice').value = stockPrice;
+            updateSliderValue('stockPriceValue', stockPrice, val => `$${parseFloat(val).toFixed(2)}` );
+            document.getElementById('tradeValue').value = tradeValue;
+            updateSliderValue('tradeValueValue', tradeValue, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any');
+            document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
+                if (el.nextElementSibling) {
+                    el.checked = titles.includes(el.value);
+                    el.nextElementSibling.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
+                }
+            });
         }
 
         window.saveSettings = async () => {
@@ -1625,40 +1322,17 @@
             saveButton.disabled = true;
             saveButton.textContent = 'Saving...';
 
-            const { planId } = appState.userProfile.subscription;
-            const planCapabilities = {
-                basic: { canCustomizeSettings: false, canUseSMS: false },
-                advanced: { canCustomizeSettings: true, canUseSMS: true },
-                professional: { canCustomizeSettings: true, canUseSMS: true }
-            };
-            
-            const currentPlan = planCapabilities[planId] || planCapabilities.basic;
-            
-            // Base settings that all users can modify
             const settingsToSave = {
                 notifyByEmail: document.getElementById('emailToggle').checked,
-                notifyBySms: currentPlan.canUseSMS ? document.getElementById('smsToggle').checked : false,
-            };
-            
-            // Add customizable settings only for eligible plans
-            if (currentPlan.canCustomizeSettings) {
-                settingsToSave.timing = document.querySelector('input[name="timing"]:checked').value;
-                settingsToSave.summaryTime = document.getElementById('summaryTime').value;
-                settingsToSave.filters = {
+                notifyBySms: document.getElementById('smsToggle').checked,
+                timing: document.querySelector('input[name="timing"]:checked').value,
+                summaryTime: document.getElementById('summaryTime').value,
+                filters: {
                     stockPrice: parseFloat(document.getElementById('stockPrice').value),
                     tradeValue: parseInt(document.getElementById('tradeValue').value),
                     titles: Array.from(document.querySelectorAll('input[name="insiderTitle"]:checked')).map(el => el.value)
-                };
-            } else {
-                // Use default settings for Basic users
-                settingsToSave.timing = 'realtime';
-                settingsToSave.summaryTime = '17:00';
-                settingsToSave.filters = {
-                    stockPrice: 3,
-                    tradeValue: 0,
-                    titles: ['CEO', 'CFO'] // Default recommended settings
-                };
-            }
+                }
+            };
             
             try {
                 await db.collection('users').doc(appState.currentUser.uid).update({ settings: settingsToSave });
