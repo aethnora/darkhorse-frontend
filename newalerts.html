@@ -1147,14 +1147,8 @@
             try {
                 log('debug', 'Attempting to fetch senator data via proxy', { url: PROXIED_SENATOR_DATA_URL });
                 const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL);
-                const proxyData = await response.json();
+                const trades = await response.json();
 
-                if (!proxyData.contents) {
-                    throw new Error("CORS proxy did not return content. The remote server may be down or blocking the proxy.");
-                }
-                
-                // The actual data is a JSON string inside the 'contents' property
-                const trades = JSON.parse(proxyData.contents);
 
                 log('success', 'Senator trades JSON data received and parsed', { count: trades.length, sample: trades[0] });
                 
