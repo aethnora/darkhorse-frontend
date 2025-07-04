@@ -250,6 +250,19 @@
             font-size: 1.1rem;
         }
         
+        /* NEW STYLES FOR SENATOR WATCHLIST */
+        .senator-name-highlight {
+            color: var(--warning-yellow);
+            font-weight: 700;
+        }
+        .senator-subtext {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-top: 2px;
+            line-height: 1.2;
+        }
+
         /* Custom Range Slider */
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; margin: 8px 0; }
         input[type=range]:focus { outline: none; }
@@ -665,11 +678,25 @@
                         <div class="settings-group">
                             <label class="label-text">Top Senators Watchlist</label>
                             <div class="multi-select-group" id="senator-watchlist">
-                                <label><input type="checkbox" name="senatorWatchlist" value="Nancy Pelosi" hidden><span>Nancy Pelosi</span></label>
-                                <label><input type="checkbox" name="senatorWatchlist" value="Ron Wyden" hidden><span>Ron Wyden</span></label>
-                                <label><input type="checkbox" name="senatorWatchlist" value="Rick Scott" hidden><span>Rick Scott</span></label>
+                                <label><input type="checkbox" name="senatorWatchlist" value="Ron Wyden" hidden>
+                                    <span>
+                                        <div class="senator-name-highlight">Ron Wyden</div>
+                                        <div class="senator-subtext">1‑year return (2024): +123.8%</div>
+                                    </span>
+                                </label>
+                                <label><input type="checkbox" name="senatorWatchlist" value="Rick Scott" hidden>
+                                    <span>
+                                        <div class="senator-name-highlight">Rick Scott</div>
+                                        <div class="senator-subtext">invested approximately $4.5 M in 2024</div>
+                                    </span>
+                                </label>
                                 <label><input type="checkbox" name="senatorWatchlist" value="Rand Paul" hidden><span>Rand Paul</span></label>
-                                <label><input type="checkbox" name="senatorWatchlist" value="Mitch McConnell" hidden><span>Mitch McConnell</span></label>
+                                <label><input type="checkbox" name="senatorWatchlist" value="Mitch McConnell" hidden>
+                                    <span>
+                                        <div class="senator-name-highlight">Mitch McConnell</div>
+                                        <div class="senator-subtext">$1.7M in a single month in June 2025</div>
+                                    </span>
+                                </label>
                                 <label><input type="checkbox" name="senatorWatchlist" value="Susan Collins" hidden><span>Susan Collins</span></label>
                                 <label><input type="checkbox" name="senatorWatchlist" value="Thomas Carper" hidden><span>Thomas Carper</span></label>
                                 <label><input type="checkbox" name="senatorWatchlist" value="Sheldon Whitehouse" hidden><span>Sheldon Whitehouse</span></label>
