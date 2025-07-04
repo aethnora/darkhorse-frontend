@@ -128,7 +128,27 @@
         .tab-content.active { display: block; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- SETTINGS REVAMP --- */
+        /* --- SETTINGS REVAMP 2.0 --- */
+        .settings-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .settings-header h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .settings-header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
         .settings-split-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -141,12 +161,18 @@
             }
         }
         .settings-card { 
-            background: linear-gradient(145deg, #121a31, #0e1528);
+            background: var(--card-bg-glass);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border-color); 
-            border-radius: 16px; 
+            border-radius: 24px; 
             padding: 2.5rem; 
             height: 100%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        .settings-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 198, 255, 0.1), inset 0 0 0 1px rgba(255,255,255,0.1);
         }
         .settings-card h3 { 
             font-size: 1.5rem; 
@@ -163,7 +189,7 @@
         .settings-group { margin-bottom: 2.5rem; }
         .settings-group:last-child { margin-bottom: 0; }
         .settings-group .label-text { display: block; margin-bottom: 1rem; font-weight: 600; color: var(--text-secondary); font-size: 1rem; }
-        .switch-group { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.25); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); }
+        .switch-group { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.25); padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border-color); }
         .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--text-tertiary); transition: .4s; border-radius: 28px; }
@@ -174,20 +200,19 @@
         .multi-select-group { display: flex; flex-wrap: wrap; gap: 0.75rem; }
         .multi-select-group label { 
             background: rgba(0,0,0,0.25);
-            padding: 2px; /* For gradient border effect */
             border-radius: 50px; 
             cursor: pointer; 
             transition: all 0.3s ease; 
             border: 1px solid var(--border-color);
         }
-        .multi-select-group label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 198, 255, 0.1);
+        .multi-select-group label:hover span {
+            color: var(--accent-cyan);
         }
         .multi-select-group input:checked + span { 
             background: var(--gradient-primary); 
             color: white; 
             box-shadow: 0 2px 10px rgba(0, 198, 255, 0.2);
+            border-color: transparent;
         }
         .multi-select-group label span {
             display: inline-block;
@@ -198,23 +223,26 @@
             font-weight: 500;
         }
         .recommended-tag { font-size: 0.8rem; color: var(--warning-yellow); margin-left: 0.5rem; font-weight: 400; }
-        .save-settings-container { margin-top: 2rem; text-align: center; }
+        .save-settings-container { margin-top: 3rem; text-align: center; }
+        .save-settings-container .btn-primary {
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+        }
         
         /* Custom Range Slider */
-        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
+        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; margin: 8px 0; }
         input[type=range]:focus { outline: none; }
         input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 6px; cursor: pointer; background: var(--accent-cyan); border-radius: 3px; border: 1px solid var(--primary-blue);
+            width: 100%; height: 8px; cursor: pointer; animation: 0.2s; background: linear-gradient(90deg, var(--primary-blue) 0%, var(--accent-cyan) 100%); border-radius: 8px; 
         }
         input[type=range]::-webkit-slider-thumb {
-            box-shadow: 0px 0px 5px #000; border: 2px solid var(--accent-cyan); height: 20px; width: 20px; border-radius: 50%; background: var(--card-bg); cursor: pointer; -webkit-appearance: none; margin-top: -8px;
+            box-shadow: 0px 0px 5px #000; border: 3px solid var(--dark-bg); height: 24px; width: 24px; border-radius: 50%; background: var(--accent-cyan); cursor: pointer; -webkit-appearance: none; margin-top: -8px;
         }
-        input[type=range]:focus::-webkit-slider-runnable-track { background: #00eaff; }
         input[type=range]::-moz-range-track {
-             width: 100%; height: 6px; cursor: pointer; background: var(--accent-cyan); border-radius: 3px; border: 1px solid var(--primary-blue);
+            width: 100%; height: 8px; cursor: pointer; background: linear-gradient(90deg, var(--primary-blue) 0%, var(--accent-cyan) 100%); border-radius: 8px;
         }
         input[type=range]::-moz-range-thumb {
-            box-shadow: 0px 0px 5px #000; border: 2px solid var(--accent-cyan); height: 20px; width: 20px; border-radius: 50%; background: var(--card-bg); cursor: pointer;
+            box-shadow: 0px 0px 5px #000; border: 3px solid var(--dark-bg); height: 24px; width: 24px; border-radius: 50%; background: var(--accent-cyan); cursor: pointer;
         }
 
         /* --- ENHANCED TRADES FEED & DROPDOWN --- */
@@ -542,29 +570,15 @@
             <!-- ======================= NEW SETTINGS TAB ======================== -->
             <!-- ================================================================= -->
             <div id="tab-content-settings" class="tab-content">
+                <div class="settings-header">
+                    <h2>Notification Preferences</h2>
+                    <p>Customize your alerts to track the market moves that matter most to you. All alerts are delivered instantly via email.</p>
+                </div>
                 <div class="settings-split-grid">
                     <!-- Left Column: Insider Trading Alerts -->
                     <div class="settings-card">
                         <h3><i class="fas fa-user-tie"></i> Insider Trading Alerts</h3>
-                        <div class="settings-group">
-                            <div class="label-text">Channels</div>
-                            <div class="switch-group">
-                                <span>Email Alerts</span> 
-                                <label class="switch"><input type="checkbox" id="emailToggle"><span class="slider"></span></label>
-                            </div>
-                        </div>
-                        <div class="settings-group">
-                            <div class="label-text">Timing</div>
-                            <div class="switch-group">
-                                <span>Real-Time</span> 
-                                <label class="switch"><input type="radio" name="timing" value="realtime" id="timingRealtime"><span class="slider"></span></label>
-                            </div>
-                            <div class="switch-group" style="margin-top:0.5rem;">
-                                <span>Daily Summary</span> 
-                                <label class="switch"><input type="radio" name="timing" value="summary" id="timingSummary"><span class="slider"></span></label>
-                            </div>
-                            <input type="time" id="summaryTime" class="input-field hidden" style="margin-top: 0.75rem;">
-                        </div>
+                        
                         <div class="settings-group">
                             <label for="stockPrice" class="label-text">Stock Price (at least) <span class="recommended-tag">Recommended: $3+</span></label>
                             <input type="range" id="stockPrice" min="0" max="100" value="3">
@@ -600,10 +614,15 @@
                                 <label><input type="checkbox" name="companyWatchlist" value="Alphabet Inc." hidden><span>Alphabet Inc.</span></label>
                                 <label><input type="checkbox" name="companyWatchlist" value="Meta Platforms, Inc." hidden><span>Meta Platforms</span></label>
                                 <label><input type="checkbox" name="companyWatchlist" value="Berkshire Hathaway Inc." hidden><span>Berkshire Hathaway</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="Eli Lilly and Co" hidden><span>Eli Lilly & Co.</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="Broadcom Inc." hidden><span>Broadcom Inc.</span></label>
                                 <label><input type="checkbox" name="companyWatchlist" value="Tesla, Inc." hidden><span>Tesla, Inc.</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="Visa Inc." hidden><span>Visa Inc.</span></label>
                                 <label><input type="checkbox" name="companyWatchlist" value="JPMorgan Chase & Co." hidden><span>JPMorgan Chase</span></label>
                                 <label><input type="checkbox" name="companyWatchlist" value="Exxon Mobil Corp" hidden><span>Exxon Mobil</span></label>
                                 <label><input type="checkbox" name="companyWatchlist" value="UnitedHealth Group Inc." hidden><span>UnitedHealth Group</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="Procter & Gamble Co" hidden><span>Procter & Gamble</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="Costco Wholesale Corp" hidden><span>Costco</span></label>
                             </div>
                         </div>
                         <div class="settings-group">
@@ -875,20 +894,18 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 subscription: { planId: null, status: 'none' },
                 settings: {
-                    notifyByEmail: true, 
-                    timing: 'realtime', 
-                    summaryTime: '17:00',
+                    notifyByEmail: true,
                     filters: { 
                         stockPrice: 3, 
                         tradeValue: 0, 
                         titles: ['CEO', 'CFO'] 
                     },
-                    senatorWatchlist: [], // New default
-                    companyWatchlist: []  // New default
+                    senatorWatchlist: [],
+                    companyWatchlist: []
                 }
             };
             try {
-                await userDocRef.set(initialProfile, { merge: true }); // Use merge to be safe
+                await userDocRef.set(initialProfile, { merge: true });
                 appState.userProfile = initialProfile;
             } catch (error) {
                 log('error', 'Error creating user profile', error);
@@ -1544,11 +1561,6 @@
             document.querySelectorAll('.settings-card').forEach(el => el.style.opacity = isCustomizable ? '1' : '0.5');
 
             // Insider Settings
-            document.getElementById('emailToggle').checked = settings.notifyByEmail !== false; // Default to true if undefined
-            document.querySelector(`input[name="timing"][value="${settings.timing || 'realtime'}"]`).checked = true;
-            document.getElementById('summaryTime').classList.toggle('hidden', (settings.timing || 'realtime') !== 'summary');
-            document.getElementById('summaryTime').value = settings.summaryTime || '17:00';
-
             const stockPrice = filters.stockPrice || 3;
             document.getElementById('stockPrice').value = stockPrice;
             updateSliderValue('stockPriceValue', stockPrice, val => `$${parseFloat(val).toFixed(2)}` );
@@ -1559,26 +1571,26 @@
             
             document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
                 el.checked = titles.includes(el.value);
-                const label = el.closest('label');
-                if (label) {
-                    label.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.25)';
+                const span = el.nextElementSibling;
+                if (span) {
+                    span.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.25)';
                 }
             });
 
             // Senator Settings
             document.querySelectorAll('input[name="senatorWatchlist"]').forEach(el => {
                 el.checked = senatorWatchlist.includes(el.value);
-                const label = el.closest('label');
-                if (label) {
-                    label.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.25)';
+                const span = el.nextElementSibling;
+                if (span) {
+                    span.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.25)';
                 }
             });
 
             document.querySelectorAll('input[name="companyWatchlist"]').forEach(el => {
                 el.checked = companyWatchlist.includes(el.value);
-                const label = el.closest('label');
-                if (label) {
-                    label.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.25)';
+                const span = el.nextElementSibling;
+                if (span) {
+                    span.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.25)';
                 }
             });
         }
@@ -1590,9 +1602,7 @@
             saveButton.textContent = 'Saving...';
 
             const settingsToSave = {
-                notifyByEmail: document.getElementById('emailToggle').checked,
-                timing: document.querySelector('input[name="timing"]:checked').value,
-                summaryTime: document.getElementById('summaryTime').value,
+                notifyByEmail: true, // Always true since it's the only channel
                 filters: {
                     stockPrice: parseFloat(document.getElementById('stockPrice').value),
                     tradeValue: parseInt(document.getElementById('tradeValue').value),
@@ -1621,18 +1631,12 @@
             tabContents.forEach(c => c.classList.toggle('active', c.id === `tab-content-${tab.dataset.tab}`));
         }));
         
-        document.querySelectorAll('input[name="timing"]').forEach(el => {
-            el.addEventListener('change', e => {
-                document.getElementById('summaryTime').classList.toggle('hidden', e.target.value !== 'summary');
-            });
-        });
-        
         // Delegated event listener for all multi-select checkboxes
         document.getElementById('tab-content-settings').addEventListener('change', e => {
             if (e.target.matches('.multi-select-group input[type="checkbox"]')) {
-                const label = e.target.closest('label');
-                if (label) {
-                    label.style.background = e.target.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.25)';
+                const span = e.target.nextElementSibling;
+                if (span) {
+                     span.parentElement.style.background = e.target.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.25)';
                 }
             }
         });
