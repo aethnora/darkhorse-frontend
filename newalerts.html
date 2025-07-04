@@ -1145,71 +1145,71 @@
             try {
                 log('debug', 'Attempting to fetch senator data', { url: PROXIED_SENATOR_DATA_URL });
                 const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL);
-                const trades = await response.json();
+                const rawTrades = await response.json();
 
-                log('success', 'Raw senator trades data received', { count: trades.length, sample: trades[0] });
-                
-                // FIX: Final, more robust data cleaning and mapping for senator trades.
-                const cleanedTrades = trades.map(trade => {
-                    const newTrade = {};
-                    const cleanValue = (val) => (typeof val === 'string' ? val.replace(/\s+/g, ' ').trim() : val);
+                log('success', 'Raw senator trades data received', { count: rawTrades.length, sample: rawTrades[0] });
 
-                    // Define aliases for the keys we're looking for
-                    const keyMap = {
-                        transaction_date: ['transaction_date', 'transaction date', 'date'],
-                        senator: ['senator', 'name'],
-                        asset_description: ['asset_description', 'asset description', 'company', 'description'],
-                        ticker: ['ticker'],
-                        type: ['type', 'transaction type'],
-                        amount: ['amount', 'value']
+                // FIX: A more direct and careful data cleaning approach.
+                const cleanedTrades = rawTrades.map(rawTrade => {
+                    const newTrade = {
+                        transaction_date: null,
+                        senator: null,
+                        asset_description: null,
+                        ticker: null,
+                        type: null,
+                        amount: null,
                     };
 
-                    // Create a reverse map for easier lookup (alias -> canonicalKey)
-                    const reverseKeyMap = {};
-                    for (const canonicalKey in keyMap) {
-                        for (const alias of keyMap[canonicalKey]) {
-                            reverseKeyMap[alias.replace(/\s+/g, '')] = canonicalKey;
-                        }
+                    const normalizedTrade = {};
+                    for (const key in rawTrade) {
+                        const cleanKey = key.toLowerCase().replace(/\s+/g, ' ').trim();
+                        normalizedTrade[cleanKey] = (typeof rawTrade[key] === 'string') ? rawTrade[key].trim() : rawTrade[key];
                     }
-                    
-                    // Process the raw trade object using the alias map
-                    for (const rawKey in trade) {
-                        const cleanKey = rawKey.toLowerCase().replace(/\s+/g, '').trim();
-                        const canonicalKey = reverseKeyMap[cleanKey];
-                        
-                        if (canonicalKey) {
-                            if (!newTrade[canonicalKey]) {
-                                newTrade[canonicalKey] = cleanValue(trade[rawKey]);
+
+                    // Assign values based on normalized keys
+                    newTrade.transaction_date = normalizedTrade['transaction date'] || null;
+                    newTrade.senator = normalizedTrade['senator'] || null;
+                    newTrade.asset_description = normalizedTrade['asset description'] || normalizedTrade['company'] || null;
+                    newTrade.ticker = normalizedTrade['ticker'] || null;
+                    newTrade.type = normalizedTrade['type'] || normalizedTrade['transaction type'] || null;
+                    newTrade.amount = normalizedTrade['amount'] || normalizedTrade['value'] || null;
+
+                    // Handle cases where date and senator might be in the same field
+                    // This is a common source of errors. We check multiple possible keys.
+                    const potentialCombinedKeys = ['transaction date', 'date senator'];
+                    for (const combinedKey of potentialCombinedKeys) {
+                        if (normalizedTrade[combinedKey] && typeof normalizedTrade[combinedKey] === 'string') {
+                            const dateRegex = /(\d{1,2}\/\d{1,2}\/\d{4})/;
+                            const match = normalizedTrade[combinedKey].match(dateRegex);
+                            if (match) {
+                                const date = match[0];
+                                const remainingString = normalizedTrade[combinedKey].replace(date, '').trim();
+                                
+                                // Only overwrite if the canonical field is not already set
+                                if (!newTrade.transaction_date) {
+                                    newTrade.transaction_date = date;
+                                }
+                                if (remainingString && !newTrade.senator) {
+                                    newTrade.senator = remainingString;
+                                }
                             }
                         }
                     }
 
-                    // Post-processing for combined fields, based on user feedback
-                    if (newTrade.transaction_date && !newTrade.senator) {
-                        const dateRegex = /(\d{1,2}\/\d{1,2}\/\d{4})/;
-                        const match = newTrade.transaction_date.match(dateRegex);
-                        if (match) {
-                            const date = match[0];
-                            const remainingString = newTrade.transaction_date.replace(date, '').trim();
-                            if (remainingString) {
-                                newTrade.senator = remainingString;
-                                newTrade.transaction_date = date;
-                            }
+                    // Final cleanup for ticker
+                    if ((!newTrade.ticker || newTrade.ticker === '--' || newTrade.ticker === 'N/A') && newTrade.asset_description) {
+                        const tickerMatch = newTrade.asset_description.match(/\b([A-Z.]{1,5})\b/);
+                        if (tickerMatch && !['INC', 'LLC', 'CO', 'LP'].includes(tickerMatch[1])) {
+                            newTrade.ticker = tickerMatch[1];
                         }
                     }
                     
-                    // Post-processing to extract ticker if it's missing
-                    if ((!newTrade.ticker || newTrade.ticker === '--') && newTrade.asset_description) {
-                        const tickerMatch = newTrade.asset_description.match(/\b([A-Z.]{1,5})\b/);
-                        if (tickerMatch) {
-                            const potentialTicker = tickerMatch[1];
-                             if (!['INC', 'LLC', 'CO', 'LP'].includes(potentialTicker) || newTrade.asset_description.trim() === potentialTicker) {
-                                newTrade.ticker = potentialTicker;
-                            }
-                        }
+                    if (newTrade.ticker === '--' || newTrade.ticker === 'N/A') {
+                        newTrade.ticker = null;
                     }
+
                     return newTrade;
-                });
+                }).filter(trade => trade.asset_description || trade.senator); // Keep row if it has at least some data
 
                 log('success', 'Senator trades data processed', { count: cleanedTrades.length, sample: cleanedTrades[0] });
                 
@@ -1220,16 +1220,16 @@
                 }
 
                 cleanedTrades.slice(0, 50).forEach(trade => {
-                    const ticker = (trade.ticker && trade.ticker.trim() !== '--' && trade.ticker.trim() !== '') ? trade.ticker.trim() : null;
+                    const ticker = trade.ticker; // Will be null if not valid
                     const companyName = trade.asset_description || 'Unknown Company';
                     const tradeId = `senator-${ticker || 'noticker'}-${trade.transaction_date || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
+                    
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
                     row.dataset.ticker = ticker || 'UNKNOWN';
                     row.dataset.id = tradeId;
 
                     const transactionDateCell = formatDateCell(trade.transaction_date, false);
-                    
                     const tickerHtml = ticker ? `<div class="ticker">${ticker}</div>` : '';
 
                     row.innerHTML = `
