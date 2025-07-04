@@ -1216,10 +1216,16 @@
         // --- END NEW SECTION ---
 
 
+        // --- OPTIMIZED: selectPlan function ---
         window.selectPlan = async (priceId, planName) => {
+            // Guard clauses: Ensure we have a user and their profile before proceeding.
             if (!appState.currentUser) { 
                 showAuthModal(false); 
                 return; 
+            }
+            if (!appState.userProfile) {
+                displayMessage('User profile is still loading. Please try again in a moment.', 'info');
+                return;
             }
             
             const checkoutButton = event.target;
@@ -1228,17 +1234,22 @@
             checkoutButton.textContent = 'Redirecting...';
 
             try {
-                const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
-                if (!userDoc.exists) throw new Error('User profile not found. Please refresh and try again.');
+                // Prepare the payload with data we already have on the frontend.
+                // This avoids the need for the backend to re-fetch from Firestore.
+                const payload = {
+                    priceId: priceId,
+                    planName: planName,
+                    userId: appState.currentUser.uid,
+                    email: appState.userProfile.email, // Pass the email
+                    stripeCustomerId: appState.userProfile.stripeCustomerId || null // Pass existing ID or null
+                };
+
+                log('info', 'Creating checkout session with optimized payload', payload);
 
                 const response = await fetch(`${SERVER_URL}/create-checkout-session`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        priceId: priceId,
-                        planName: planName,
-                        userId: appState.currentUser.uid
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 if (!response.ok) {
@@ -1259,6 +1270,8 @@
                 checkoutButton.textContent = originalText;
             }
         };
+        // --- END OPTIMIZED FUNCTION ---
+
 
         // NEW: Function to redirect to Stripe Customer Portal
         window.redirectToCustomerPortal = async () => {
