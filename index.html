@@ -3,33 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DarkHorse - Trade Like the Insiders</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <title>DarkHorse - The Insider Trading Edge</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
 
+    <style>
         :root {
             --primary-blue: #0a74da;
-            --accent-cyan: #00c6ff;
+            --accent-cyan: #00d1ff;
             --dark-bg: #0a0f1c;
-            --darker-bg: #050a15;
+            --darker-bg: #02040a;
             --text-primary: #ffffff;
             --text-secondary: #a0a8b8;
             --gradient-primary: linear-gradient(135deg, #0a74da 0%, #00c6ff 100%);
             --success-green: #00ff88;
-            --glass-bg: rgba(16, 34, 58, 0.25);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --gold: #FFD700;
+            --gold-dark: #FFAA00;
+            --glass-bg: rgba(16, 24, 44, 0.5);
+            --glass-border: rgba(42, 59, 90, 0.5);
             --container-width: 1280px;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--darker-bg);
             color: var(--text-primary);
             overflow-x: hidden;
@@ -55,10 +55,6 @@
             font-weight: 800;
             margin-bottom: 1rem;
             line-height: 1.2;
-            background: linear-gradient(135deg, var(--text-primary) 50%, var(--accent-cyan) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .section-header p {
@@ -66,6 +62,15 @@
             color: var(--text-secondary);
             font-weight: 300;
         }
+
+        .highlight {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        sup { font-size: 0.6rem; vertical-align: super; margin-left: 2px; color: var(--gold-dark); }
 
         /* Hero Section */
         .hero {
@@ -76,557 +81,262 @@
             position: relative;
             padding: 0 2rem;
             overflow: hidden;
-            background: var(--darker-bg);
         }
         
         #starfield {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 0;
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; z-index: 0;
         }
 
         .hero-content {
-            position: relative;
-            z-index: 1;
-            max-width: 1000px;
-            margin: 0 auto;
+            position: relative; z-index: 1;
+            max-width: 1000px; margin: 0 auto;
         }
 
         .hero h1 {
-            font-size: clamp(3.5rem, 8vw, 6.5rem);
-            font-weight: 900;
-            margin-bottom: 1.5rem;
-            line-height: 1.1;
-            letter-spacing: -0.03em;
-        }
-
-        .hero .highlight {
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: clamp(3.5rem, 7vw, 6rem);
+            font-weight: 900; margin-bottom: 1.5rem;
+            line-height: 1.1; letter-spacing: -0.03em;
         }
 
         .hero p {
-            font-size: 1.3rem;
-            color: var(--text-secondary);
-            margin-bottom: 3rem;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
+            font-size: 1.3rem; color: var(--text-secondary);
+            margin-bottom: 3rem; max-width: 700px;
+            margin-left: auto; margin-right: auto;
             font-weight: 300;
+        }
+        
+        .hero-cta-container {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
         }
 
         .cta-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 1rem 2.5rem;
-            background: var(--gradient-primary);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1.1rem;
+            display: inline-flex; align-items: center; gap: 0.75rem;
+            padding: 1rem 2.5rem; background: var(--gradient-primary);
+            color: white; text-decoration: none; border-radius: 8px;
+            font-weight: 600; font-size: 1.1rem;
             transition: all 0.3s ease;
             box-shadow: 0 10px 30px rgba(10, 116, 218, 0.25);
-            position: relative;
+            border: none;
         }
 
         .cta-button:hover {
             transform: translateY(-3px);
             box-shadow: 0 15px 35px rgba(0, 198, 255, 0.3);
         }
-        .cta-button i {
-            transition: transform 0.3s ease;
+        .cta-button i { transition: transform 0.3s ease; }
+        .cta-button:hover i { transform: translateX(5px); }
+        
+        .cta-button.gold {
+            background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 100%);
+            color: var(--darker-bg);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
         }
-        .cta-button:hover i {
-            transform: translateX(5px);
+        .cta-button.gold:hover {
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.3);
         }
 
-        /* CEO Insider Section */
-        .ceo-insider {
-            background: linear-gradient(180deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+        /* Performance Chart Section */
+        .performance { background: var(--dark-bg); }
+        .performance-chart-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        .chart-header { margin-bottom: 2rem; text-align: center; }
+        .chart-title { font-size: 1.5rem; font-weight: 700; }
+        .chart-subtitle { font-size: 1rem; color: var(--text-secondary); font-weight: 300; margin-top: 0.25rem; }
+        .chart-canvas {
+            min-height: 500px;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .chart-canvas svg {
+            width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0;
+            overflow: visible;
+        }
+        .chart-line {
+            fill: none; stroke-width: 4;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+        .y-axis-labels text, .x-axis-labels text {
+            fill: var(--text-secondary); font-size: 12px;
+            font-family: var(--font-mono);
+        }
+        .y-axis-labels text { text-anchor: end; }
+        .x-axis-labels text { text-anchor: middle; }
+        .data-point-marker {
+            stroke: var(--dark-bg);
+            stroke-width: 3;
+            transition: r 0.3s ease;
+        }
+        .hover-area {
+            fill: transparent; cursor: pointer;
+        }
+        .hover-area:hover ~ .data-point-marker { r: 8; }
+        #chart-tooltip, #annotation-tooltip {
+            position: absolute; background: var(--darker-bg);
+            color: var(--text-primary); padding: 0.75rem 1.25rem;
+            border-radius: 8px; border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px); font-size: 0.9rem;
+            pointer-events: none; opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            transform: translate(-50%, -120%);
+            white-space: nowrap; z-index: 10;
+        }
+        #annotation-tooltip {
+            max-width: 250px;
+            white-space: normal;
+            line-height: 1.5;
+            text-align: center;
+        }
+        .tooltip-value { font-weight: 700; }
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+        .performance-disclaimer {
+            margin-top: 2rem; text-align: center;
+            font-size: 0.9rem; color: var(--text-secondary);
+            opacity: 0.7; max-width: 800px; margin-left: auto; margin-right: auto;
         }
 
-        .ceo-trades-container {
+        /* Signal Spotlight Section */
+        .signal-spotlight { background: linear-gradient(180deg, var(--dark-bg) 0%, var(--darker-bg) 100%); }
+        .spotlight-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
             gap: 2rem;
         }
-
         .interactive-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 2.5rem;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s ease;
-            backdrop-filter: blur(10px);
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 2.5rem;
+            position: relative; overflow: hidden;
+            transition: all 0.4s ease; backdrop-filter: blur(10px);
         }
-        
         .interactive-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(0, 198, 255, 0.1), transparent 40%);
-            opacity: 0;
-            transition: opacity 0.5s;
-            z-index: 0;
+            opacity: 0; transition: opacity 0.5s; z-index: 0;
         }
-        
-        .interactive-card:hover::before {
-            opacity: 1;
-        }
-        
+        .interactive-card:hover::before { opacity: 1; }
         .interactive-card:hover {
             transform: translateY(-8px);
             border-color: rgba(0, 198, 255, 0.3);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
-        
-        .card-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .ceo-info {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
+        .card-content { position: relative; z-index: 1; }
+        .card-header {
+            display: flex; align-items: center; gap: 1rem;
             margin-bottom: 2rem;
         }
-
-        .ceo-image {
-            width: 70px;
-            height: 70px;
-            flex-shrink: 0;
-            border-radius: 50%;
-            background: var(--dark-bg);
-            border: 2px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden; /* Ensures the image stays within the circle */
+        .card-icon {
+            width: 50px; height: 50px; flex-shrink: 0;
+            border-radius: 12px; background: rgba(0, 198, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: var(--accent-cyan);
         }
-        
-        .ceo-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Covers the area, cropping if necessary */
-        }
-
-        .ceo-details h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .ceo-details .company {
-            color: var(--accent-cyan);
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
+        .card-details h3 { font-size: 1.5rem; font-weight: 700; }
+        .card-details .company { color: var(--accent-cyan); font-size: 1.1rem; font-weight: 500; }
         .trade-metrics {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            border-top: 1px solid var(--glass-border);
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 1rem 1.5rem; border-top: 1px solid var(--glass-border);
             padding-top: 1.5rem;
         }
-
         .metric { text-align: left; }
-
         .metric-label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
-            text-transform: uppercase;
+            font-size: 0.8rem; color: var(--text-secondary);
+            margin-bottom: 0.25rem; text-transform: uppercase;
             letter-spacing: 0.8px;
         }
-
-        .metric-value {
-            font-size: 1.75rem;
-            font-weight: 600;
-            line-height: 1.2;
-        }
-
+        .metric-value { font-size: 1.75rem; font-weight: 600; line-height: 1.2; }
         .metric-value.profit {
             color: var(--success-green);
             text-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
         }
-        
-        /* Performance Section */
-        .performance {
-            background: var(--dark-bg);
-        }
-        
-        .performance-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 2rem;
-            align-items: stretch;
-        }
-        
-        .performance-metrics {
-            grid-column: span 4;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-        
-        .metric-display-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-        
-        .metric-display-icon {
-            font-size: 2rem;
-            color: var(--accent-cyan);
-            background: rgba(0, 198, 255, 0.1);
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .metric-display-title {
+        .congress-card-info {
             font-size: 1rem;
             color: var(--text-secondary);
-            margin-bottom: 0.25rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            padding-top: 1.5rem;
         }
         
-        .metric-display-main {
-            font-size: 2.25rem;
-            font-weight: 700;
-            line-height: 1;
-        }
-        
-        .performance-chart-container {
-            grid-column: span 8;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 2.5rem;
-            height: 100%;
-            position: relative; /* Needed for tooltip positioning */
-        }
-
-        .chart-header {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-        
-        .chart-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        
-        .chart-subtitle {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            font-weight: 300;
-            margin-top: 0.25rem;
-        }
-
-        .chart-canvas {
-            min-height: 400px;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-            background-size: 10% 10%;
-            border-radius: 8px;
-            position: relative;
-        }
-        
-        .chart-canvas svg {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            overflow: visible; /* Allow circles to be visible */
-        }
-        
-        .chart-line {
-            fill: none;
-            stroke: white;
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .y-axis-labels text {
-            fill: var(--text-secondary);
-            font-size: 12px;
-            text-anchor: end;
-        }
-        
-        .x-axis-labels text {
-             text-anchor: middle;
-             fill: var(--text-primary); /* Changed to white */
-             font-size: 12px;
-        }
-        
-        .chart-point {
-            fill: var(--accent-cyan);
-            stroke: var(--dark-bg);
-            stroke-width: 2;
-            transition: r 0.3s ease;
-        }
-        
-        .hover-point {
-            fill: transparent;
-            cursor: pointer;
-        }
-
-        .hover-point:hover ~ .chart-point {
-            r: 8;
-        }
-
-        #chart-tooltip {
-            position: absolute;
-            background: var(--glass-bg);
-            color: var(--text-primary);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-            font-size: 0.9rem;
-            pointer-events: none; /* So it doesn't interfere with mouse events */
-            opacity: 0;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            transform: translate(-50%, -100%);
-            white-space: nowrap;
-        }
-        
-        .performance-disclaimer {
-            margin-top: 3rem;
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            opacity: 0.7;
-        }
-        
-        .research-cta {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            padding: 1.2rem 2rem;
-            background: linear-gradient(135deg, #00d1ff 0%, #ffc700 100%);
-            color: #02040a;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 1.2rem;
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            box-shadow: 0 10px 30px rgba(0, 209, 255, 0.2), 0 5px 15px rgba(255, 199, 0, 0.1);
-            margin-top: 2rem; /* Added for spacing */
-        }
-        
-        .research-cta:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 20px 40px rgba(0, 209, 255, 0.3), 0 10px 20px rgba(255, 199, 0, 0.2);
-        }
-
-        /* Features Section */
-        .features {
-            background: linear-gradient(180deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
-        }
-        
-        .feature-card {
-            background: transparent;
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 2.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .feature-card:hover {
-            background: var(--glass-bg);
-            transform: translateY(-5px);
-        }
-
-        .feature-icon {
-            font-size: 2.5rem;
-            color: var(--accent-cyan);
-            margin-bottom: 1.5rem;
-        }
-
-        .feature-card h3 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-
-        .feature-card p {
-            color: var(--text-secondary);
-            font-size: 1rem;
-        }
-
         /* How It Works Section */
-        .how-it-works {
-            background: var(--darker-bg);
-        }
-
+        .how-it-works { background: var(--darker-bg); }
         .steps-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
         }
-
         .step-card {
-            background: var(--dark-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 2.5rem;
+            background: var(--dark-bg); border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 2.5rem;
             position: relative;
         }
-        
         .step-number {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            font-size: 3rem;
-            font-weight: 800;
+            position: absolute; top: 1.5rem; right: 1.5rem;
+            font-size: 3rem; font-weight: 800;
             color: rgba(255, 255, 255, 0.05);
             line-height: 1;
         }
-
         .step-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-            color: var(--accent-cyan);
+            font-size: 1.5rem; margin-bottom: 1rem;
+            font-weight: 700; color: var(--accent-cyan);
         }
-
-        .step-card p {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            line-height: 1.7;
-        }
+        .step-card p { color: var(--text-secondary); font-size: 1rem; line-height: 1.7; }
 
         /* Final CTA Section */
-        .final-cta {
-            background: var(--dark-bg);
-            text-align: center;
-        }
-
+        .final-cta { background: var(--dark-bg); text-align: center; }
         .final-cta-content {
-            background: var(--gradient-primary);
-            border-radius: 24px;
-            padding: 5rem 3rem;
-            max-width: 1000px;
-            margin: 0 auto;
-            position: relative;
-            overflow: hidden;
+            background: var(--darker-bg); border-radius: 24px;
+            padding: 5rem 3rem; max-width: 1000px;
+            margin: 0 auto; border: 1px solid var(--glass-border);
         }
-
-        .final-cta-content::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 150%; height: 150%;
-            background-color: var(--dark-bg); 
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            animation: cta-bg-reveal 1.5s ease-out forwards;
-            animation-delay: 0.5s;
-            opacity: 0;
-        }
-        
-        @keyframes cta-bg-reveal {
-            from {
-                width: 0; height: 0; opacity: 1;
-            }
-            to {
-                width: 200%; height: 200%; opacity: 1;
-            }
-        }
-
-        .final-cta-inner {
-            position: relative;
-            z-index: 1;
-        }
-
         .final-cta h2 {
-            font-size: clamp(2rem, 5vw, 3rem);
-            font-weight: 800;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
+            font-size: clamp(2rem, 5vw, 3rem); font-weight: 800;
+            margin-bottom: 1rem; color: var(--text-primary);
         }
-
         .final-cta p {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            margin-bottom: 2.5rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .final-cta .cta-button {
-            background: white;
-            color: var(--primary-blue);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .final-cta .cta-button:hover {
-            background: #e0e0e0;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            font-size: 1.2rem; color: var(--text-secondary);
+            margin-bottom: 2.5rem; max-width: 600px;
+            margin-left: auto; margin-right: auto;
         }
         
         /* Responsive Design */
-        @media (max-width: 1024px) {
-            .performance-grid {
-                grid-template-columns: 1fr;
-            }
-            .performance-metrics {
-                grid-column: span 1;
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            .performance-chart-container {
-                grid-column: span 1;
-            }
-        }
-
         @media (max-width: 768px) {
-            .section-container {
-                padding: 6rem 1.5rem;
-            }
-            .performance-metrics {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .ceo-trades-container {
-                grid-template-columns: 1fr;
-            }
-             .research-cta {
-                width: 100%;
-            }
+            .section-container { padding: 6rem 1.5rem; }
+            .spotlight-grid { grid-template-columns: 1fr; }
         }
         
         /* GSAP Initial States */
-        .fade-in-up {
-            opacity: 0;
-            transform: translateY(40px);
-        }
+        .fade-in-up { opacity: 0; transform: translateY(40px); }
     </style>
 </head>
 <body>
@@ -636,34 +346,65 @@
         <section class="hero">
             <canvas id="starfield"></canvas>
             <div class="hero-content">
-                <h1 class="fade-in-up">Trade Like the <span class="highlight">Insiders</span>, Automatically.</h1>
-                <p class="fade-in-up">Let CEOs and CFOs build your portfolio with zero effort. Our AI-powered platform tracks insider purchases and executes trades with professional-grade risk management.</p>
-                <a href="firebase-stripe-alpaca-integration.html" class="cta-button fade-in-up">
-                    Start Trading Now <i class="fas fa-arrow-right"></i>
-                </a>
+                <h1 class="fade-in-up">Insiders Have an Edge. <br>We Give It <span class="highlight">to You.</span></h1>
+                <p class="fade-in-up">Gain an informational advantage by tracking the high-conviction trades of corporate insiders and congressional leaders. Our platform filters the noise and delivers the signals that matter, directly to you.</p>
+                <div class="hero-cta-container fade-in-up">
+                    <a href="newalerts.html" class="cta-button">
+                        Get Instant Alerts <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="research.html" class="cta-button gold">
+                        Explore the Evidence <i class="fas fa-book-open"></i>
+                    </a>
+                </div>
             </div>
         </section>
 
-        <section class="ceo-insider" id="ceo-trades">
+        <section class="performance" id="performance">
             <div class="section-container">
                 <div class="section-header">
-                    <h2>Why Should CEOs Be the Only Ones to Profit?</h2>
-                    <p>Our AI captures the exact moments when executives bet big on their own companies. Here's what happens when you follow the money.</p>
+                    <h2 class="fade-in-up">The DarkHorse Edge: A 5-Year Look at Informed Trading</h2>
+                    <p class="fade-in-up">This interactive chart models the hypothetical growth of a $10,000 investment using strategies that combine the high-conviction signals our platform tracks. Hover over the lines to compare their potential, and explore the data points that drive this performance.</p>
                 </div>
                 
-                <div class="ceo-trades-container">
-                    <div class="interactive-card">
+                <div class="performance-chart-container fade-in-up">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Hypothetical Growth of $10,000</h3>
+                        <p class="chart-subtitle">Comparing Modeled Signal-Following Strategies</p>
+                    </div>
+                    <div class="chart-canvas" id="backtest-chart">
+                        <!-- SVG chart will be injected here -->
+                    </div>
+                    <div id="chart-tooltip"></div>
+                    <div id="annotation-tooltip"></div>
+                    <div class="chart-legend" id="chart-legend">
+                        <!-- Legend items will be injected here -->
+                    </div>
+                </div>
+                
+                <div class="performance-disclaimer fade-in-up">
+                    This chart is for illustrative purposes only and represents hypothetical model portfolios. The smooth growth curves reflect annualized returns and therefore do not show the day-to-day or month-to-month volatility inherent in any real-world trading strategy. Past performance is not indicative of future results.
+                </div>
+            </div>
+        </section>
+
+        <section class="signal-spotlight" id="spotlight">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="fade-in-up">Spotlight on High-Conviction Signals</h2>
+                    <p class="fade-in-up">Our platform is designed to uncover extraordinary opportunities from public filings. These real-world case studies highlight the potential impact of a single, well-timed signal.</p>
+                </div>
+                
+                <div class="spotlight-grid">
+                    <div class="interactive-card fade-in-up">
                         <div class="card-content">
-                            <div class="ceo-info">
-                                <div class="ceo-image">
-                                   <img src="images/axsm.png" alt="Axsome Therapeutics Logo">
-                                </div>
-                                <div class="ceo-details">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="fas fa-user-tie"></i></div>
+                                <div class="card-details">
                                     <h3>Axsome Therapeutics</h3>
                                     <span class="company">CEO Purchase Signal</span>
                                 </div>
                             </div>
-                            <div class="trade-metrics" style="grid-template-columns: repeat(2, 1fr); gap: 1rem 1.5rem;">
+                            <div class="trade-metrics">
                                 <div class="metric">
                                     <div class="metric-label">Entry Price</div>
                                     <div class="metric-value">$21.00</div>
@@ -684,152 +425,25 @@
                         </div>
                     </div>
 
-                    <div class="interactive-card">
+                    <div class="interactive-card fade-in-up">
                         <div class="card-content">
-                            <div class="ceo-info">
-                                <div class="ceo-image">
-                                    <img src="images/kodk.png" alt="Eastman Kodak Logo">
-                                </div>
-                                <div class="ceo-details">
-                                    <h3>Eastman Kodak</h3>
-                                    <span class="company">CEO Purchase Signal</span>
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--gold); background: rgba(255, 215, 0, 0.1);"><i class="fas fa-landmark"></i></div>
+                                <div class="card-details">
+                                    <h3>Congressional Trade</h3>
+                                    <span class="company" style="color: var(--gold);">Ron Wyden (2024)</span>
                                 </div>
                             </div>
-                            <div class="trade-metrics" style="grid-template-columns: repeat(2, 1fr); gap: 1rem 1.5rem;">
-                                <div class="metric">
-                                    <div class="metric-label">Entry Price</div>
-                                    <div class="metric-value">$2.62</div>
-                                </div>
-                                <div class="metric">
-                                    <div class="metric-label">Exit Price</div>
-                                    <div class="metric-value">$11.74</div>
-                                </div>
-                                <div class="metric">
-                                    <div class="metric-label">Duration</div>
-                                    <div class="metric-value">69 days</div>
-                                </div>
-                                <div class="metric">
-                                    <div class="metric-label">Return</div>
-                                    <div class="metric-value profit">+348.3%</div>
+                            <div class="trade-metrics" style="grid-template-columns: 1fr;">
+                                <div class="metric" style="text-align: center;">
+                                    <div class="metric-label">Documented 1-Year Return</div>
+                                    <div class="metric-value profit" style="font-size: 3.5rem;">+123.8%</div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="interactive-card">
-                        <div class="card-content">
-                            <div class="ceo-info">
-                                <div class="ceo-image">
-                                   <img src="images/odt.png" alt="Odonate Therapeutics Logo">
-                                </div>
-                                <div class="ceo-details">
-                                    <h3>Odonate Therapeutics</h3>
-                                    <span class="company">CEO Purchase Signal</span>
-                                </div>
-                            </div>
-                            <div class="trade-metrics" style="grid-template-columns: repeat(2, 1fr); gap: 1rem 1.5rem;">
-                                <div class="metric">
-                                    <div class="metric-label">Entry Price</div>
-                                    <div class="metric-value">$27.50</div>
-                                </div>
-                                 <div class="metric">
-                                    <div class="metric-label">Exit Price</div>
-                                    <div class="metric-value">$120.10</div>
-                                </div>
-                                <div class="metric">
-                                    <div class="metric-label">Duration</div>
-                                    <div class="metric-value">180 days</div>
-                                </div>
-                                <div class="metric">
-                                    <div class="metric-label">Return</div>
-                                    <div class="metric-value profit">+336.7%</div>
-                                </div>
+                             <div class="congress-card-info">
+                                His portfolio's performance highlights the potential edge held by lawmakers with key committee assignments over the industries they regulate.<sup>25</sup>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="performance" id="performance">
-            <div class="section-container">
-                <div class="section-header">
-                    <h2>Proven Performance Metrics</h2>
-                    <p>This is not some get rich scheme (although for many users it feels that way), this is a disciplined data-driven strategy with real results beating the market year after year.</p>
-                </div>
-                
-                <div class="performance-grid">
-                    <div class="performance-metrics">
-                        <div class="metric-display-card">
-                            <div class="metric-display-icon"><i class="fas fa-chart-line"></i></div>
-                            <div>
-                                <div class="metric-display-title">Annualized Returns</div>
-                                <div class="metric-display-main">42.60%</div>
-                            </div>
-                        </div>
-                        <div class="metric-display-card">
-                            <div class="metric-display-icon"><i class="fas fa-shield-alt"></i></div>
-                             <div>
-                                <div class="metric-display-title">Sharpe Ratio</div>
-                                <div class="metric-display-main">1.94</div>
-                            </div>
-                        </div>
-                        <a href="research.html" class="research-cta">See the Research</a>
-                    </div>
-                    
-                    <div class="performance-chart-container">
-                        <div class="chart-header">
-                            <h3 class="chart-title">Backtested Performance</h3>
-                            <p class="chart-subtitle">Growth of a $10,000 initial investment.</p>
-                        </div>
-                        <div class="chart-canvas" id="backtest-chart">
-                           <!-- SVG chart will be injected here -->
-                        </div>
-                        <div id="chart-tooltip"></div>
-                    </div>
-                </div>
-                
-                <div class="performance-disclaimer">
-                    Past performance does not guarantee future results. All investments carry risk, including potential loss of principal. Sharpe Ratio is an estimate.
-                </div>
-            </div>
-        </section>
-
-        <section class="features" id="features">
-            <div class="section-container">
-                <div class="section-header">
-                    <h2>Core Features</h2>
-                </div>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                        <h3>Secure OAuth Integration</h3>
-                        <p>Connect your Alpaca account securely with OAuth 2.0. No API keys to manage or store - just quick, safe authorization.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
-                        <h3>Insider Signal Tracking</h3>
-                        <p>Real-time SEC filing analysis identifies high-conviction CEO and CFO purchase signals, filtering out noise for quality trades.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon"><i class="fas fa-cogs"></i></div>
-                        <h3>Dynamic Risk Management</h3>
-                        <p>Volatility-based stop losses and position sizing adapt to market conditions, protecting your capital in any environment.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-                        <h3>Lightning-Fast Execution</h3>
-                        <p>Sub-second trade execution captures insider signals instantly, minimizing slippage and maximizing opportunity.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon"><i class="fas fa-users"></i></div>
-                        <h3>Transparent Analytics</h3>
-                        <p>Comprehensive dashboards and trade logs provide complete visibility into strategy performance and risk metrics.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon"><i class="fas fa-cloud-sun"></i></div>
-                        <h3>All-Weather Strategy</h3>
-                        <p>Designed to outperform in bull and bear markets by focusing on the highest-quality insider trading signals.</p>
                     </div>
                 </div>
             </div>
@@ -838,28 +452,23 @@
         <section class="how-it-works" id="how-it-works">
             <div class="section-container">
                 <div class="section-header">
-                    <h2>How It Works</h2>
+                    <h2 class="fade-in-up">Your Edge, Simplified</h2>
                 </div>
                 <div class="steps-container">
-                    <div class="step-card">
+                    <div class="step-card fade-in-up">
                         <div class="step-number">1</div>
-                        <h3>Secure OAuth Connection</h3>
-                        <p>Connect your Alpaca trading account in seconds using secure OAuth 2.0 authentication. No manual API key management required.</p>
+                        <h3>Monitor</h3>
+                        <p>Our system continuously scans thousands of SEC and Congressional filings, capturing every disclosed trade from corporate insiders and lawmakers.</p>
                     </div>
-                    <div class="step-card">
+                    <div class="step-card fade-in-up">
                         <div class="step-number">2</div>
-                        <h3>Set Your Trading Budget</h3>
-                        <p>Define your monthly trading volume and risk parameters. Our engine automatically allocates daily budgets and position sizes.</p>
+                        <h3>Personalize</h3>
+                        <p>You customize your notifications. Follow specific insiders, track lawmakers, or set value thresholds to filter for the high-conviction signals that match your strategy.</p>
                     </div>
-                    <div class="step-card">
+                    <div class="step-card fade-in-up">
                         <div class="step-number">3</div>
-                        <h3>AI Monitors Insider Activity</h3>
-                        <p>Our proprietary algorithms scan live SEC filings, identifying high-conviction CEO and CFO purchase signals in real-time.</p>
-                    </div>
-                    <div class="step-card">
-                        <div class="step-number">4</div>
-                        <h3>Automated Execution</h3>
-                        <p>Qualified signals trigger immediate trade execution with built-in risk controls, stop losses, and position management.</p>
+                        <h3>Alert</h3>
+                        <p>Receive instant email notifications the moment a trade matching your criteria is filed. This speed gives you the ability to act on fresh, valuable information.</p>
                     </div>
                 </div>
             </div>
@@ -867,13 +476,18 @@
 
         <section class="final-cta" id="cta">
              <div class="section-container">
-                <div class="final-cta-content">
+                <div class="final-cta-content fade-in-up">
                     <div class="final-cta-inner">
-                        <h2>Ready to Trade with Insider Intelligence?</h2>
-                        <p>Join elite investors leveraging CEO and CFO insights with professional-grade automation and risk management. Start your journey to superior returns today.</p>
-                        <a href="firebase-stripe-alpaca-integration.html" class="cta-button">
-                            Get Started Now <i class="fas fa-rocket"></i>
-                        </a>
+                        <h2>Ready to Unlock Your Informational Edge?</h2>
+                        <p>Stop trading in the dark. Start tracking the trades of the market's most informed participants and get the alerts that matter.</p>
+                        <div class="hero-cta-container">
+                            <a href="newalerts.html" class="cta-button">
+                                Get Started Now <i class="fas fa-rocket"></i>
+                            </a>
+                            <a href="research.html" class="cta-button gold">
+                                See The Full Research <i class="fas fa-book-open"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -882,6 +496,7 @@
     </main>
 
     <script>
+    document.addEventListener('DOMContentLoaded', () => {
         gsap.registerPlugin(ScrollTrigger);
 
         // Starfield Background
@@ -891,12 +506,12 @@
             let stars = [];
             const numStars = 200;
 
-            function setCanvasSize() {
+            const setCanvasSize = () => {
                 canvas.width = window.innerWidth;
                 canvas.height = canvas.parentElement.offsetHeight;
-            }
+            };
 
-            function createStars() {
+            const createStars = () => {
                 stars = [];
                 for (let i = 0; i < numStars; i++) {
                     stars.push({
@@ -907,40 +522,26 @@
                         speed: Math.random() * 0.2 + 0.1
                     });
                 }
-            }
+            };
 
-            function drawStars() {
+            const animateStars = () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                stars.forEach(star => {
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                    ctx.globalAlpha = star.alpha;
-                    ctx.fill();
-                });
-            }
-
-            function updateStars() {
                 stars.forEach(star => {
                     star.y -= star.speed;
                     if (star.y < 0) {
                         star.x = Math.random() * canvas.width;
                         star.y = canvas.height;
                     }
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.globalAlpha = star.alpha;
+                    ctx.fill();
                 });
-            }
-
-            function animateStars() {
-                updateStars();
-                drawStars();
                 requestAnimationFrame(animateStars);
-            }
+            };
 
-            window.addEventListener('resize', () => {
-                setCanvasSize();
-                createStars();
-            });
-
+            window.addEventListener('resize', () => { setCanvasSize(); createStars(); });
             setCanvasSize();
             createStars();
             animateStars();
@@ -950,227 +551,198 @@
         document.addEventListener('mousemove', (e) => {
             document.querySelectorAll('.interactive-card').forEach(card => {
                 const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                card.style.setProperty('--mouse-x', `${x}px`);
-                card.style.setProperty('--mouse-y', `${y}px`);
+                card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
             });
         });
 
-        // Function to build and animate the performance line chart
+        // Interactive Performance Chart
         function buildPerformanceChart() {
             const chartContainer = document.getElementById('backtest-chart');
             const tooltip = document.getElementById('chart-tooltip');
-            if (!chartContainer || !tooltip) return;
+            const annotationTooltip = document.getElementById('annotation-tooltip');
+            const legendContainer = document.getElementById('chart-legend');
+            if (!chartContainer || !tooltip || !legendContainer) return;
 
-            const data = [
-                { year: 2019, value: 72.20 },
-                { year: 2020, value: 63.40 },
-                { year: 2021, value: 43.60 },
-                { year: 2022, value: 7.27 },
-                { year: 2023, value: 43.83 },
-                { year: 2024, value: 35.32 }
+            const strategies = [
+                {
+                    name: "Insider Strategy (assumes 2.5 ATR stop loss)",
+                    annualReturn: 31.0,
+                    color: "var(--accent-cyan)",
+                    annotation: "Based on academic studies showing potential outperformance from following insider purchases."
+                },
+                {
+                    name: "Congressional ETF Strategy",
+                    annualReturn: 22.18,
+                    color: "var(--success-green)",
+                    annotation: "Reflects the real-world annualized return of an ETF that tracks congressional trades."
+                },
+                {
+                    name: "Top Performer Signal (Ron Wyden)",
+                    annualReturns: [30, 35, 40, 50, 123.8], // Assumed growth then actual
+                    color: "var(--gold)",
+                    annotation: "Models a phenomenal year based on a top-performing senator's documented +123.8% return."
+                }
             ];
 
-            // 1. Calculate compound values based on a $10,000 investment
-            let compoundValues = [];
-            let baseValue = 10000;
-            compoundValues.push({ year: 'Start', compound: baseValue });
-            data.forEach(item => {
-                baseValue *= (1 + item.value / 100);
-                compoundValues.push({ year: item.year, compound: baseValue });
+            const years = ['Start', 2020, 2021, 2022, 2023, 2024];
+
+            let allCompoundValues = strategies.map(strategy => {
+                let compoundValues = [{ year: 'Start', compound: 10000, annotation: "Initial $10,000 Investment" }];
+                let baseValue = 10000;
+                for (let i = 0; i < 5; i++) {
+                    const rate = strategy.annualReturns ? strategy.annualReturns[i] : strategy.annualReturn;
+                    baseValue *= (1 + rate / 100);
+                    compoundValues.push({ year: years[i+1], compound: baseValue, annotation: strategy.annotation });
+                }
+                return { name: strategy.name, values: compoundValues, color: strategy.color };
             });
 
-            // 2. Define SVG dimensions and padding
             const svgWidth = chartContainer.clientWidth;
             const svgHeight = chartContainer.clientHeight;
-            const padding = { top: 20, right: 20, bottom: 40, left: 60 }; // Increased left padding for Y labels
+            const padding = { top: 40, right: 40, bottom: 40, left: 80 };
             const chartWidth = svgWidth - padding.left - padding.right;
             const chartHeight = svgHeight - padding.top - padding.bottom;
 
-            // 3. Find data range for scaling
+            const maxCompound = Math.max(...allCompoundValues.flatMap(s => s.values.map(v => v.compound)));
             const minCompound = 10000;
-            const maxCompound = Math.max(...compoundValues.map(d => d.compound));
 
-            // 4. Create SVG and other elements
-            chartContainer.innerHTML = ''; // Clear previous content
+            chartContainer.innerHTML = '';
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
             
-            const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            linePath.setAttribute('class', 'chart-line');
-
-            const xAxisLabelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            xAxisLabelsGroup.setAttribute('class', 'x-axis-labels');
-
             const yAxisLabelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             yAxisLabelsGroup.setAttribute('class', 'y-axis-labels');
+            const xAxisLabelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            xAxisLabelsGroup.setAttribute('class', 'x-axis-labels');
+            
+            const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-            const dataPointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-
-            // Currency formatter
-            const currencyFormatter = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-            });
-
-            // 5. Generate path data, labels, and interactive points
-            let pathData = '';
-            compoundValues.forEach((d, i) => {
-                const x = padding.left + (i / (compoundValues.length - 1)) * chartWidth;
-                const y = padding.top + chartHeight - ((d.compound - minCompound) / (maxCompound - minCompound)) * chartHeight;
-
-                pathData += (i === 0) ? `M ${x},${y} ` : `L ${x},${y} `;
-
-                // Add X-axis (year) labels
-                const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                xLabel.setAttribute('x', x);
-                xLabel.setAttribute('y', svgHeight - 15);
-                xLabel.textContent = d.year;
-                xAxisLabelsGroup.appendChild(xLabel);
-
-                // Add data points and hover targets
-                const visiblePoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                visiblePoint.setAttribute('class', 'chart-point');
-                visiblePoint.setAttribute('cx', x);
-                visiblePoint.setAttribute('cy', y);
-                visiblePoint.setAttribute('r', 5);
-
-                const hoverPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                hoverPoint.setAttribute('class', 'hover-point');
-                hoverPoint.setAttribute('cx', x);
-                hoverPoint.setAttribute('cy', y);
-                hoverPoint.setAttribute('r', 15);
-
-                hoverPoint.addEventListener('mouseover', () => {
-                    tooltip.style.opacity = '1';
-                    tooltip.innerHTML = `<strong>${d.year}:</strong> ${currencyFormatter.format(d.compound)}`;
-                });
-
-                hoverPoint.addEventListener('mousemove', (e) => {
-                    const rect = chartContainer.getBoundingClientRect();
-                    tooltip.style.left = `${e.clientX - rect.left}px`;
-                    tooltip.style.top = `${e.clientY - rect.top - 10}px`; // position above cursor
-                });
-
-                hoverPoint.addEventListener('mouseout', () => {
-                    tooltip.style.opacity = '0';
-                });
+            allCompoundValues.forEach(strategy => {
+                const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                linePath.setAttribute('class', 'chart-line');
+                linePath.style.stroke = strategy.color;
                 
-                dataPointsGroup.appendChild(visiblePoint);
-                dataPointsGroup.appendChild(hoverPoint);
+                let pathData = '';
+                strategy.values.forEach((d, i) => {
+                    const x = padding.left + (i / (strategy.values.length - 1)) * chartWidth;
+                    const y = padding.top + chartHeight - ((d.compound - minCompound) / (maxCompound - minCompound)) * chartHeight;
+                    pathData += (i === 0) ? `M ${x},${y} ` : `L ${x},${y} `;
+                });
+                linePath.setAttribute('d', pathData);
+                svg.appendChild(linePath);
+
+                const pathLength = linePath.getTotalLength();
+                linePath.style.strokeDasharray = pathLength;
+                linePath.style.strokeDashoffset = pathLength;
+
+                gsap.to(linePath, {
+                    strokeDashoffset: 0, duration: 3, ease: 'power2.inOut',
+                    scrollTrigger: { trigger: chartContainer, start: 'top 70%', toggleActions: 'play none none reverse' }
+                });
             });
             
-            // Add Y-axis labels
+            // Draw axis labels (only once)
+            years.forEach((year, i) => {
+                const x = padding.left + (i / (years.length - 1)) * chartWidth;
+                const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                xLabel.setAttribute('x', x); xLabel.setAttribute('y', svgHeight - 15);
+                xLabel.textContent = year;
+                xAxisLabelsGroup.appendChild(xLabel);
+            });
+
             const yLabelCount = 5;
             for (let i = 0; i <= yLabelCount; i++) {
                 const value = minCompound + (i / yLabelCount) * (maxCompound - minCompound);
                 const y = padding.top + chartHeight - (i / yLabelCount) * chartHeight;
-
                 const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                yLabel.setAttribute('x', padding.left - 10);
-                yLabel.setAttribute('y', y);
-                yLabel.setAttribute('dy', '0.3em'); // Vertically center
-                yLabel.textContent = `${currencyFormatter.format(value).slice(0, -1)}k`;
+                yLabel.setAttribute('x', padding.left - 10); yLabel.setAttribute('y', y);
+                yLabel.setAttribute('dy', '0.3em');
+                yLabel.textContent = `$${(value/1000).toFixed(0)}k`;
                 yAxisLabelsGroup.appendChild(yLabel);
             }
 
-
-            linePath.setAttribute('d', pathData);
-
             svg.appendChild(yAxisLabelsGroup);
-            svg.appendChild(linePath);
             svg.appendChild(xAxisLabelsGroup);
-            svg.appendChild(dataPointsGroup);
             chartContainer.appendChild(svg);
             
-            // 6. Animate the line drawing
-            const pathLength = linePath.getTotalLength();
-            linePath.style.strokeDasharray = pathLength;
-            linePath.style.strokeDashoffset = pathLength;
+            // Build Legend
+            legendContainer.innerHTML = '';
+            allCompoundValues.forEach(strategy => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                legendItem.innerHTML = `<div class="legend-color" style="background-color: ${strategy.color};"></div><span>${strategy.name}</span>`;
+                legendContainer.appendChild(legendItem);
+            });
 
-            gsap.to(linePath, {
-                strokeDashoffset: 0,
-                duration: 2.5,
-                ease: 'power2.inOut',
-                scrollTrigger: {
-                    trigger: chartContainer,
-                    start: 'top 70%',
-                    toggleActions: 'play none none reverse'
+            // Mouse move interaction for value tooltip
+            chartContainer.addEventListener('mousemove', (e) => {
+                const rect = chartContainer.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+
+                if (mouseX > padding.left && mouseX < svgWidth - padding.right) {
+                    const percentX = (mouseX - padding.left) / chartWidth;
+                    
+                    let tooltipHTML = '';
+                    allCompoundValues.forEach(strategy => {
+                        const index = Math.min(strategy.values.length - 2, Math.floor(percentX * (strategy.values.length - 1)));
+                        const t = (percentX * (strategy.values.length - 1)) - index;
+                        const startVal = strategy.values[index].compound;
+                        const endVal = strategy.values[index + 1].compound;
+                        const interpolatedValue = startVal + t * (endVal - startVal);
+                        tooltipHTML += `<div><span style="color:${strategy.color};">&#9679;</span> ${strategy.name}: <strong class="tooltip-value">${currencyFormatter.format(interpolatedValue)}</strong></div>`;
+                    });
+
+                    tooltip.style.opacity = '1';
+                    tooltip.innerHTML = tooltipHTML;
+                    tooltip.style.left = `${mouseX}px`;
+                    tooltip.style.top = `${e.clientY - rect.top}px`;
+                } else {
+                    tooltip.style.opacity = '0';
                 }
             });
+            chartContainer.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; });
         }
-
 
         // Initialize animations
         function initAnimations() {
-            // Hero intro
             gsap.fromTo('.hero .fade-in-up', 
                 { opacity: 0, y: 40 },
                 { opacity: 1, y: 0, duration: 1, stagger: 0.2, ease: "power3.out", delay: 0.5 }
             );
 
-            // General section fade-ins
-            const sections = gsap.utils.toArray([
-                '.section-header', 
-                '.ceo-trades-container', 
-                '.performance-grid', 
-                '.features-grid', 
-                '.steps-container',
-                '.performance-disclaimer'
-            ]);
-
-            sections.forEach(section => {
-                gsap.fromTo(section.children,
+            gsap.utils.toArray('.fade-in-up').forEach(el => {
+                gsap.fromTo(el,
                     { opacity: 0, y: 40 },
                     {
-                        opacity: 1,
-                        y: 0,
-                        duration: 0.8,
-                        stagger: 0.15,
-                        ease: "power3.out",
-                        scrollTrigger: {
-                            trigger: section,
-                            start: 'top 85%',
-                            toggleActions: 'play none none reverse'
-                        }
+                        opacity: 1, y: 0, duration: 0.8, ease: "power3.out",
+                        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
                     }
                 );
             });
             
-             // Final CTA animation
-            gsap.fromTo('.final-cta-inner > *',
+            gsap.fromTo('.spotlight-grid .fade-in-up',
                 { opacity: 0, y: 40 },
                 {
-                    opacity: 1, y: 0, duration: 1, stagger: 0.2, ease: "power3.out",
-                    scrollTrigger: { trigger: '.final-cta-content', start: 'top 70%' }
+                    opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: "power3.out",
+                    scrollTrigger: { trigger: '.spotlight-grid', start: 'top 85%', toggleActions: 'play none none reverse' }
+                }
+            );
+            
+            gsap.fromTo('.steps-container .fade-in-up',
+                { opacity: 0, y: 40 },
+                {
+                    opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: "power3.out",
+                    scrollTrigger: { trigger: '.steps-container', start: 'top 85%', toggleActions: 'play none none reverse' }
                 }
             );
 
             buildPerformanceChart();
-            window.addEventListener('resize', buildPerformanceChart); // Redraw on resize
+            window.addEventListener('resize', buildPerformanceChart);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initAnimations();
-        });
-
-        // Smooth scroll for anchor links
-        document.addEventListener('click', function(e) {
-            if (e.target.matches('a[href^="#"]')) {
-                e.preventDefault();
-                const targetId = e.target.getAttribute('href');
-                const target = document.querySelector(targetId);
-                if (target) {
-                    const headerOffset = 0; // Removed header, so no offset
-                    const elementPosition = target.getBoundingClientRect().top;
-                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                }
-            }
-        });
+        initAnimations();
+    });
     </script>
 </body>
 </html>
