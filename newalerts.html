@@ -1036,26 +1036,34 @@
                 
                 log('success', 'Raw insider trades data received', { count: trades.length, sample: trades[0] });
                 
-                const cleanedTrades = trades.map(trade => {
-                    const cleaned = {};
-                    for (const [key, value] of Object.entries(trade)) {
-                        let cleanKey = key.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
-                        if (cleanKey.toLowerCase().includes('filing') && cleanKey.toLowerCase().includes('date')) cleaned['Filing Date'] = value;
-                        else if (cleanKey.toLowerCase().includes('trade') && cleanKey.toLowerCase().includes('date')) cleaned['Trade Date'] = value;
-                        else if (cleanKey.toLowerCase().includes('company') && cleanKey.toLowerCase().includes('name')) cleaned['Company Name'] = value;
-                        else if (cleanKey.toLowerCase() === 'ticker') cleaned['Ticker'] = value;
-                        else if (cleanKey.toLowerCase().includes('insider') && cleanKey.toLowerCase().includes('name')) cleaned['Insider Name'] = value;
-                        else if (cleanKey.toLowerCase() === 'title') cleaned['Title'] = value;
-                        else if (cleanKey.toLowerCase().includes('trade') && cleanKey.toLowerCase().includes('type')) cleaned['Trade Type'] = value;
-                        else if (cleanKey.toLowerCase() === 'price') cleaned['Price'] = value;
-                        else if (cleanKey.toLowerCase() === 'qty') cleaned['Qty'] = value;
-                        else if (cleanKey.toLowerCase() === 'owned') cleaned['Owned'] = value;
-                        else if (cleanKey.includes('Own') || cleanKey.includes('Δ') || cleanKey.includes('Delta')) cleaned['ΔOwn'] = value;
-                        else if (cleanKey.toLowerCase() === 'value') cleaned['Value'] = value;
-                        else cleaned[cleanKey] = value;
-                    }
-                    return cleaned;
-                });
+             // FIX: Clean and map the senator trade data to a consistent format, trimming whitespace from both keys and values.
+const cleanedTrades = trades.map(trade => {
+  const newTrade = {};
+
+  Object.entries(trade).forEach(([rawKey, rawValue]) => {
+    // Normalize the key
+    const key = rawKey.toLowerCase().trim();
+    // Trim whitespace from the value if it's a string
+    const value = (typeof rawValue === 'string') ? rawValue.trim() : rawValue;
+
+    if (key.includes('transaction') && key.includes('date')) {
+      newTrade.transaction_date = value;
+    } else if (key === 'senator') {
+      newTrade.senator = value;
+    } else if (key.includes('asset') || key.includes('company') || key.includes('description')) {
+      newTrade.asset_description = value;
+    } else if (key === 'ticker') {
+      newTrade.ticker = value;
+    } else if (key === 'type' || (key.includes('transaction') && key.includes('type'))) {
+      newTrade.type = value;
+    } else if (key === 'amount' || key === 'value') {
+      newTrade.amount = value;
+    }
+  });
+
+  return newTrade;
+});
+
 
                 const purchasesTrades = cleanedTrades.filter(trade => {
                     const tradeType = (trade['Trade Type'] || '').toString().toLowerCase().trim();
