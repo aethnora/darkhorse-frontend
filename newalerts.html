@@ -1149,31 +1149,56 @@
 
                 log('success', 'Raw senator trades data received', { count: trades.length, sample: trades[0] });
                 
-                // FIX: More robustly clean and map the senator trade data.
+                // FIX: Final, more robust data cleaning and mapping for senator trades.
                 const cleanedTrades = trades.map(trade => {
                     const newTrade = {};
-                    const cleanValue = (val) => (typeof val === 'string' ? val.trim() : val);
+                    const cleanValue = (val) => (typeof val === 'string' ? val.replace(/\s+/g, ' ').trim() : val);
 
-                    for (const key in trade) {
-                        const lowerKey = key.toLowerCase().trim();
-                        const value = cleanValue(trade[key]);
+                    // Define aliases for the keys we're looking for
+                    const keyMap = {
+                        transaction_date: ['transaction_date', 'transaction date', 'date'],
+                        senator: ['senator', 'name'],
+                        asset_description: ['asset_description', 'asset description', 'company', 'description'],
+                        ticker: ['ticker'],
+                        type: ['type', 'transaction type'],
+                        amount: ['amount', 'value']
+                    };
 
-                        if (lowerKey.includes('transaction') && lowerKey.includes('date')) {
-                            newTrade.transaction_date = value;
-                        } else if (lowerKey === 'senator') {
-                            newTrade.senator = value;
-                        } else if (lowerKey.includes('asset') || lowerKey.includes('company') || lowerKey.includes('description')) {
-                            newTrade.asset_description = value;
-                        } else if (lowerKey === 'ticker') {
-                            newTrade.ticker = value;
-                        } else if (lowerKey.includes('type')) {
-                            newTrade.type = value;
-                        } else if (lowerKey.includes('amount') || lowerKey.includes('value')) {
-                            newTrade.amount = value;
+                    // Create a reverse map for easier lookup (alias -> canonicalKey)
+                    const reverseKeyMap = {};
+                    for (const canonicalKey in keyMap) {
+                        for (const alias of keyMap[canonicalKey]) {
+                            reverseKeyMap[alias.replace(/\s+/g, '')] = canonicalKey;
+                        }
+                    }
+                    
+                    // Process the raw trade object using the alias map
+                    for (const rawKey in trade) {
+                        const cleanKey = rawKey.toLowerCase().replace(/\s+/g, '').trim();
+                        const canonicalKey = reverseKeyMap[cleanKey];
+                        
+                        if (canonicalKey) {
+                            if (!newTrade[canonicalKey]) {
+                                newTrade[canonicalKey] = cleanValue(trade[rawKey]);
+                            }
                         }
                     }
 
-                    // Post-processing to extract ticker if it's missing and is inside the description
+                    // Post-processing for combined fields, based on user feedback
+                    if (newTrade.transaction_date && !newTrade.senator) {
+                        const dateRegex = /(\d{1,2}\/\d{1,2}\/\d{4})/;
+                        const match = newTrade.transaction_date.match(dateRegex);
+                        if (match) {
+                            const date = match[0];
+                            const remainingString = newTrade.transaction_date.replace(date, '').trim();
+                            if (remainingString) {
+                                newTrade.senator = remainingString;
+                                newTrade.transaction_date = date;
+                            }
+                        }
+                    }
+                    
+                    // Post-processing to extract ticker if it's missing
                     if ((!newTrade.ticker || newTrade.ticker === '--') && newTrade.asset_description) {
                         const tickerMatch = newTrade.asset_description.match(/\b([A-Z.]{1,5})\b/);
                         if (tickerMatch) {
@@ -1205,7 +1230,6 @@
 
                     const transactionDateCell = formatDateCell(trade.transaction_date, false);
                     
-                    // FIX: Conditionally display the ticker
                     const tickerHtml = ticker ? `<div class="ticker">${ticker}</div>` : '';
 
                     row.innerHTML = `
@@ -1268,7 +1292,6 @@
 
             if (!isActive) {
                 appState.activeTradeDetails = rowId;
-                // FIX: Check for a valid ticker before loading widgets
                 if (ticker) {
                     loadAdvancedTradingViewWidgets(ticker, companyName, `details-content-${rowId}`);
                 } else {
@@ -1363,10 +1386,8 @@
                         "save_image": false
                     });
 
-                    // FIX: Re-initialize the profile widget more robustly.
                     const profileContainer = document.getElementById(`fundamentals-${containerId}`);
                     if (profileContainer) {
-                        // Clear any previous widget content to ensure a fresh instance
                         profileContainer.innerHTML = ''; 
                         
                         const widgetContainer = document.createElement('div');
@@ -1381,7 +1402,6 @@
                         script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js';
                         script.async = true;
                         
-                        // Use JSON.stringify for safety and set height to 100%
                         const widgetConfig = {
                             "symbol": ticker,
                             "colorTheme": "dark",
