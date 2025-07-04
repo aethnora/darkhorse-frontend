@@ -1149,26 +1149,25 @@
 
                 log('success', 'Raw senator trades data received', { count: trades.length, sample: trades[0] });
                 
-                // FIX: Clean and map the senator trade data to a consistent format, trimming whitespace from values.
+                // FIX: Clean and map the senator trade data to a consistent format.
                 const cleanedTrades = trades.map(trade => {
                     const newTrade = {};
                     for (const key in trade) {
                         const lowerKey = key.toLowerCase().trim();
-                        // Also trim the value if it's a string to handle whitespace issues
-                        const value = typeof trade[key] === 'string' ? trade[key].trim() : trade[key];
-
                         if (lowerKey.includes('transaction') && lowerKey.includes('date')) {
-                            newTrade.transaction_date = value;
+                            newTrade.transaction_date = (trade[key] || '').toString().trim().replace(/^"+|"+$/g, '');
+
                         } else if (lowerKey === 'senator') {
-                            newTrade.senator = value;
+                            newTrade.senator = (trade[key] || '').toString().trim().replace(/^"+|"+$/g, '');
+
                         } else if (lowerKey.includes('asset') || lowerKey.includes('company') || lowerKey.includes('description')) {
-                            newTrade.asset_description = value;
+                            newTrade.asset_description = trade[key];
                         } else if (lowerKey === 'ticker') {
-                            newTrade.ticker = value;
+                            newTrade.ticker = trade[key];
                         } else if (lowerKey === 'type' || (lowerKey.includes('transaction') && lowerKey.includes('type'))) {
-                            newTrade.type = value;
+                            newTrade.type = trade[key];
                         } else if (lowerKey === 'amount' || lowerKey === 'value') {
-                            newTrade.amount = value;
+                            newTrade.amount = trade[key];
                         }
                     }
                     return newTrade;
