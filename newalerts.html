@@ -1449,9 +1449,9 @@
                 appState.activeTradeDetails = rowId;
                 // FIX: Add a guard against invalid tickers like '--'
                 if (ticker && ticker !== 'N/A' && ticker.trim() !== '--') {
-                    loadAdvancedTradingViewWidgets(ticker, companyName, `details-content-${tradeId}`);
+                    loadAdvancedTradingViewWidgets(ticker, companyName, `details-content-${rowId}`);
                 } else {
-                    const container = document.getElementById(`details-content-${tradeId}`);
+                    const container = document.getElementById(`details-content-${rowId}`);
                     if(container) container.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--text-secondary);">No valid ticker available for this asset.</div>`;
                 }
             } else {
