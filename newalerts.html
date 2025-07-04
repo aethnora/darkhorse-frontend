@@ -1155,9 +1155,11 @@
                     for (const key in trade) {
                         const lowerKey = key.toLowerCase().trim();
                         if (lowerKey.includes('transaction') && lowerKey.includes('date')) {
-                            newTrade.transaction_date = trade[key];
+                            newTrade.transaction_date = (trade[key] || '').toString().trim().replace(/^"+|"+$/g, '');
+
                         } else if (lowerKey === 'senator') {
-                            newTrade.senator = trade[key];
+                            newTrade.senator = (trade[key] || '').toString().trim().replace(/^"+|"+$/g, '');
+
                         } else if (lowerKey.includes('asset') || lowerKey.includes('company') || lowerKey.includes('description')) {
                             newTrade.asset_description = trade[key];
                         } else if (lowerKey === 'ticker') {
