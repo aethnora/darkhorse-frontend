@@ -1070,7 +1070,7 @@
                     return;
                 }
 
-                purchasesTrades.slice(0, 50).forEach(trade => {
+                purchasesTrades.slice(0, 100).forEach(trade => {
                     const tradeId = `insider-${trade.Ticker || 'UNKNOWN'}-${trade['Trade Date'] || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
