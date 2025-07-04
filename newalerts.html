@@ -1149,38 +1149,23 @@
 
                 log('success', 'Raw senator trades data received', { count: trades.length, sample: trades[0] });
                 
-                // FIX: More robustly clean and map the senator trade data.
+                // FIX: Clean and map the senator trade data to a consistent format.
                 const cleanedTrades = trades.map(trade => {
                     const newTrade = {};
-                    const cleanValue = (val) => (typeof val === 'string' ? val.trim() : val);
-
                     for (const key in trade) {
                         const lowerKey = key.toLowerCase().trim();
-                        const value = cleanValue(trade[key]);
-
                         if (lowerKey.includes('transaction') && lowerKey.includes('date')) {
-                            newTrade.transaction_date = value;
+                            newTrade.transaction_date = trade[key];
                         } else if (lowerKey === 'senator') {
-                            newTrade.senator = value;
+                            newTrade.senator = trade[key];
                         } else if (lowerKey.includes('asset') || lowerKey.includes('company') || lowerKey.includes('description')) {
-                            newTrade.asset_description = value;
+                            newTrade.asset_description = trade[key];
                         } else if (lowerKey === 'ticker') {
-                            newTrade.ticker = value;
-                        } else if (lowerKey.includes('type')) {
-                            newTrade.type = value;
-                        } else if (lowerKey.includes('amount') || lowerKey.includes('value')) {
-                            newTrade.amount = value;
-                        }
-                    }
-
-                    // Post-processing to extract ticker if it's missing and is inside the description
-                    if ((!newTrade.ticker || newTrade.ticker === '--') && newTrade.asset_description) {
-                        const tickerMatch = newTrade.asset_description.match(/\b([A-Z.]{1,5})\b/);
-                        if (tickerMatch) {
-                            const potentialTicker = tickerMatch[1];
-                             if (!['INC', 'LLC', 'CO', 'LP'].includes(potentialTicker) || newTrade.asset_description.trim() === potentialTicker) {
-                                newTrade.ticker = potentialTicker;
-                            }
+                            newTrade.ticker = trade[key];
+                        } else if (lowerKey === 'type' || (lowerKey.includes('transaction') && lowerKey.includes('type'))) {
+                            newTrade.type = trade[key];
+                        } else if (lowerKey === 'amount' || lowerKey === 'value') {
+                            newTrade.amount = trade[key];
                         }
                     }
                     return newTrade;
@@ -1195,24 +1180,21 @@
                 }
 
                 cleanedTrades.slice(0, 50).forEach(trade => {
-                    const ticker = (trade.ticker && trade.ticker.trim() !== '--' && trade.ticker.trim() !== '') ? trade.ticker.trim() : null;
+                    const ticker = (trade.ticker || '--').trim();
                     const companyName = trade.asset_description || 'Unknown Company';
-                    const tradeId = `senator-${ticker || 'noticker'}-${trade.transaction_date || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
+                    const tradeId = `senator-${ticker}-${trade.transaction_date || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
-                    row.dataset.ticker = ticker || 'UNKNOWN';
+                    row.dataset.ticker = ticker;
                     row.dataset.id = tradeId;
 
                     const transactionDateCell = formatDateCell(trade.transaction_date, false);
-                    
-                    // FIX: Conditionally display the ticker
-                    const tickerHtml = ticker ? `<div class="ticker">${ticker}</div>` : '';
 
                     row.innerHTML = `
                         ${transactionDateCell}
                         <td>${trade.senator || 'N/A'}</td>
                         <td><div class="company-name">${companyName}</div></td>
-                        <td>${tickerHtml}</td>
+                        <td><div class="ticker">${ticker}</div></td>
                         <td>${trade.type || 'N/A'}</td>
                         <td>${trade.amount || 'N/A'}</td>
                         <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>
@@ -1268,8 +1250,8 @@
 
             if (!isActive) {
                 appState.activeTradeDetails = rowId;
-                // FIX: Check for a valid ticker before loading widgets
-                if (ticker) {
+                // FIX: Add a guard against invalid tickers like '--'
+                if (ticker && ticker !== 'N/A' && ticker.trim() !== '--') {
                     loadAdvancedTradingViewWidgets(ticker, companyName, `details-content-${rowId}`);
                 } else {
                     const container = document.getElementById(`details-content-${rowId}`);
