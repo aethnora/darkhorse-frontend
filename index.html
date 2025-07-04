@@ -255,13 +255,14 @@
             display: flex; align-items: center; gap: 1rem;
             margin-bottom: 2rem;
         }
-        .card-icon {
-            width: 50px; height: 50px; flex-shrink: 0;
-            border-radius: 12px; background: rgba(0, 198, 255, 0.1);
-            border: 1px solid var(--glass-border);
+        .card-avatar {
+            width: 60px; height: 60px; flex-shrink: 0;
+            border-radius: 50%; background: var(--slate-blue);
+            border: 2px solid var(--glass-border);
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; color: var(--accent-cyan);
+            overflow: hidden;
         }
+        .card-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .card-details h3 { font-size: 1.5rem; font-weight: 700; }
         .card-details .company { color: var(--accent-cyan); font-size: 1.1rem; font-weight: 500; }
         .trade-metrics {
@@ -349,7 +350,7 @@
                 <h1 class="fade-in-up">Insiders Have an Edge. <br>We Give It <span class="highlight">to You.</span></h1>
                 <p class="fade-in-up">Gain an informational advantage by tracking the high-conviction trades of corporate insiders and congressional leaders. Our platform filters the noise and delivers the signals that matter, directly to you.</p>
                 <div class="hero-cta-container fade-in-up">
-                    <a href="newalerts.html" class="cta-button">
+                    <a href="https://darkhorsetrades.com/newalerts.html" class="cta-button">
                         Get Instant Alerts <i class="fas fa-arrow-right"></i>
                     </a>
                     <a href="research.html" class="cta-button gold">
@@ -398,7 +399,10 @@
                     <div class="interactive-card fade-in-up">
                         <div class="card-content">
                             <div class="card-header">
-                                <div class="card-icon"><i class="fas fa-user-tie"></i></div>
+                                <div class="card-avatar">
+                                    <!-- ADD YOUR IMAGE TAG HERE for Axsome -->
+                                    <!-- e.g., <img src="/path/to/axsome-logo.png" alt="Axsome Therapeutics"> -->
+                                </div>
                                 <div class="card-details">
                                     <h3>Axsome Therapeutics</h3>
                                     <span class="company">CEO Purchase Signal</span>
@@ -428,7 +432,10 @@
                     <div class="interactive-card fade-in-up">
                         <div class="card-content">
                             <div class="card-header">
-                                <div class="card-icon" style="color: var(--gold); background: rgba(255, 215, 0, 0.1);"><i class="fas fa-landmark"></i></div>
+                                <div class="card-avatar" style="border-color: var(--gold);">
+                                     <!-- ADD YOUR IMAGE TAG HERE for Ron Wyden -->
+                                     <!-- e.g., <img src="/path/to/ron-wyden.png" alt="Ron Wyden"> -->
+                                </div>
                                 <div class="card-details">
                                     <h3>Congressional Trade</h3>
                                     <span class="company" style="color: var(--gold);">Ron Wyden (2024)</span>
@@ -481,8 +488,8 @@
                         <h2>Ready to Unlock Your Informational Edge?</h2>
                         <p>Stop trading in the dark. Start tracking the trades of the market's most informed participants and get the alerts that matter.</p>
                         <div class="hero-cta-container">
-                            <a href="newalerts.html" class="cta-button">
-                                Get Started Now <i class="fas fa-rocket"></i>
+                            <a href="https://darkhorsetrades.com/newalerts.html" class="cta-button">
+                                Get Instant Alerts <i class="fas fa-rocket"></i>
                             </a>
                             <a href="research.html" class="cta-button gold">
                                 See The Full Research <i class="fas fa-book-open"></i>
