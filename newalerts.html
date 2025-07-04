@@ -129,13 +129,38 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* --- SETTINGS REDESIGN --- */
-        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; }
-        .settings-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; }
-        .settings-card h3 { font-size: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
-        .settings-card h3 i { color: var(--accent-cyan); }
-        .settings-group { margin-bottom: 1.5rem; }
+        .settings-split-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        @media (max-width: 992px) {
+            .settings-split-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .settings-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            padding: 2rem; 
+            height: 100%;
+        }
+        .settings-card h3 { 
+            font-size: 1.5rem; 
+            margin-bottom: 2rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+            color: var(--accent-cyan);
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .settings-card h3 i { font-size: 1.2rem; }
+        .settings-group { margin-bottom: 2rem; }
         .settings-group:last-child { margin-bottom: 0; }
-        .settings-group label { display: block; margin-bottom: 0.75rem; font-weight: 500; color: var(--text-secondary); }
+        .settings-group label, .settings-group .label-text { display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--text-secondary); font-size: 1rem; }
         .switch-group { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: 8px; }
         .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -143,11 +168,23 @@
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--success-green); }
         input:checked + .slider:before { transform: translateX(22px); }
-        .multi-select-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .multi-select-group label { background: rgba(0,0,0,0.2); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
-        .multi-select-group input:checked + span { background: var(--gradient-primary); color: white; }
-        .recommended-tag { font-size: 0.7rem; color: var(--warning-yellow); margin-left: 0.5rem; }
-        .save-settings-container { margin-top: 2rem; text-align: right; }
+        .multi-select-group { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .multi-select-group label { background: rgba(0,0,0,0.2); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; border: 1px solid transparent; }
+        .multi-select-group label:hover { border-color: var(--accent-cyan); }
+        .multi-select-group input:checked + span { 
+            display: inline-block;
+            background: var(--gradient-primary); 
+            color: white; 
+            border-radius: 20px;
+        }
+        .multi-select-group label span {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .recommended-tag { font-size: 0.8rem; color: var(--warning-yellow); margin-left: 0.5rem; font-weight: 400; }
+        .save-settings-container { margin-top: 2rem; text-align: center; }
 
         /* --- ENHANCED TRADES FEED & DROPDOWN --- */
         .trades-table { width: 100%; border-collapse: collapse; table-layout: auto; }
@@ -469,35 +506,45 @@
 
             <div id="tab-content-insider-feed" class="tab-content active"></div>
             <div id="tab-content-senator-feed" class="tab-content"></div>
+            
+            <!-- ================================================================= -->
+            <!-- ======================= NEW SETTINGS TAB ======================== -->
+            <!-- ================================================================= -->
             <div id="tab-content-settings" class="tab-content">
-                <div class="settings-grid">
+                <div class="settings-split-grid">
+                    <!-- Left Column: Insider Trading Alerts -->
                     <div class="settings-card">
-                        <h3><i class="fas fa-bell"></i> Notification Settings</h3>
+                        <h3><i class="fas fa-user-tie"></i> Insider Trading Alerts</h3>
                         <div class="settings-group">
-                            <label>Channels</label>
-                            <div class="switch-group"><span>Email Alerts</span> <label class="switch"><input type="checkbox" id="emailToggle"><span class="slider"></span></label></div>
-                            <div class="switch-group" style="margin-top:0.5rem;"><span>SMS Alerts</span> <label class="switch"><input type="checkbox" id="smsToggle"><span class="slider"></span></label></div>
+                            <div class="label-text">Channels</div>
+                            <div class="switch-group">
+                                <span>Email Alerts</span> 
+                                <label class="switch"><input type="checkbox" id="emailToggle"><span class="slider"></span></label>
+                            </div>
                         </div>
                         <div class="settings-group">
-                            <label>Timing</label>
-                            <div class="switch-group"><span>Real-Time</span> <label class="switch"><input type="radio" name="timing" value="realtime"><span class="slider"></span></label></div>
-                            <div class="switch-group" style="margin-top:0.5rem;"><span>Daily Summary</span> <label class="switch"><input type="radio" name="timing" value="summary"><span class="slider"></span></label></div>
-                            <input type="time" id="summaryTime" class="input-field hidden" style="margin-top: 0.5rem;">
+                            <div class="label-text">Timing</div>
+                            <div class="switch-group">
+                                <span>Real-Time</span> 
+                                <label class="switch"><input type="radio" name="timing" value="realtime" id="timingRealtime"><span class="slider"></span></label>
+                            </div>
+                            <div class="switch-group" style="margin-top:0.5rem;">
+                                <span>Daily Summary</span> 
+                                <label class="switch"><input type="radio" name="timing" value="summary" id="timingSummary"><span class="slider"></span></label>
+                            </div>
+                            <input type="time" id="summaryTime" class="input-field hidden" style="margin-top: 0.75rem;">
                         </div>
-                    </div>
-                    <div class="settings-card">
-                        <h3><i class="fas fa-filter"></i> Alert Filters</h3>
                         <div class="settings-group">
                             <label for="stockPrice">Stock Price (at least) <span class="recommended-tag">Recommended: $3+</span></label>
-                            <input type="range" id="stockPrice" min="0" max="100" value="3">
-                            <div id="stockPriceValue" class="text-secondary" style="text-align:right;">$3.00</div>
+                            <input type="range" id="stockPrice" min="0" max="100" value="3" class="input-field" style="padding: 0;">
+                            <div id="stockPriceValue" class="text-secondary" style="text-align:right; font-size: 0.9rem; margin-top: 0.25rem;">$3.00</div>
                         </div>
                         <div class="settings-group">
                             <label for="tradeValue">Trade Value (at least)</label>
-                            <input type="range" id="tradeValue" min="0" max="1000000" step="10000" value="0">
-                            <div id="tradeValueValue" class="text-secondary" style="text-align:right;">Any</div>
+                            <input type="range" id="tradeValue" min="0" max="1000000" step="10000" value="0" class="input-field" style="padding: 0;">
+                            <div id="tradeValueValue" class="text-secondary" style="text-align:right; font-size: 0.9rem; margin-top: 0.25rem;">Any</div>
                         </div>
-                        <div class="settings-group">
+                         <div class="settings-group">
                             <label>Insider Title <span class="recommended-tag">Recommended: CEO/CFO</span></label>
                             <div class="multi-select-group">
                                 <label><input type="checkbox" name="insiderTitle" value="CEO" hidden><span>CEO</span></label>
@@ -508,11 +555,43 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Right Column: Senator Trading Alerts -->
+                    <div class="settings-card">
+                        <h3><i class="fas fa-landmark"></i> Senator Trading Alerts</h3>
+                        <div class="settings-group">
+                            <label>Top Companies Watchlist</label>
+                            <div class="multi-select-group" id="company-watchlist">
+                                <label><input type="checkbox" name="companyWatchlist" value="NVIDIA Corp" hidden><span>NVIDIA Corp</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="Microsoft Corp" hidden><span>Microsoft Corp</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="Apple Inc" hidden><span>Apple Inc</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="Amazon.com Inc" hidden><span>Amazon.com Inc</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="Alphabet Inc." hidden><span>Alphabet Inc.</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="Tesla, Inc." hidden><span>Tesla, Inc.</span></label>
+                                <label><input type="checkbox" name="companyWatchlist" value="UnitedHealth Group Inc." hidden><span>UnitedHealth Group</span></label>
+                            </div>
+                        </div>
+                        <div class="settings-group">
+                            <label>Top Senators Watchlist</label>
+                            <div class="multi-select-group" id="senator-watchlist">
+                                <label><input type="checkbox" name="senatorWatchlist" value="Nancy Pelosi" hidden><span>Nancy Pelosi</span></label>
+                                <label><input type="checkbox" name="senatorWatchlist" value="Rand Paul" hidden><span>Rand Paul</span></label>
+                                <label><input type="checkbox" name="senatorWatchlist" value="Thomas Carper" hidden><span>Thomas Carper</span></label>
+                                <label><input type="checkbox" name="senatorWatchlist" value="Sheldon Whitehouse" hidden><span>Sheldon Whitehouse</span></label>
+                                <label><input type="checkbox" name="senatorWatchlist" value="John Hickenlooper" hidden><span>John Hickenlooper</span></label>
+                                <label><input type="checkbox" name="senatorWatchlist" value="Rick Scott" hidden><span>Rick Scott</span></label>
+                                <label><input type="checkbox" name="senatorWatchlist" value="Ron Wyden" hidden><span>Ron Wyden</span></label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="save-settings-container">
-                    <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+                    <button class="btn btn-primary" onclick="saveSettings()">Save All Settings</button>
                 </div>
             </div>
+             <!-- ================================================================= -->
+             <!-- ===================== END NEW SETTINGS TAB ====================== -->
+             <!-- ================================================================= -->
         </section>
     </main>
 
@@ -759,12 +838,20 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 subscription: { planId: null, status: 'none' },
                 settings: {
-                    notifyByEmail: true, notifyBySms: false, timing: 'realtime', summaryTime: '17:00',
-                    filters: { stockPrice: 3, tradeValue: 0, titles: ['CEO', 'CFO'] }
+                    notifyByEmail: true, 
+                    timing: 'realtime', 
+                    summaryTime: '17:00',
+                    filters: { 
+                        stockPrice: 3, 
+                        tradeValue: 0, 
+                        titles: ['CEO', 'CFO'] 
+                    },
+                    senatorWatchlist: [], // New default
+                    companyWatchlist: []  // New default
                 }
             };
             try {
-                await userDocRef.set(initialProfile);
+                await userDocRef.set(initialProfile, { merge: true }); // Use merge to be safe
                 appState.userProfile = initialProfile;
             } catch (error) {
                 log('error', 'Error creating user profile', error);
@@ -1408,26 +1495,49 @@
             if (!appState.userProfile || !appState.userProfile.settings) return;
             
             const { planId } = appState.userProfile.subscription;
-            const { settings } = appState.userProfile;
+            const settings = appState.userProfile.settings || {}; // Ensure settings object exists
+            const filters = settings.filters || {};
+            const titles = filters.titles || [];
+            const senatorWatchlist = settings.senatorWatchlist || [];
+            const companyWatchlist = settings.companyWatchlist || [];
+            
             const isCustomizable = (planId === 'advanced' || planId === 'professional');
             
-            document.querySelectorAll('.settings-card input, .settings-card button').forEach(el => el.disabled = !isCustomizable);
+            document.querySelectorAll('#tab-content-settings input, #tab-content-settings button').forEach(el => el.disabled = !isCustomizable);
             document.querySelectorAll('.settings-card').forEach(el => el.style.opacity = isCustomizable ? '1' : '0.5');
 
-            document.getElementById('emailToggle').checked = settings.notifyByEmail;
-            document.getElementById('smsToggle').checked = settings.notifyBySms;
-            document.querySelector(`input[name="timing"][value="${settings.timing}"]`).checked = true;
-            document.getElementById('summaryTime').classList.toggle('hidden', settings.timing !== 'summary');
-            document.getElementById('summaryTime').value = settings.summaryTime;
+            // Insider Settings
+            document.getElementById('emailToggle').checked = settings.notifyByEmail !== false; // Default to true if undefined
+            document.querySelector(`input[name="timing"][value="${settings.timing || 'realtime'}"]`).checked = true;
+            document.getElementById('summaryTime').classList.toggle('hidden', (settings.timing || 'realtime') !== 'summary');
+            document.getElementById('summaryTime').value = settings.summaryTime || '17:00';
 
-            const { stockPrice, tradeValue, titles } = settings.filters;
+            const stockPrice = filters.stockPrice || 3;
             document.getElementById('stockPrice').value = stockPrice;
             updateSliderValue('stockPriceValue', stockPrice, val => `$${parseFloat(val).toFixed(2)}` );
+            
+            const tradeValue = filters.tradeValue || 0;
             document.getElementById('tradeValue').value = tradeValue;
             updateSliderValue('tradeValueValue', tradeValue, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any');
+            
             document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
+                el.checked = titles.includes(el.value);
                 if (el.nextElementSibling) {
-                    el.checked = titles.includes(el.value);
+                    el.nextElementSibling.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
+                }
+            });
+
+            // Senator Settings
+            document.querySelectorAll('input[name="senatorWatchlist"]').forEach(el => {
+                el.checked = senatorWatchlist.includes(el.value);
+                 if (el.nextElementSibling) {
+                    el.nextElementSibling.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
+                }
+            });
+
+            document.querySelectorAll('input[name="companyWatchlist"]').forEach(el => {
+                el.checked = companyWatchlist.includes(el.value);
+                 if (el.nextElementSibling) {
                     el.nextElementSibling.parentElement.style.background = el.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
                 }
             });
@@ -1441,18 +1551,19 @@
 
             const settingsToSave = {
                 notifyByEmail: document.getElementById('emailToggle').checked,
-                notifyBySms: document.getElementById('smsToggle').checked,
                 timing: document.querySelector('input[name="timing"]:checked').value,
                 summaryTime: document.getElementById('summaryTime').value,
                 filters: {
                     stockPrice: parseFloat(document.getElementById('stockPrice').value),
                     tradeValue: parseInt(document.getElementById('tradeValue').value),
                     titles: Array.from(document.querySelectorAll('input[name="insiderTitle"]:checked')).map(el => el.value)
-                }
+                },
+                senatorWatchlist: Array.from(document.querySelectorAll('input[name="senatorWatchlist"]:checked')).map(el => el.value),
+                companyWatchlist: Array.from(document.querySelectorAll('input[name="companyWatchlist"]:checked')).map(el => el.value)
             };
             
             try {
-                await db.collection('users').doc(appState.currentUser.uid).update({ settings: settingsToSave });
+                await db.collection('users').doc(appState.currentUser.uid).set({ settings: settingsToSave }, { merge: true });
                 displayMessage('Settings saved successfully!', 'success');
             } catch (error) {
                 log('error', 'Failed to save settings', error);
@@ -1476,16 +1587,20 @@
             });
         });
         
-        document.querySelectorAll('input[name="insiderTitle"]').forEach(el => {
-            el.addEventListener('change', e => {
-                e.target.nextElementSibling.parentElement.style.background = e.target.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
-            });
+        // Combined event listener for all multi-select checkboxes
+        document.getElementById('tab-content-settings').addEventListener('change', e => {
+            if (e.target.type === 'checkbox' && e.target.parentElement.classList.contains('multi-select-group-label')) {
+                 if (e.target.nextElementSibling) {
+                    e.target.nextElementSibling.parentElement.style.background = e.target.checked ? 'var(--gradient-primary)' : 'rgba(0,0,0,0.2)';
+                }
+            }
         });
 
         document.getElementById('managePlanBtn').addEventListener('click', redirectToCustomerPortal);
         
         function updateSliderValue(elementId, value, formatter) { 
-            document.getElementById(elementId).textContent = formatter(value); 
+            const el = document.getElementById(elementId);
+            if(el) el.textContent = formatter(value); 
         }
         
         document.getElementById('stockPrice').addEventListener('input', e => updateSliderValue('stockPriceValue', e.target.value, val => `$${parseFloat(val).toFixed(2)}`));
