@@ -634,7 +634,14 @@
                 <div class="status-message error hidden" id="authError"></div>
                 <button type="submit" class="btn btn-primary" id="authSubmit">Sign In</button>
             </form>
-            <div class="auth-toggle"> <span id="authToggleText">Don't have an account?</span> <a href="#" id="authToggleLink">Sign Up</a> </div>
+            <!-- NEW: Google Sign In Button -->
+            <div style="text-align: center; color: var(--text-secondary); margin: 1rem 0;">OR</div>
+            <button type="button" class="btn btn-secondary" id="googleSignInBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
+                <img src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_28dp.png" alt="Google icon" style="width: 20px; height: 20px;">
+                Sign In with Google
+            </button>
+            <!-- END NEW SECTION -->
+            <div class="auth-toggle" style="margin-top: 1.5rem;"> <span id="authToggleText">Don't have an account?</span> <a href="#" id="authToggleLink">Sign Up</a> </div>
         </div>
     </div>
     
@@ -1145,6 +1152,69 @@
                 authSubmit.textContent = appState.isSignUp ? 'Sign Up' : 'Sign In';
             }
         });
+
+        // --- NEW: Google Sign-In Logic ---
+        const googleSignInBtn = document.getElementById('googleSignInBtn');
+
+        async function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            authSubmit.disabled = true;
+            googleSignInBtn.disabled = true;
+            authError.classList.add('hidden');
+
+            try {
+                // This will either sign in a new user, or sign in an existing Google user.
+                // The onAuthStateChanged listener will handle the UI update.
+                await auth.signInWithPopup(provider);
+                closeAuthModal();
+            } catch (error) {
+                // This block is crucial for linking accounts.
+                if (error.code === 'auth/account-exists-with-different-credential') {
+                    const email = error.email;
+                    const pendingCred = error.credential;
+                    
+                    // A custom, styled modal would be better for UX than a native prompt.
+                    const password = prompt(
+                        `An account already exists for ${email}. ` +
+                        `Please enter the password for that account to link it with your Google Sign-In.`
+                    );
+                    
+                    if (password) {
+                        try {
+                            // Step 1: Sign in the user with their original email and password.
+                            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                            
+                            // Step 2: Link the pending Google credential to the now-signed-in user.
+                            await userCredential.user.linkWithCredential(pendingCred);
+                            
+                            displayMessage('Successfully linked your Google account!', 'success');
+                            closeAuthModal();
+                        } catch (linkError) {
+                            log('error', 'Failed to link Google account', linkError);
+                            authError.textContent = 'Linking failed: ' + linkError.message;
+                            authError.classList.remove('hidden');
+                        }
+                    } else {
+                        // User cancelled the password prompt.
+                        authError.textContent = 'Account linking cancelled.';
+                        authError.classList.remove('hidden');
+                    }
+                } else {
+                    // Handle other types of sign-in errors.
+                    log('error', 'Google Sign-In failed', error);
+                    authError.textContent = 'Google Sign-In failed: ' + error.message;
+                    authError.classList.remove('hidden');
+                }
+            } finally {
+                // Re-enable buttons regardless of outcome.
+                authSubmit.disabled = false;
+                googleSignInBtn.disabled = false;
+            }
+        }
+
+        googleSignInBtn.addEventListener('click', signInWithGoogle);
+        // --- END NEW SECTION ---
+
 
         window.selectPlan = async (priceId, planName) => {
             if (!appState.currentUser) { 
