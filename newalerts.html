@@ -968,7 +968,7 @@
             senatorFeedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
-                         <thead><tr><th>Transaction Date</th><th>Senator</th><th>Company</th><th>Ticker</th><th>Transaction Type</th><th>Amount</th><th></th></tr></thead>
+                         <thead><tr><th>Filing Date</th><th>Transaction Date</th><th>Senator</th><th>Company</th><th>Ticker</th><th>Transaction Type</th><th>Amount</th><th></th></tr></thead>
                         <tbody id="senator-trades-tbody"></tbody>
                     </table>
                 </div>`;
@@ -1140,7 +1140,7 @@
 
             log('debug', 'Populating senator trades table');
             tbody.innerHTML = '';
-            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="7"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
+            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="8"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
                 log('debug', 'Attempting to fetch senator data', { url: PROXIED_SENATOR_DATA_URL });
@@ -1162,17 +1162,17 @@
                     let assetName = cleanedTrade.asset_name || '';
 
                     // If ticker is '--' or empty, check if the asset_name might be the ticker.
-                    // This happens when the data source incorrectly places the ticker in the asset_name field.
                     if (ticker === '--' || !ticker) {
                         const tickerRegex = /^[A-Z]{1,5}$/;
                         if (tickerRegex.test(assetName)) {
                             ticker = assetName;
-                            assetName = 'N/A'; // Since we moved the ticker, we don't have a proper asset name.
+                            assetName = 'N/A'; 
                         }
                     }
 
                     // Final object structure for rendering
                     return {
+                        filing_date: cleanedTrade.file_date,
                         transaction_date: cleanedTrade.tx_date,
                         senator: `${cleanedTrade.first_name || ''} ${cleanedTrade.last_name || ''}`.trim(),
                         asset_description: assetName,
@@ -1189,7 +1189,7 @@
                 
                 tbody.innerHTML = '';
                 if (!cleanedAndFilteredTrades || cleanedAndFilteredTrades.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem;">No valid senator trades found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 2rem;">No valid senator trades found.</td></tr>`;
                     return;
                 }
 
@@ -1202,9 +1202,11 @@
                     row.dataset.ticker = ticker;
                     row.dataset.id = tradeId;
 
+                    const filingDateCell = formatDateCell(trade.filing_date, false);
                     const transactionDateCell = formatDateCell(trade.transaction_date, false);
 
                     row.innerHTML = `
+                        ${filingDateCell}
                         ${transactionDateCell}
                         <td>${trade.senator || 'N/A'}</td>
                         <td><div class="company-name">${companyName}</div></td>
@@ -1216,7 +1218,7 @@
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
-                    detailsRow.innerHTML = `<td colspan="7" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
+                    detailsRow.innerHTML = `<td colspan="8" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
@@ -1227,7 +1229,7 @@
                 log('error', 'Failed to fetch or process senator trades', error);
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" style="text-align:center; padding: 2rem; color: var(--error-red);">
+                        <td colspan="8" style="text-align:center; padding: 2rem; color: var(--error-red);">
                             <div>Could not load senator trades feed.</div>
                             <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
                                 Error: ${error.message}
