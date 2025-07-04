@@ -100,21 +100,116 @@
         .plan-badge.basic { color: var(--text-secondary); background-color: rgba(160, 168, 184, 0.1); border: 1px solid rgba(160, 168, 184, 0.2); }
         .plan-badge.none { color: var(--text-tertiary); }
 
-        /* --- PRICING SECTION --- */
-        .pricing-section h1 { text-align: center; font-size: 3rem; font-weight: 900; margin-bottom: 1rem; }
-        .pricing-section .subtitle { text-align: center; font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 4rem; }
-        .pricing-grid { display: flex; justify-content: center; gap: 2rem; align-items: center; }
-        .pricing-card { background: var(--card-bg-glass); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem 2rem; transition: all 0.3s ease; display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 380px; }
-        .pricing-card h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary); }
-        .pricing-card .plan-desc { color: var(--text-secondary); margin-bottom: 2rem; min-height: 40px; }
-        .price { font-size: 3.5rem; font-weight: 900; margin-bottom: 0.5rem; }
-        .price .period { font-size: 1rem; font-weight: 500; color: var(--text-secondary); }
-        .features-list { list-style: none; margin: 2rem 0; flex-grow: 1; }
-        .features-list li { margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); }
-        .features-list li i.fa-check-circle { color: var(--success-green); }
-        .features-list li i.fa-lock { color: var(--warning-yellow); }
-        .pricing-card.recommended { transform: scale(1.05); border: 2px solid var(--accent-cyan); box-shadow: 0 0 40px rgba(0, 198, 255, 0.2); position: relative; }
-        .recommended-badge { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--gradient-primary); color: white; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; }
+        /* --- NEW REVAMPED PRICING SECTION --- */
+        .pricing-section .main-title { 
+            text-align: center; 
+            font-size: 3rem; 
+            font-weight: 900; 
+            margin-bottom: 1rem; 
+            line-height: 1.2;
+        }
+        .pricing-section .subtitle { 
+            text-align: center; 
+            font-size: 1.2rem; 
+            color: var(--text-secondary); 
+            max-width: 650px; 
+            margin: 0 auto 4rem; 
+        }
+        .pricing-container {
+            background: var(--card-bg-glass);
+            backdrop-filter: blur(15px) saturate(180%);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            box-shadow: 0 0 50px rgba(0, 198, 255, 0.1), inset 0 0 0 1px rgba(255,255,255,0.05);
+            transition: all 0.4s ease;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        @media (max-width: 900px) {
+            .pricing-container {
+                flex-direction: column;
+                padding: 2rem;
+                gap: 2rem;
+            }
+        }
+        .pricing-container:hover {
+            box-shadow: 0 0 70px rgba(0, 198, 255, 0.2), inset 0 0 0 1px rgba(255,255,255,0.05);
+            transform: translateY(-5px);
+        }
+        .plan-details {
+            flex-basis: 40%;
+            text-align: center;
+            border-right: 1px solid var(--border-color);
+            padding-right: 3rem;
+        }
+        @media (max-width: 900px) {
+            .plan-details {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding-right: 0;
+                padding-bottom: 2rem;
+                width: 100%;
+            }
+        }
+        .plan-details h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+        .plan-price {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .plan-price .period {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .plan-details .btn-primary {
+            margin-top: 2rem;
+            width: 100%;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+        }
+        .plan-features {
+            flex-basis: 60%;
+        }
+        .plan-features h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+        .plan-features ul {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        .plan-features li i {
+            color: var(--success-green);
+            font-size: 1.2rem;
+        }
+        .plan-disclaimer {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
 
         /* --- DASHBOARD LAYOUT --- */
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; }
@@ -562,26 +657,37 @@
     </header>
 
     <main>
-        <!-- Pricing Section -->
+        <!-- ================================================================= -->
+        <!-- ================= NEW REVAMPED PRICING SECTION ================== -->
+        <!-- ================================================================= -->
         <section id="pricingSection" class="container">
-            <h1>Get Insider Trading Alerts, Instantly.</h1>
+            <h1 class="main-title">Get Insider Trading Alerts, Instantly.</h1>
             <p class="subtitle">Stop guessing. Start receiving real-time notifications when CEOs, CFOs, and other top executives make significant stock purchases.</p>
-            <div class="pricing-grid">
-                <div class="pricing-card recommended">
-                    <div class="recommended-badge">RECOMMENDED</div>
-                    <h3>Professional</h3> <p class="plan-desc">For the serious investor who needs every edge.</p>
-                    <div class="price">$8.99<span class="period">/month</span></div>
-                    <ul class="features-list">
-                        <li><i class="fas fa-check-circle"></i> Real-time SMS & Email alerts</li>
-                        <li><i class="fas fa-check-circle"></i> <strong>Unlimited</strong> trade alerts</li>
+            
+            <div class="pricing-container">
+                <div class="plan-details">
+                    <h3>Professional</h3>
+                    <div class="plan-price">$8.99<span class="period">/month</span></div>
+                    <button class="btn btn-primary plan-button" onclick="selectPlan('price_1RgA04P1BWtn2d850aqHB5UE', 'professional')" disabled>Choose Professional</button>
+                </div>
+                <div class="plan-features">
+                    <h4>What's Included:</h4>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> Email Notifications*</li>
+                        <li><i class="fas fa-check-circle"></i> Live Dashboard of Insider Trades*</li>
+                        <li><i class="fas fa-check-circle"></i> Dashboard of Congressional Trades*</li>
+                        <li><i class="fas fa-check-circle"></i> Unlimited trade alerts</li>
                         <li><i class="fas fa-check-circle"></i> Full customization options</li>
-                        <li><i class="fas fa-check-circle"></i> Live dashboard of all trades</li>
                         <li><i class="fas fa-check-circle"></i> Priority support</li>
                     </ul>
-                    <button class="btn btn-primary plan-button" onclick="selectPlan('price_1RgA04P1BWtn2d850aqHB5UE', 'professional')" disabled>Choose Professional</button>
+                    <p class="plan-disclaimer">*Live alerts based on filing date.</p>
                 </div>
             </div>
         </section>
+        <!-- ================================================================= -->
+        <!-- =================== END REVAMPED PRICING SECTION ================== -->
+        <!-- ================================================================= -->
+
 
         <!-- Dashboard Section -->
         <section id="dashboardSection" class="container hidden">
