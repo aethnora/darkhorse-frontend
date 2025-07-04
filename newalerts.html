@@ -1037,25 +1037,25 @@
                 log('success', 'Raw insider trades data received', { count: trades.length, sample: trades[0] });
                 
                 const cleanedTrades = trades.map(trade => {
-                    const cleaned = {};
-                    for (const [key, value] of Object.entries(trade)) {
-                        let cleanKey = key.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
-                        if (cleanKey.toLowerCase().includes('filing') && cleanKey.toLowerCase().includes('date')) cleaned['Filing Date'] = value;
-                        else if (cleanKey.toLowerCase().includes('trade') && cleanKey.toLowerCase().includes('date')) cleaned['Trade Date'] = value;
-                        else if (cleanKey.toLowerCase().includes('company') && cleanKey.toLowerCase().includes('name')) cleaned['Company Name'] = value;
-                        else if (cleanKey.toLowerCase() === 'ticker') cleaned['Ticker'] = value;
-                        else if (cleanKey.toLowerCase().includes('insider') && cleanKey.toLowerCase().includes('name')) cleaned['Insider Name'] = value;
-                        else if (cleanKey.toLowerCase() === 'title') cleaned['Title'] = value;
-                        else if (cleanKey.toLowerCase().includes('trade') && cleanKey.toLowerCase().includes('type')) cleaned['Trade Type'] = value;
-                        else if (cleanKey.toLowerCase() === 'price') cleaned['Price'] = value;
-                        else if (cleanKey.toLowerCase() === 'qty') cleaned['Qty'] = value;
-                        else if (cleanKey.toLowerCase() === 'owned') cleaned['Owned'] = value;
-                        else if (cleanKey.includes('Own') || cleanKey.includes('Δ') || cleanKey.includes('Delta')) cleaned['ΔOwn'] = value;
-                        else if (cleanKey.toLowerCase() === 'value') cleaned['Value'] = value;
-                        else cleaned[cleanKey] = value;
-                    }
-                    return cleaned;
-                });
+    const cleaned = {};
+    for (const [key, value] of Object.entries(trade)) {
+        const keyLower = key.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+
+        if (keyLower.includes('title')) cleaned['Title'] = value;
+        else if (keyLower.includes('qty') || keyLower.includes('quantity')) cleaned['Qty'] = value;
+        else if (keyLower.includes('ticker') || keyLower.includes('symbol')) cleaned['Ticker'] = value;
+        else if (keyLower.includes('type')) cleaned['Type'] = value;
+        else if (keyLower.includes('date')) cleaned['Date'] = value;
+        else if (keyLower.includes('owner')) cleaned['Owner'] = value;
+        else {
+            // Include any other unexpected fields so you can see them
+            cleaned[key] = value;
+        }
+    }
+    console.log("CLEANED TRADE:", cleaned);
+    return cleaned;
+});
+
 
                 const purchasesTrades = cleanedTrades.filter(trade => {
                     const tradeType = (trade['Trade Type'] || '').toString().toLowerCase().trim();
@@ -1232,16 +1232,10 @@
                     const transactionDateCell = formatDateCell(trade.transaction_date, false);
                     const tickerHtml = ticker ? `<div class="ticker">${ticker}</div>` : '';
 
-                    row.innerHTML = `
-                        ${transactionDateCell}
-                        <td>${trade.senator || 'N/A'}</td>
-                        <td><div class="company-name">${companyName}</div></td>
-                        <td>${tickerHtml}</td>
-                        <td>${trade.type || 'N/A'}</td>
-                        <td>${trade.amount || 'N/A'}</td>
-                        <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>
-                    `;
-                    
+                   row.innerHTML = Object.entries(trade).map(([key, value]) => 
+    `<td><strong>${key}:</strong> ${value}</td>`
+).join('');
+
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
                     detailsRow.innerHTML = `<td colspan="7" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
