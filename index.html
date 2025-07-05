@@ -36,6 +36,39 @@
             line-height: 1.6;
         }
         
+        /* --- NEW HEADER STYLES --- */
+        .page-header { 
+            padding: 1rem 2rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: fixed; /* Changed to fixed */
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(10, 15, 28, 0.8); 
+            backdrop-filter: blur(10px); 
+            z-index: 100; 
+            border-bottom: 1px solid var(--glass-border); 
+        }
+        .header-left { display: flex; align-items: center; gap: 2rem; }
+        .logo { font-size: 1.5rem; font-weight: 900; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .header-nav { display: flex; gap: 0.5rem; }
+        .header-nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .header-nav-link:hover {
+            color: var(--text-primary);
+            background-color: var(--glass-bg);
+        }
+        /* --- END NEW HEADER STYLES --- */
+
         .section-container {
             max-width: var(--container-width);
             margin: 0 auto;
@@ -81,6 +114,7 @@
             position: relative;
             padding: 0 2rem;
             overflow: hidden;
+            padding-top: 80px; /* Added padding to offset fixed header */
         }
         
         #starfield {
@@ -334,6 +368,7 @@
         @media (max-width: 768px) {
             .section-container { padding: 6rem 1.5rem; }
             .spotlight-grid { grid-template-columns: 1fr; }
+            .header-nav { display: none; } /* Hide nav on smaller screens */
         }
         
         /* GSAP Initial States */
@@ -341,13 +376,24 @@
     </style>
 </head>
 <body>
+    
+    <header class="page-header">
+        <div class="header-left">
+            <div class="logo">DarkHorse</div>
+            <nav class="header-nav">
+                <a href="index.html" class="header-nav-link">Home</a>
+                <a href="research.html" class="header-nav-link">Research</a>
+            </nav>
+        </div>
+        <!-- Note: User controls are intentionally omitted on the public homepage -->
+    </header>
 
     <main class="main-content">
 
         <section class="hero">
             <canvas id="starfield"></canvas>
             <div class="hero-content">
-                <h1 class="fade-in-up">Insiders Have an Edge. <br>We Give You <span class="highlight">The Access.</span></h1>
+                <h1 class="fade-in-up">Insiders Have an Edge. <br>We Give It <span class="highlight">to You.</span></h1>
                 <p class="fade-in-up">Gain an informational advantage by tracking the high-conviction trades of corporate insiders and congressional leaders. Our platform filters the noise and delivers the signals that matter, directly to you.</p>
                 <div class="hero-cta-container fade-in-up">
                     <a href="https://darkhorsetrades.com/newalerts.html" class="cta-button">
@@ -400,8 +446,7 @@
                         <div class="card-content">
                             <div class="card-header">
                                 <div class="card-avatar">
-    <img src="axsome-logo.png" alt="Axsome Therapeutics Logo">
-</div>
+                                    <img src="axsome-logo.png" alt="Axsome Therapeutics Logo">
                                 </div>
                                 <div class="card-details">
                                     <h3>Axsome Therapeutics</h3>
@@ -433,8 +478,8 @@
                         <div class="card-content">
                             <div class="card-header">
                                 <div class="card-avatar" style="border-color: var(--gold);">
-    <img src="ron-wyden.png" alt="Ron Wyden">
-</div>
+                                    <img src="ron-wyden.png" alt="Ron Wyden">
+                                </div>
                                 <div class="card-details">
                                     <h3>Congressional Trade</h3>
                                     <span class="company" style="color: var(--gold);">Ron Wyden (2024)</span>
