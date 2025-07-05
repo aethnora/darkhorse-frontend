@@ -4,85 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - DarkHorse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         :root {
             --primary-blue: #0a74da;
             --accent-cyan: #00c6ff;
             --dark-bg: #0a0f1c;
-            --darker-bg: #07121e;
-            --card-bg: rgba(16, 34, 58, 0.8);
+            --darker-bg: #02040a;
+            --card-bg: #10182c;
             --text-primary: #ffffff;
             --text-secondary: #a0a8b8;
+            --text-tertiary: #6b7f99;
             --gradient-primary: linear-gradient(135deg, #0a74da 0%, #00c6ff 100%);
-            --gradient-bg: linear-gradient(135deg, #0a0f1c 0%, #1a2332 100%);
+            --glass-border: rgba(42, 59, 90, 0.5);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--gradient-bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--darker-bg);
             color: var(--text-primary);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            line-height: 1.6;
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Navigation */
-        .navbar {
-            position: fixed;
+        .page-header { 
+            padding: 1rem 2rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky;
             top: 0;
             width: 100%;
-            padding: 1rem 2rem;
-            background: rgba(10, 15, 28, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 1000;
+            background: rgba(10, 15, 28, 0.8); 
+            backdrop-filter: blur(10px); 
+            z-index: 100; 
+            border-bottom: 1px solid var(--glass-border); 
         }
-
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-links a {
+        .header-left { display: flex; align-items: center; gap: 2rem; }
+        .logo { font-size: 1.5rem; font-weight: 900; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; }
+        .header-nav { display: flex; gap: 0.5rem; }
+        .header-nav-link {
             color: var(--text-secondary);
             text-decoration: none;
-            transition: color 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .header-nav-link:hover {
+            color: var(--text-primary);
+            background-color: var(--glass-bg);
         }
 
-        .nav-links a:hover {
-            color: var(--accent-cyan);
-        }
-
-        /* Main Content */
         .content-wrapper {
-            padding-top: 100px;
-            flex: 1;
+            padding-top: 80px;
         }
 
         .legal-container {
@@ -91,267 +71,164 @@
             padding: 3rem 2rem;
         }
 
-        .page-header {
+        .page-title-header {
             text-align: center;
             margin-bottom: 3rem;
         }
 
-        .page-header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .page-title-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
             margin-bottom: 1rem;
         }
 
         .effective-date {
             color: var(--text-secondary);
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .legal-content {
             background: var(--card-bg);
-            border-radius: 20px;
-            padding: 3rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem 3rem;
+            border: 1px solid var(--glass-border);
         }
 
         .legal-content h2 {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             color: var(--accent-cyan);
             margin: 2.5rem 0 1rem 0;
             font-weight: 600;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .legal-content h3 {
-            font-size: 1.4rem;
-            color: var(--text-primary);
-            margin: 2rem 0 1rem 0;
-            font-weight: 600;
-        }
-
-        .legal-content p {
+        .legal-content p, .legal-content li {
             color: var(--text-secondary);
             margin-bottom: 1rem;
-            line-height: 1.8;
         }
 
         .legal-content ul {
-            margin: 1rem 0 1rem 2rem;
-            color: var(--text-secondary);
+            margin: 1rem 0 1rem 1.5rem;
+            padding-left: 1rem;
         }
-
-        .legal-content li {
-            margin-bottom: 0.5rem;
-            line-height: 1.8;
-        }
-
+        
         .legal-content strong {
             color: var(--text-primary);
+            font-weight: 600;
         }
 
-        .highlight-box {
-            background: rgba(0, 198, 255, 0.1);
-            border-left: 4px solid var(--accent-cyan);
-            padding: 1rem 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 8px;
+        .legal-content a {
+            color: var(--accent-cyan);
+            text-decoration: underline;
+            text-decoration-color: rgba(0, 198, 255, 0.3);
+            transition: color 0.3s ease;
+        }
+        .legal-content a:hover {
+            text-decoration-color: var(--accent-cyan);
         }
 
-        /* Footer Styles */
         .universal-footer {
-            background: var(--darker-bg);
+            background: var(--dark-bg);
             padding: 2rem 1rem;
             text-align: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-secondary);
-            margin-top: auto;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-tertiary);
+            margin-top: 4rem;
         }
-
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .footer-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.3s ease;
-            font-size: 0.95rem;
-        }
-
-        .footer-links a:hover {
-            color: var(--accent-cyan);
-        }
-
-        .footer-divider {
-            color: #4a5568;
-            margin: 0 0.5rem;
-        }
-
         .footer-copyright {
             font-size: 0.9rem;
-            line-height: 1.6;
         }
 
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .legal-content {
-                padding: 2rem 1.5rem;
-            }
-
-            .page-header h1 {
-                font-size: 2rem;
-            }
-
-            .footer-links {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .footer-divider {
-                display: none;
-            }
+            .header-nav { display: none; }
+            .legal-content { padding: 2rem 1.5rem; }
+            .page-title-header h1 { font-size: 2.2rem; }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="/" class="logo">DarkHorse</a>
-            <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/terms-of-service.html">Terms of Service</a></li>
-            </ul>
+    <header class="page-header">
+        <div class="header-left">
+            <a href="index.html" class="logo">DarkHorse</a>
+            <nav class="header-nav">
+                <a href="index.html" class="header-nav-link">Home</a>
+                <a href="research.html" class="header-nav-link">Research</a>
+                <a href="newalerts.html" class="header-nav-link">Dashboard</a>
+            </nav>
         </div>
-    </nav>
+        <div>
+             <a href="terms-of-service.html" class="header-nav-link">Terms of Service</a>
+        </div>
+    </header>
 
-    <!-- Main Content -->
     <div class="content-wrapper">
         <div class="legal-container">
-            <div class="page-header">
+            <div class="page-title-header">
                 <h1>Privacy Policy</h1>
-                <p class="effective-date">Effective Date: June 19, 2025</p>
+                <p class="effective-date">Effective Date: July 5, 2025</p>
             </div>
 
             <div class="legal-content">
-                <p><strong>Website:</strong> <a href="https://darkhorsetrader.com" style="color: var(--accent-cyan);">https://darkhorsetrader.com</a></p>
+                <p>DarkHorse ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services (collectively, the "Service").</p>
+                <p>By using the Service, you agree to the collection and use of information in accordance with this policy.</p>
 
-                <p>DarkHorse Trader ("we", "our", or "us") respects your privacy and is committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, disclose, and safeguard your data when you use our platform or visit our website.</p>
-
-                <p>By using DarkHorse Trader, you agree to the terms of this Privacy Policy.</p>
-
-                <h3>1. What We Collect</h3>
-                <p>We only collect data necessary to provide and improve the services we offer — namely, automated trading via your Alpaca account.</p>
-
-                <div class="highlight-box">
-                    <p><strong>We do NOT collect:</strong></p>
-                    <ul>
-                        <li>Your Alpaca login credentials</li>
-                        <li>Your personal financial information such as bank account or social security numbers</li>
-                    </ul>
-                </div>
-
-                <p><strong>We DO collect:</strong></p>
+                <h2>1. Information We Collect</h2>
+                <p>We collect information that is necessary to provide and improve our Service. This includes:</p>
                 <ul>
-                    <li><strong>OAuth access tokens and permissions</strong> (read-only or trade access you authorize)</li>
-                    <li><strong>Alpaca account data</strong> such as account ID, buying power, portfolio positions, and trade history</li>
-                    <li><strong>Email address</strong> and basic user profile data (if you choose to provide it)</li>
+                    <li><strong>Account Information:</strong> When you register for an account, we collect your <strong>email address</strong>. Your password is encrypted and managed by our authentication provider (Firebase Authentication) and is never visible to us.</li>
+                    <li><strong>Subscription and Payment Information:</strong> When you subscribe to our Service, our third-party payment processor, <strong>Stripe</strong>, will collect your payment information. We do not collect or store your full credit card number or other sensitive payment details. We only receive a confirmation of your subscription status from Stripe.</li>
+                    <li><strong>User Preferences:</strong> We store your notification settings and preferences, such as watchlists and alert criteria, to tailor the Service to your specifications.</li>
+                    <li><strong>Usage and Analytics Data:</strong> We use <strong>Google Analytics</strong> to collect anonymous information about how you interact with our website, such as pages visited and time spent on the site. This data helps us understand user behavior and improve the Service. It does not include personally identifiable information.</li>
                 </ul>
 
-                <h3>2. How We Use Your Data</h3>
-                <p>We use the information we collect to:</p>
+                <h2>2. How We Use Your Information</h2>
+                <p>We use the information we collect for the following purposes:</p>
                 <ul>
-                    <li>Execute trades on your behalf based on your chosen strategy</li>
-                    <li>Display your trading activity and performance within our dashboard</li>
-                    <li>Improve the reliability and functionality of our platform</li>
-                    <li>Comply with legal obligations (e.g., audit logs, fraud prevention)</li>
+                    <li><strong>To Provide and Maintain the Service:</strong> To manage your account, process your subscription, and deliver real-time email alerts based on your personalized settings.</li>
+                    <li><strong>To Communicate with You:</strong> To send you important service-related updates, such as changes to our terms or features. We will not send you marketing emails.</li>
+                    <li><strong>To Improve Our Service:</strong> To analyze usage trends and feedback to enhance the functionality and user experience of our website and dashboard.</li>
+                    <li><strong>For Security and Compliance:</strong> To protect against fraud, abuse, and to comply with legal obligations.</li>
                 </ul>
-                <p>We do not use your data for advertising, profiling, or unsolicited marketing. We do not sell your data.</p>
 
-                <h3>3. How We Store and Protect Your Data</h3>
-                <p>We take data security seriously. All user data is:</p>
+                <h2>3. How We Share Your Information</h2>
+                <p>We do not sell or rent your personal information to third parties. We only share your information with trusted service providers who assist us in operating our Service, under strict confidentiality agreements. These include:</p>
                 <ul>
-                    <li>Encrypted in transit and at rest</li>
-                    <li>Stored on secure servers behind firewalls</li>
-                    <li>Never stored longer than necessary for the purpose of service delivery</li>
+                    <li><strong>Firebase (Google):</strong> For user authentication and database management.</li>
+                    <li><strong>Stripe:</strong> For secure payment processing.</li>
+                    <li><strong>Google Analytics:</strong> For website traffic analysis.</li>
                 </ul>
-                <p>Access to sensitive data is strictly limited to essential personnel under strict confidentiality agreements.</p>
+                <p>We may also disclose your information if required by law, such as to comply with a subpoena or other legal process, or to protect our rights and property.</p>
 
-                <h3>4. Sharing of Information</h3>
-                <p>We only share data when necessary and with trusted parties:</p>
+                <h2>4. Data Security</h2>
+                <p>We implement a variety of industry-standard security measures to maintain the safety of your personal information. However, no method of transmission over the Internet or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your information, we cannot guarantee its absolute security.</p>
+                
+                <h2>5. Cookies</h2>
+                <p>We use essential cookies to provide core functionality for our Service, such as keeping you logged into your account. We do not use third-party advertising cookies. Our use of analytics cookies through Google Analytics is described in Section 1.</p>
+
+                <h2>6. Your Data Rights and Choices</h2>
+                <p>You have certain rights regarding your personal information. You can:</p>
                 <ul>
-                    <li><strong>With Alpaca:</strong> To place trades on your behalf</li>
-                    <li><strong>With service providers:</strong> (e.g., secure cloud hosting, analytics) who process data on our behalf under contractual confidentiality</li>
-                    <li><strong>If required by law:</strong> To comply with a subpoena, legal process, or governmental request</li>
-                    <li><strong>In case of merger or acquisition:</strong> We may transfer data if DarkHorse Trader is acquired or merged, in which case users will be notified in advance</li>
+                    <li>Access or update your account information and notification preferences at any time through your dashboard settings.</li>
+                    <li>Request the deletion of your account and personal data. Please note that we may need to retain certain information for legal or administrative purposes.</li>
                 </ul>
-                <p>We do not sell or rent your personal information to any third party for any reason.</p>
+                <p>To exercise your rights or request account deletion, please contact us at <a href="mailto:support@aethnora.com">support@aethnora.com</a>.</p>
 
-                <h3>5. Your Rights and Choices</h3>
-                <p>Depending on your location, you may have the following rights:</p>
-                <ul>
-                    <li><strong>Access:</strong> Request a copy of the data we hold about you</li>
-                    <li><strong>Correction:</strong> Update inaccurate information</li>
-                    <li><strong>Deletion:</strong> Request we erase your data (may limit platform access)</li>
-                    <li><strong>Objection:</strong> Limit how we process your data in certain cases</li>
-                    <li><strong>Revoke Access:</strong> You can disconnect Alpaca access at any time from your Alpaca dashboard</li>
-                </ul>
-                <p>To exercise any of these rights, email us at <strong><a href="mailto:aethnora@gmail.com" style="color: var(--accent-cyan);">aethnora@gmail.com</a></strong></p>
+                <h2>7. Children's Privacy</h2>
+                <p>Our Service is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children. If we become aware that we have collected personal data from a child without verification of parental consent, we will take steps to remove that information from our servers.</p>
 
-                <h3>6. Cookies and Analytics</h3>
-                <p>We use minimal cookies and basic analytics tools to:</p>
-                <ul>
-                    <li>Understand user behavior (e.g., page visits, performance bottlenecks)</li>
-                    <li>Improve our platform's usability</li>
-                </ul>
-                <p>You can opt out of non-essential cookies via your browser settings. No third-party advertising cookies are used.</p>
+                <h2>8. Changes to This Privacy Policy</h2>
+                <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Effective Date" at the top. We encourage you to review this Privacy Policy periodically for any changes.</p>
 
-                <h3>7. Children's Privacy</h3>
-                <p>DarkHorse Trader is not intended for use by children under the age of 18. We do not knowingly collect data from minors. If we learn that a user under 18 has submitted personal information, we will promptly delete it.</p>
-
-                <h3>8. International Data Transfers</h3>
-                <p>We operate from the United States. If you access our services from outside the U.S., you consent to your data being transferred to and processed in the United States, which may have different privacy protections than your jurisdiction.</p>
-
-                <h3>9. Updates to This Policy</h3>
-                <p>We may revise this Privacy Policy from time to time. Changes will be posted here with an updated effective date. If the changes are material, we will notify users via email or in-app message.</p>
-
-                <h3>10. Contact Us</h3>
-                <p>For questions or concerns about this Privacy Policy or our data practices, contact:</p>
-                <p><a href="mailto:aethnora@gmail.com" style="color: var(--accent-cyan);"><strong>aethnora@gmail.com</strong></a></p>
+                <h2>9. Contact Us</h2>
+                <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:support@aethnora.com">support@aethnora.com</a>.</p>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="universal-footer">
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="/terms-of-service.html">Terms of Service</a>
-                <span class="footer-divider">|</span>
-                <a href="/privacy-policy.html">Privacy Policy</a>
-            </div>
-            <div class="footer-copyright">
-                <span>© 2025 DarkHorse. All rights reserved.</span>
-                <span class="footer-divider">|</span>
-                <span>Securities trading involves risk of loss.</span>
-            </div>
+        <div class="footer-copyright">
+            <span>© 2025 DarkHorse. All rights reserved.</span>
         </div>
     </footer>
 </body>

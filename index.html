@@ -367,47 +367,47 @@
         }
         
         /* --- NEW FOOTER & WORKS CITED --- */
-        .footer {
-            padding: 4rem 2rem;
-            border-top: 1px solid var(--glass-border);
-            background-color: var(--dark-bg);
-        }
-        .footer .works-cited {
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .footer .works-cited h4 {
-            margin-bottom: 1rem;
-            color: var(--text-secondary);
+        .universal-footer {
+            background: #07121e;
+            padding: 2rem 1rem;
             text-align: center;
-            font-size: 1.25rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #a0a8b8;
+            margin-top: auto;
         }
-        .footer .works-cited ul {
-            list-style: none;
-            padding-left: 0;
-            font-size: 0.8rem;
-            columns: 2;
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
-        @media (max-width: 600px) {
-            .footer .works-cited ul {
-                columns: 1;
-            }
-        }
-        .footer .works-cited li {
-            margin-bottom: 0.75rem;
-            color: var(--text-tertiary);
-            line-height: 1.5;
-        }
-        .footer .works-cited li a {
-            color: var(--text-secondary);
-            text-decoration: underline;
-            text-decoration-color: var(--glass-border);
+        .footer-links a {
+            color: #a0a8b8;
+            text-decoration: none;
             transition: color 0.3s ease;
+            font-size: 0.95rem;
         }
-        .footer .works-cited li a:hover {
-            color: var(--accent-cyan);
+        .footer-links a:hover {
+            color: #00c6ff;
+        }
+        .footer-divider {
+            color: #4a5568;
+            margin: 0 0.5rem;
+        }
+        .footer-copyright {
+            color: #a0a8b8;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .footer-copyright span {
+            display: inline-block;
         }
         /* --- END NEW FOOTER --- */
 
@@ -416,6 +416,13 @@
             .section-container { padding: 6rem 1.5rem; }
             .spotlight-grid { grid-template-columns: 1fr; }
             .header-nav { display: none; } /* Hide nav on smaller screens */
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .footer-divider {
+                display: none;
+            }
         }
         
         /* GSAP Initial States */
@@ -594,12 +601,20 @@
 
     </main>
 
-    <footer class="footer">
-        <div class="works-cited">
-            <h4>Works Cited</h4>
-            <ul id="citations-list">
-                <!-- Citations will be injected here by JavaScript -->
-            </ul>
+    <footer class="universal-footer">
+        <div class="footer-container">
+            <div class="footer-links">
+                <a href="/terms-of-service.html">Terms of Service</a>
+                <span class="footer-divider">|</span>
+                <a href="/privacy-policy.html">Privacy Policy</a>
+                <span class="footer-divider">|</span>
+                <a href="mailto:support@aethnora.com">Contact: support@aethnora.com</a>
+            </div>
+            <div class="footer-copyright">
+                <span>© 2025 DarkHorse. All rights reserved.</span>
+                <span class="footer-divider">|</span>
+                <span>Securities trading involves risk of loss.</span>
+            </div>
         </div>
     </footer>
 
