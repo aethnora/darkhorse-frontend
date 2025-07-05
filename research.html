@@ -24,6 +24,7 @@
             --white: #ffffff;
             --gold: #ffc700;
             --cyan: #00d1ff;
+            --gradient-primary: linear-gradient(135deg, #0a74da 0%, #00c6ff 100%);
             --green-glow: #00ff88;
             --red-glow: #ff4d4d;
             --font-primary: 'Inter', sans-serif;
@@ -45,6 +46,40 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+        
+        /* --- NEW HEADER STYLES --- */
+        .page-header { 
+            padding: 1rem 2rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(10, 15, 28, 0.8); 
+            backdrop-filter: blur(10px); 
+            z-index: 100; 
+            border-bottom: 1px solid var(--glass-border); 
+        }
+        .header-left { display: flex; align-items: center; gap: 2rem; }
+        .logo { font-size: 1.5rem; font-weight: 900; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .header-nav { display: flex; gap: 0.5rem; }
+        .header-nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .header-nav-link:hover {
+            color: var(--white);
+            background-color: var(--glass-bg);
+        }
+        /* --- END NEW HEADER STYLES --- */
+
         .main-container { overflow: hidden; }
         .section-padding { padding: 8rem 2rem; }
         .container { max-width: var(--container-width); margin: 0 auto; padding: 0 1rem; }
@@ -77,6 +112,7 @@
             text-align: center;
             padding: 2rem;
             background: radial-gradient(ellipse at 50% 0%, rgba(16, 23, 39, 0.9) 0%, var(--dark-navy) 70%);
+            padding-top: 80px; /* Offset for fixed header */
         }
         #particle-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.4; }
         .hero-content { position: relative; z-index: 1; max-width: 1100px; }
@@ -288,6 +324,7 @@
             h2 { font-size: 2rem; }
             .hero-content p { font-size: 1.2rem; }
             .pillars-grid, .action-grid, .advantages-grid, .politician-grid { grid-template-columns: 1fr; }
+            .header-nav { display: none; } /* Hide nav on smaller screens */
         }
 
         /* --- GSAP UTILITIES --- */
@@ -296,6 +333,17 @@
     </style>
 </head>
 <body>
+
+    <header class="page-header">
+        <div class="header-left">
+            <div class="logo">DarkHorse</div>
+            <nav class="header-nav">
+                <a href="index.html" class="header-nav-link">Home</a>
+                <a href="research.html" class="header-nav-link">Research</a>
+            </nav>
+        </div>
+        <!-- Note: User controls are intentionally omitted on the public homepage -->
+    </header>
 
     <main class="main-container">
 
@@ -518,12 +566,11 @@
             if (!container) return;
             let html = '';
             politicianTradesData.forEach(p => {
-                const imageName = p.name.replace(' ', '-').toLowerCase() + '.png';
                 let statClass = p.isPositive === true ? 'positive' : 'neutral';
                 html += `
                     <div class="politician-card gsap-fade-in-up">
                         <div class="politician-avatar">
-                            <img src="${imageName}" alt="${p.name}">
+                            <img src="${p.name.replace(' ', '-').toLowerCase()}.png" alt="${p.name}">
                         </div>
                         <div class="politician-info">
                             <h4>${p.name}</h4>
