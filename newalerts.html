@@ -236,6 +236,24 @@
             color: var(--text-tertiary);
             font-style: italic;
         }
+        /* --- NEW: COUPON STYLES --- */
+        .coupon-container {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        .coupon-container a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        #couponInputWrapper {
+            margin-top: 1rem;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
         /* --- DASHBOARD LAYOUT --- */
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; }
@@ -761,6 +779,18 @@
                     <h3>Professional</h3>
                     <div class="plan-price">$4.99<span class="period">/month</span></div>
                     <button class="btn btn-primary plan-button" onclick="selectPlan('price_1RhYUtP1BWtn2d85uXwrZnvF', 'professional')" disabled>Choose Professional</button>
+                    <!-- ================================================================= -->
+                    <!-- ==================== NEW COUPON CODE SECTION ==================== -->
+                    <!-- ================================================================= -->
+                    <div class="coupon-container">
+                        <a id="showCouponLink">Have a coupon code?</a>
+                        <div id="couponInputWrapper" class="hidden">
+                            <input type="text" id="couponCodeInput" class="input-field" placeholder="Enter Code">
+                        </div>
+                    </div>
+                    <!-- ================================================================= -->
+                    <!-- ================== END NEW COUPON CODE SECTION ================== -->
+                    <!-- ================================================================= -->
                 </div>
                 <div class="plan-features">
                     <h4>What's Included:</h4>
@@ -771,7 +801,7 @@
                         <li><i class="fas fa-check-circle"></i> Unlimited trade alerts</li>
                         <li><i class="fas fa-check-circle"></i> Full customization options</li>
                         <li><i class="fas fa-check-circle"></i> Priority support</li>
-<li><i class="fas fa-check-circle"></i> Cancel Anytime</li>
+                        <li><i class="fas fa-check-circle"></i> Cancel Anytime</li>
                     </ul>
                     <p class="plan-disclaimer">*Live alerts based on filing date.</p>
                 </div>
@@ -967,6 +997,9 @@
         const insiderFeedTabContent = document.getElementById('tab-content-insider-feed'), senatorFeedTabContent = document.getElementById('tab-content-senator-feed'), upgradeTabBtn = document.getElementById('upgrade-tab-btn'), dashboardTitle = document.getElementById('dashboard-title');
         const tabs = document.querySelectorAll('.tab-btn'), tabContents = document.querySelectorAll('.tab-content');
         const subscriptionInfo = document.getElementById('subscriptionInfo'), userPlanDisplay = document.getElementById('userPlanDisplay');
+        // NEW: Coupon DOM Elements
+        const showCouponLink = document.getElementById('showCouponLink');
+        const couponInputWrapper = document.getElementById('couponInputWrapper');
 
 
         // --- App State ---
@@ -1091,7 +1124,7 @@
                             if (userDoc.exists) {
                                 const userData = userDoc.data();
                                 // *** FIX: Check the correct nested status field ***
-                                if (userData.subscription && userData.subscription.status === 'active') {
+                                if (userData.subscription && (userData.subscription.status === 'active' || userData.subscription.status === 'trialing')) {
                                     log('success', 'Subscription activated successfully');
                                     clearInterval(appState.pollingInterval);
                                     appState.pollingInterval = null;
@@ -1304,7 +1337,7 @@
         // --- END NEW SECTION ---
 
 
-        // --- OPTIMIZED: selectPlan function ---
+        // --- MODIFIED: selectPlan function ---
         window.selectPlan = async (priceId, planName) => {
             // Guard clauses: Ensure we have a user and their profile before proceeding.
             if (!appState.currentUser) { 
@@ -1321,18 +1354,23 @@
             checkoutButton.disabled = true;
             checkoutButton.textContent = 'Redirecting...';
 
+            // Get the coupon code from the input field
+            const couponCodeInput = document.getElementById('couponCodeInput');
+            const couponCode = couponCodeInput.value.trim();
+
             try {
                 // Prepare the payload with data we already have on the frontend.
-                // This avoids the need for the backend to re-fetch from Firestore.
                 const payload = {
                     priceId: priceId,
                     planName: planName,
                     userId: appState.currentUser.uid,
-                    email: appState.userProfile.email, // Pass the email
-                    stripeCustomerId: appState.userProfile.stripeCustomerId || null // Pass existing ID or null
+                    email: appState.userProfile.email,
+                    stripeCustomerId: appState.userProfile.stripeCustomerId || null,
+                    // Add the coupon code to the payload. Send null if it's empty.
+                    couponCode: couponCode ? couponCode : null
                 };
 
-                log('info', 'Creating checkout session with optimized payload', payload);
+                log('info', 'Creating checkout session with payload', payload);
 
                 const response = await fetch(`${SERVER_URL}/create-checkout-session`, {
                     method: 'POST',
@@ -1342,7 +1380,8 @@
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Server error: ${errorData.error || 'Unknown error'}`);
+                    // Display the specific error from the backend (e.g., "invalid coupon")
+                    throw new Error(errorData.error || 'Unknown server error');
                 }
 
                 const { sessionId } = await response.json();
@@ -1358,7 +1397,7 @@
                 checkoutButton.textContent = originalText;
             }
         };
-        // --- END OPTIMIZED FUNCTION ---
+        // --- END MODIFIED FUNCTION ---
 
 
         // NEW: Function to redirect to Stripe Customer Portal
@@ -1396,8 +1435,8 @@
             if (!appState.userProfile) return;
 
             const { subscription } = appState.userProfile;
-            // *** FIX: Check the correct nested status field ***
-            if (subscription && subscription.status === 'active') {
+            // Check for 'active' or 'trialing' status
+            if (subscription && (subscription.status === 'active' || subscription.status === 'trialing')) {
                 processingOverlay.classList.remove('show');
                 processingOverlay.classList.add('hidden');
                 pricingSection.classList.add('hidden');
@@ -1408,6 +1447,12 @@
                 subscriptionInfo.classList.remove('hidden');
                 userPlanDisplay.textContent = planId || 'none';
                 userPlanDisplay.className = `plan-badge ${planId || 'none'}`;
+
+                // Add a 'trialing' badge style if needed
+                if (subscription.status === 'trialing') {
+                    userPlanDisplay.textContent += ' (Trial)';
+                    userPlanDisplay.classList.add('trialing'); 
+                }
 
                 upgradeTabBtn.classList.toggle('hidden', planId !== 'basic');
                 
@@ -2001,6 +2046,15 @@
 
         document.getElementById('managePlanBtn').addEventListener('click', redirectToCustomerPortal);
         
+        // NEW: Event listener for the coupon link
+        showCouponLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            couponInputWrapper.classList.toggle('hidden');
+            if (!couponInputWrapper.classList.contains('hidden')) {
+                document.getElementById('couponCodeInput').focus();
+            }
+        });
+
         function updateSliderValue(elementId, value, formatter) { 
             const el = document.getElementById(elementId);
             if(el) el.textContent = formatter(value); 
