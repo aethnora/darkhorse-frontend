@@ -102,6 +102,24 @@
         .auth-toggle { text-align: center; margin-top: 1.5rem; color: var(--text-secondary); }
         .auth-toggle a { color: var(--accent-cyan); text-decoration: none; font-weight: 600; }
 
+        /* --- NEW HEADER NAVIGATION STYLES --- */
+        .header-left { display: flex; align-items: center; gap: 2rem; }
+        .header-nav { display: flex; gap: 0.5rem; }
+        .header-nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .header-nav-link:hover {
+            color: var(--text-primary);
+            background-color: var(--card-bg);
+        }
+        /* --- END NEW HEADER STYLES --- */
+
         /* --- PLAN MANAGEMENT STYLES --- */
         #subscriptionInfo { display: flex; align-items: center; gap: 1rem; border: 1px solid var(--border-color); background: var(--card-bg); padding: 0.5rem 1rem; border-radius: 50px; }
         .plan-badge { font-weight: 700; text-transform: capitalize; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem; }
@@ -655,7 +673,13 @@
     </div>
 
     <header class="page-header">
-        <div class="logo">DarkHorse</div>
+        <div class="header-left">
+            <div class="logo">DarkHorse</div>
+            <nav class="header-nav">
+                <a href="index.html" class="header-nav-link">Home</a>
+                <a href="research.html" class="header-nav-link">Research</a>
+            </nav>
+        </div>
         <div class="user-controls">
             <div id="loggedOutView"> <button class="btn btn-primary" onclick="showAuthModal(false)">Sign In</button> </div>
             <div id="loggedInView" class="hidden">
