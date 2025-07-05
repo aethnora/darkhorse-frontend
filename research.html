@@ -518,12 +518,12 @@
             if (!container) return;
             let html = '';
             politicianTradesData.forEach(p => {
+                const imageName = p.name.replace(' ', '-').toLowerCase() + '.png';
                 let statClass = p.isPositive === true ? 'positive' : 'neutral';
                 html += `
                     <div class="politician-card gsap-fade-in-up">
                         <div class="politician-avatar">
-                            <!-- ADD YOUR IMAGE TAG HERE -->
-                            <!-- e.g., <img src="/path/to/${p.name.replace(' ', '-').toLowerCase()}.jpg" alt="${p.name}"> -->
+                            <img src="${imageName}" alt="${p.name}">
                         </div>
                         <div class="politician-info">
                             <h4>${p.name}</h4>
