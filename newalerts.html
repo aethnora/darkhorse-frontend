@@ -688,28 +688,11 @@
             }
         }
         /* --- END UNIVERSAL FOOTER --- */
-
-        /* --- DEBUG PANEL --- */
-        .debug-panel { position: fixed; bottom: 20px; right: 20px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; max-width: 300px; font-size: 0.8rem; z-index: 1000; }
-        .debug-panel.hidden { display: none; }
-        .debug-toggle { position: fixed; bottom: 20px; right: 20px; background: var(--primary-blue); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; z-index: 1001; }
     </style>
 </head>
 <body>
 
     <div class="bg-animation"></div>
-
-    <!-- Debug Toggle -->
-    <button class="debug-toggle" onclick="toggleDebug()" title="Toggle Debug Panel">
-        <i class="fas fa-bug"></i>
-    </button>
-
-    <!-- Debug Panel -->
-    <div class="debug-panel hidden" id="debugPanel">
-        <h4>Debug Info</h4>
-        <div id="debugInfo">Loading...</div>
-        <button class="btn btn-secondary" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.7rem;" onclick="refreshDebugInfo()">Refresh</button>
-    </div>
 
     <!-- Auth & Processing Modals -->
     <div class="auth-overlay" id="authOverlay">
@@ -721,13 +704,11 @@
                 <div class="status-message error hidden" id="authError"></div>
                 <button type="submit" class="btn btn-primary" id="authSubmit">Sign In</button>
             </form>
-            <!-- NEW: Google Sign In Button -->
             <div style="text-align: center; color: var(--text-secondary); margin: 1rem 0;">OR</div>
             <button type="button" class="btn btn-secondary" id="googleSignInBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
                 <img src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_28dp.png" alt="Google icon" style="width: 20px; height: 20px;">
                 Sign In with Google
             </button>
-            <!-- END NEW SECTION -->
             <div class="auth-toggle" style="margin-top: 1.5rem;"> <span id="authToggleText">Don't have an account?</span> <a href="#" id="authToggleLink">Sign Up</a> </div>
         </div>
     </div>
@@ -752,7 +733,6 @@
         <div class="user-controls">
             <div id="loggedOutView"> <button class="btn btn-primary" onclick="showAuthModal(false)">Sign In</button> </div>
             <div id="loggedInView" class="hidden">
-                <!-- NEW: Subscription Info & Management -->
                 <div id="subscriptionInfo" class="hidden">
                     <span style="color: var(--text-secondary);">Plan:</span>
                     <span id="userPlanDisplay" class="plan-badge"></span>
@@ -779,18 +759,12 @@
                     <h3>Professional</h3>
                     <div class="plan-price">$4.99<span class="period">/month</span></div>
                     <button class="btn btn-primary plan-button" onclick="selectPlan('price_1RhYUtP1BWtn2d85uXwrZnvF', 'professional')" disabled>Choose Professional</button>
-                    <!-- ================================================================= -->
-                    <!-- ==================== NEW COUPON CODE SECTION ==================== -->
-                    <!-- ================================================================= -->
                     <div class="coupon-container">
                         <a id="showCouponLink">Have a coupon code?</a>
                         <div id="couponInputWrapper" class="hidden">
                             <input type="text" id="couponCodeInput" class="input-field" placeholder="Enter Code">
                         </div>
                     </div>
-                    <!-- ================================================================= -->
-                    <!-- ================== END NEW COUPON CODE SECTION ================== -->
-                    <!-- ================================================================= -->
                 </div>
                 <div class="plan-features">
                     <h4>What's Included:</h4>
@@ -973,15 +947,12 @@
             messagingSenderId: "528610189023",
             appId: "1:528610189023:web:1f8741bfb0f8635bf9d36a"
         };
-        // IMPORTANT: Use the correct LIVE publishable key from your Stripe Dashboard
         const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RXnm1P1BWtn2d85f5PQ79tdyvhapp0rYDo0yDoH7SVWyWpyLdW4F5oX2RmKQ6KGZEJOXCRoU5WWEVOtJMJ8Y86P001uNGik7B';
         const SERVER_URL = 'https://darkhorse-backend.onrender.com';
         const INSIDER_DATA_URL = 'https://insider-trading-api.onrender.com/api/insiders';
         const SENATOR_DATA_URL = 'https://senator-filings.onrender.com/data';
         
        const PROXIED_SENATOR_DATA_URL = SENATOR_DATA_URL;
-
-
 
         // --- INITIALIZATION ---
         firebase.initializeApp(firebaseConfig);
@@ -997,10 +968,8 @@
         const insiderFeedTabContent = document.getElementById('tab-content-insider-feed'), senatorFeedTabContent = document.getElementById('tab-content-senator-feed'), upgradeTabBtn = document.getElementById('upgrade-tab-btn'), dashboardTitle = document.getElementById('dashboard-title');
         const tabs = document.querySelectorAll('.tab-btn'), tabContents = document.querySelectorAll('.tab-content');
         const subscriptionInfo = document.getElementById('subscriptionInfo'), userPlanDisplay = document.getElementById('userPlanDisplay');
-        // NEW: Coupon DOM Elements
         const showCouponLink = document.getElementById('showCouponLink');
         const couponInputWrapper = document.getElementById('couponInputWrapper');
-
 
         // --- App State ---
         let appState = {
@@ -1010,74 +979,27 @@
             unsubscribeUserProfile: null,
             activeTradeDetails: null,
             pollingInterval: null,
-            debugMode: false,
             loadedWidgets: new Set()
-        };
-
-        // --- DEBUG FUNCTIONS ---
-        window.toggleDebug = () => {
-            appState.debugMode = !appState.debugMode;
-            const debugPanel = document.getElementById('debugPanel');
-            debugPanel.classList.toggle('hidden', !appState.debugMode);
-            if (appState.debugMode) refreshDebugInfo();
-        };
-
-        window.refreshDebugInfo = async () => {
-            const debugInfo = document.getElementById('debugInfo');
-            const info = {
-                'User': appState.currentUser ? `${appState.currentUser.uid} (${appState.currentUser.email})` : 'Not logged in',
-                'Profile': appState.userProfile ? `Plan: ${appState.userProfile.subscription?.planId || 'none'}, Status: ${appState.userProfile.subscription?.status || 'none'}` : 'No profile',
-                'Server Health': 'Checking...',
-                'Insider API': 'Checking...',
-                'Senator API': 'Checking...'
-            };
-
-            debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
-
-            try {
-                const response = await fetch(`${SERVER_URL}/health`);
-                info['Server Health'] = response.ok ? '✅ OK' : '❌ Error';
-            } catch (error) {
-                info['Server Health'] = '❌ Unreachable';
-            }
-
-            try {
-                const response = await fetchWithCORS(INSIDER_DATA_URL);
-                info['Insider API'] = response.ok ? '✅ OK' : '❌ Error';
-            } catch (error) {
-                info['Insider API'] = '❌ CORS/Unreachable';
-            }
-            
-            try {
-                const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL); 
-                info['Senator API'] = response.ok ? '✅ OK' : '❌ Error';
-            } catch (error) {
-                info['Senator API'] = '❌ CORS/Unreachable';
-            }
-
-            debugInfo.innerHTML = Object.entries(info).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join('');
         };
 
         // --- ENHANCED LOGGING ---
         const log = (level, message, data = null) => {
             const timestamp = new Date().toISOString();
-            console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, data || '');
-            if (appState.debugMode) {
-                refreshDebugInfo();
+            // In production, we only log errors to the console to keep it clean.
+            if (level === 'error') {
+                console.error(`[${timestamp}] ${level.toUpperCase()}: ${message}`, data || '');
+            } else {
+                 console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, data || '');
             }
         };
 
         // --- CORS-AWARE FETCH FUNCTION ---
         async function fetchWithCORS(url, options = {}) {
             try {
-                const response = await fetch(url, {
-                    ...options
-                });
-                
+                const response = await fetch(url, { ...options });
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
                 return response;
             } catch (error) {
                 log('error', 'Fetch failed', { url, error: error.message });
@@ -1123,7 +1045,6 @@
                             const userDoc = await db.collection('users').doc(appState.currentUser.uid).get();
                             if (userDoc.exists) {
                                 const userData = userDoc.data();
-                                // *** FIX: Check the correct nested status field ***
                                 if (userData.subscription && (userData.subscription.status === 'active' || userData.subscription.status === 'trialing')) {
                                     log('success', 'Subscription activated successfully');
                                     clearInterval(appState.pollingInterval);
@@ -1229,7 +1150,7 @@
             appState.userProfile = null;
             loggedInView.classList.add('hidden');
             loggedOutView.classList.remove('hidden');
-            subscriptionInfo.classList.add('hidden'); // Hide plan info on logout
+            subscriptionInfo.classList.add('hidden');
             dashboardSection.classList.add('hidden');
             pricingSection.classList.remove('hidden');
         }
@@ -1274,7 +1195,6 @@
             }
         });
 
-        // --- NEW: Google Sign-In Logic ---
         const googleSignInBtn = document.getElementById('googleSignInBtn');
 
         async function signInWithGoogle() {
@@ -1284,17 +1204,12 @@
             authError.classList.add('hidden');
 
             try {
-                // This will either sign in a new user, or sign in an existing Google user.
-                // The onAuthStateChanged listener will handle the UI update.
                 await auth.signInWithPopup(provider);
                 closeAuthModal();
             } catch (error) {
-                // This block is crucial for linking accounts.
                 if (error.code === 'auth/account-exists-with-different-credential') {
                     const email = error.email;
                     const pendingCred = error.credential;
-                    
-                    // A custom, styled modal would be better for UX than a native prompt.
                     const password = prompt(
                         `An account already exists for ${email}. ` +
                         `Please enter the password for that account to link it with your Google Sign-In.`
@@ -1302,12 +1217,8 @@
                     
                     if (password) {
                         try {
-                            // Step 1: Sign in the user with their original email and password.
                             const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                            
-                            // Step 2: Link the pending Google credential to the now-signed-in user.
                             await userCredential.user.linkWithCredential(pendingCred);
-                            
                             displayMessage('Successfully linked your Google account!', 'success');
                             closeAuthModal();
                         } catch (linkError) {
@@ -1316,30 +1227,23 @@
                             authError.classList.remove('hidden');
                         }
                     } else {
-                        // User cancelled the password prompt.
                         authError.textContent = 'Account linking cancelled.';
                         authError.classList.remove('hidden');
                     }
                 } else {
-                    // Handle other types of sign-in errors.
                     log('error', 'Google Sign-In failed', error);
                     authError.textContent = 'Google Sign-In failed: ' + error.message;
                     authError.classList.remove('hidden');
                 }
             } finally {
-                // Re-enable buttons regardless of outcome.
                 authSubmit.disabled = false;
                 googleSignInBtn.disabled = false;
             }
         }
 
         googleSignInBtn.addEventListener('click', signInWithGoogle);
-        // --- END NEW SECTION ---
 
-
-        // --- MODIFIED: selectPlan function ---
         window.selectPlan = async (priceId, planName) => {
-            // Guard clauses: Ensure we have a user and their profile before proceeding.
             if (!appState.currentUser) { 
                 showAuthModal(false); 
                 return; 
@@ -1354,19 +1258,16 @@
             checkoutButton.disabled = true;
             checkoutButton.textContent = 'Redirecting...';
 
-            // Get the coupon code from the input field
             const couponCodeInput = document.getElementById('couponCodeInput');
             const couponCode = couponCodeInput.value.trim();
 
             try {
-                // Prepare the payload with data we already have on the frontend.
                 const payload = {
                     priceId: priceId,
                     planName: planName,
                     userId: appState.currentUser.uid,
                     email: appState.userProfile.email,
                     stripeCustomerId: appState.userProfile.stripeCustomerId || null,
-                    // Add the coupon code to the payload. Send null if it's empty.
                     couponCode: couponCode ? couponCode : null
                 };
 
@@ -1380,7 +1281,6 @@
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    // Display the specific error from the backend (e.g., "invalid coupon")
                     throw new Error(errorData.error || 'Unknown server error');
                 }
 
@@ -1397,10 +1297,7 @@
                 checkoutButton.textContent = originalText;
             }
         };
-        // --- END MODIFIED FUNCTION ---
 
-
-        // NEW: Function to redirect to Stripe Customer Portal
         window.redirectToCustomerPortal = async () => {
             log('info', 'Redirecting to customer portal');
             const manageButton = document.getElementById('managePlanBtn');
@@ -1429,13 +1326,11 @@
             }
         };
 
-
         // --- VIEW MANAGEMENT & RENDERING ---
         function updateDashboardView() {
             if (!appState.userProfile) return;
 
             const { subscription } = appState.userProfile;
-            // Check for 'active' or 'trialing' status
             if (subscription && (subscription.status === 'active' || subscription.status === 'trialing')) {
                 processingOverlay.classList.remove('show');
                 processingOverlay.classList.add('hidden');
@@ -1448,10 +1343,8 @@
                 userPlanDisplay.textContent = planId || 'none';
                 userPlanDisplay.className = `plan-badge ${planId || 'none'}`;
 
-                // Add a 'trialing' badge style if needed
                 if (subscription.status === 'trialing') {
                     userPlanDisplay.textContent += ' (Trial)';
-                    userPlanDisplay.classList.add('trialing'); 
                 }
 
                 upgradeTabBtn.classList.toggle('hidden', planId !== 'basic');
@@ -1566,16 +1459,12 @@
             const tbody = document.getElementById('insider-trades-tbody');
             if (!tbody) return;
             
-            log('debug', 'Populating insider trades table');
             tbody.innerHTML = '';
             for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="10"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
-                log('debug', 'Attempting to fetch insider data from API', { url: INSIDER_DATA_URL });
                 const response = await fetchWithCORS(INSIDER_DATA_URL);
                 const trades = await response.json();
-                
-                log('success', 'Raw insider trades data received', { count: trades.length, sample: trades[0] });
                 
                 const cleanedTrades = trades.map(trade => {
                     const cleaned = {};
@@ -1603,8 +1492,6 @@
                     return tradeType.includes('purchase') || tradeType.startsWith('p') || tradeType === 'p - purchase';
                 });
                 
-                log('success', 'Insider trades data processed', { total: trades.length, purchases: purchasesTrades.length, sampleCleaned: purchasesTrades[0] });
-                
                 tbody.innerHTML = '';
                 if (purchasesTrades.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 2rem;">No insider purchases found.</td></tr>`;
@@ -1624,18 +1511,13 @@
                     const ticker = trade.Ticker || 'N/A';
                     const insiderName = trade['Insider Name'] || 'Unknown';
                     const title = trade.Title || 'N/A';
-                    
                     const priceStr = (trade.Price || '0').toString().replace(/[$,]/g, '');
                     const price = parseFloat(priceStr) || 0;
-                    
                     const qtyStr = (trade.Qty || '0').toString().replace(/[,]/g, '');
                     const qty = parseInt(qtyStr) || 0;
-                    
                     const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || trade['Delta Own'] || 'N/A';
-                    
                     const valueStr = (trade.Value || '0').toString().replace(/[$,]/g, '');
                     const value = parseInt(valueStr) || 0;
-                    
                     const filingDateCell = formatDateCell(filingDateStr, true);
                     const tradeDateCell = formatDateCell(tradeDateStr, false);
 
@@ -1667,7 +1549,7 @@
                         <td colspan="10" style="text-align:center; padding: 2rem; color: var(--error-red);">
                             <div>Could not load insider trades feed.</div>
                             <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
-                                Error: ${error.message}
+                                Please check your connection and try again.
                             </div>
                             <button class="btn btn-secondary" style="margin-top: 1rem; padding: 0.5rem 1rem;" onclick="populateTradesTable()">Retry</button>
                         </td>
@@ -1679,19 +1561,14 @@
             const tbody = document.getElementById('senator-trades-tbody');
             if (!tbody) return;
 
-            log('debug', 'Populating senator trades table');
             tbody.innerHTML = '';
             for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="8"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
-                log('debug', 'Attempting to fetch senator data', { url: PROXIED_SENATOR_DATA_URL });
                 const response = await fetchWithCORS(PROXIED_SENATOR_DATA_URL);
                 const rawTrades = await response.json();
-
-                log('success', 'Raw senator trades data received', { count: rawTrades.length, sample: rawTrades[0] });
                 
                 const cleanedAndFilteredTrades = rawTrades.map(trade => {
-                    // Create a new object and trim all string values from the raw trade
                     const cleanedTrade = Object.entries(trade).reduce((acc, [key, value]) => {
                         acc[key] = typeof value === 'string' 
                             ? value.trim().replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim() 
@@ -1702,7 +1579,6 @@
                     let ticker = cleanedTrade.ticker || '';
                     let assetName = cleanedTrade.asset_name || '';
 
-                    // If ticker is '--' or empty, check if the asset_name might be the ticker.
                     if (ticker === '--' || !ticker) {
                         const tickerRegex = /^[A-Z]{1,5}$/;
                         if (tickerRegex.test(assetName)) {
@@ -1711,7 +1587,6 @@
                         }
                     }
 
-                    // Final object structure for rendering
                     return {
                         filing_date: cleanedTrade.file_date,
                         transaction_date: cleanedTrade.tx_date,
@@ -1722,11 +1597,8 @@
                         amount: cleanedTrade.tx_amount,
                     };
                 }).filter(trade => {
-                    // Filter out any trade that does not have a valid ticker after our cleaning process
                     return trade.ticker && trade.ticker !== '--' && trade.ticker.length > 0;
                 });
-
-                log('success', 'Senator trades data processed and filtered', { count: cleanedAndFilteredTrades.length, sample: cleanedAndFilteredTrades[0] });
                 
                 tbody.innerHTML = '';
                 if (!cleanedAndFilteredTrades || cleanedAndFilteredTrades.length === 0) {
@@ -1772,8 +1644,8 @@
                     <tr>
                         <td colspan="8" style="text-align:center; padding: 2rem; color: var(--error-red);">
                             <div>Could not load senator trades feed.</div>
-                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
-                                Error: ${error.message}
+                             <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                                Please check your connection and try again.
                             </div>
                             <button class="btn btn-secondary" style="margin-top: 1rem; padding: 0.5rem 1rem;" onclick="populateSenatorTradesTable()">Retry</button>
                         </td>
@@ -1781,7 +1653,6 @@
             }
         }
         
-        // Make the functions globally available for the retry buttons
         window.populateTradesTable = populateTradesTable;
         window.populateSenatorTradesTable = populateSenatorTradesTable;
         
@@ -1807,7 +1678,6 @@
 
             if (!isActive) {
                 appState.activeTradeDetails = rowId;
-                // FIX: Add a guard against invalid tickers like '--'
                 if (ticker && ticker !== 'N/A' && ticker.trim() !== '--') {
                     loadAdvancedTradingViewWidgets(ticker, companyName, `details-content-${rowId}`);
                 } else {
@@ -1822,8 +1692,6 @@
         function loadAdvancedTradingViewWidgets(ticker, companyName, containerId) {
             const container = document.getElementById(containerId);
             if (!container || appState.loadedWidgets.has(containerId)) return;
-            
-            log('debug', 'Loading TradingView widgets', { ticker, companyName, containerId });
             
             appState.loadedWidgets.add(containerId);
             
@@ -1877,7 +1745,6 @@
         function initializeWidgets(ticker, containerId) {
             setTimeout(() => {
                 try {
-                    // Initialize Chart Widget
                     new TradingView.widget({
                         "autosize": true,
                         "symbol": ticker,
@@ -1902,12 +1769,9 @@
                         "save_image": false
                     });
 
-                    // FIX: Re-initialize the profile widget more robustly.
                     const profileContainer = document.getElementById(`fundamentals-${containerId}`);
                     if (profileContainer) {
-                        // Clear any previous widget content to ensure a fresh instance
                         profileContainer.innerHTML = ''; 
-                        
                         const widgetContainer = document.createElement('div');
                         widgetContainer.className = 'tradingview-widget-container';
                         widgetContainer.style.height = '100%';
@@ -1920,7 +1784,6 @@
                         script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js';
                         script.async = true;
                         
-                        // Use JSON.stringify for safety and set height to 100%
                         const widgetConfig = {
                             "symbol": ticker,
                             "colorTheme": "dark",
@@ -1933,7 +1796,6 @@
                         widgetContainer.appendChild(script);
                     }
 
-                    log('success', 'TradingView widgets loaded successfully', { ticker, containerId });
                 } catch (error) {
                     log('error', 'Failed to load TradingView widgets', { ticker, containerId, error });
                     const chartContainer = document.getElementById(`chart-${containerId}`);
@@ -1949,7 +1811,7 @@
             if (!appState.userProfile || !appState.userProfile.settings) return;
             
             const { planId } = appState.userProfile.subscription;
-            const settings = appState.userProfile.settings || {}; // Ensure settings object exists
+            const settings = appState.userProfile.settings || {};
             const filters = settings.filters || {};
             const titles = filters.titles || [];
             const senatorWatchlist = settings.senatorWatchlist || [];
@@ -1960,7 +1822,6 @@
             document.querySelectorAll('#tab-content-settings input, #tab-content-settings button').forEach(el => el.disabled = !isCustomizable);
             document.querySelectorAll('.settings-card').forEach(el => el.style.opacity = isCustomizable ? '1' : '0.5');
 
-            // Insider Settings
             document.getElementById('insiderEmailToggle').checked = settings.insiderEmail !== false;
             const stockPrice = filters.stockPrice || 3;
             document.getElementById('stockPrice').value = stockPrice;
@@ -1978,7 +1839,6 @@
                 }
             });
 
-            // Senator Settings
             document.getElementById('senatorEmailToggle').checked = settings.senatorEmail !== false;
             document.querySelectorAll('input[name="senatorWatchlist"]').forEach(el => {
                 el.checked = senatorWatchlist.includes(el.value);
@@ -2034,7 +1894,6 @@
             tabContents.forEach(c => c.classList.toggle('active', c.id === `tab-content-${tab.dataset.tab}`));
         }));
         
-        // Delegated event listener for all multi-select checkboxes
         document.getElementById('tab-content-settings').addEventListener('change', e => {
             if (e.target.matches('.multi-select-group input[type="checkbox"]')) {
                 const span = e.target.nextElementSibling;
@@ -2046,7 +1905,6 @@
 
         document.getElementById('managePlanBtn').addEventListener('click', redirectToCustomerPortal);
         
-        // NEW: Event listener for the coupon link
         showCouponLink.addEventListener('click', (e) => {
             e.preventDefault();
             couponInputWrapper.classList.toggle('hidden');
@@ -2064,7 +1922,6 @@
         document.getElementById('tradeValue').addEventListener('input', e => updateSliderValue('tradeValueValue', e.target.value, val => val > 0 ? `$${(val/1000).toLocaleString()}k` : 'Any'));
         window.scrollToPricing = () => pricingSection.scrollIntoView({ behavior: 'smooth' });
 
-        if (appState.debugMode) refreshDebugInfo();
     });
     </script>
 </body>
