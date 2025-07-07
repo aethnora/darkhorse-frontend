@@ -1374,10 +1374,10 @@
                     <div class="locked-content">
                         <div class="feed-container">
                         <table class="trades-table">
-                            <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th></tr></thead>
+                            <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>Value</th></tr></thead>
                             <tbody>
-                                <tr><td>...</td><td>...</td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson</td><td class="insider-title">CTO</td><td>$45.25</td><td>99,500</td><td>+15.2%</td><td>$4,502,500</td></tr>
-                                <tr><td>...</td><td>...</td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts</td><td class="insider-title">CEO</td><td>$8.59</td><td>99,400</td><td>+8.3%</td><td>$853,900</td></tr>
+                                <tr><td>...</td><td>...</td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson</td><td class="insider-title">CTO</td><td>$45.25</td><td>99,500</td><td>$4,502,500</td></tr>
+                                <tr><td>...</td><td>...</td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts</td><td class="insider-title">CEO</td><td>$8.59</td><td>99,400</td><td>$853,900</td></tr>
                             </tbody>
                         </table>
                         </div>
@@ -1396,7 +1396,7 @@
             insiderFeedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
-                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>ΔOwn</th><th>Value</th><th></th></tr></thead>
+                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>Value</th><th></th></tr></thead>
                         <tbody id="insider-trades-tbody"></tbody>
                     </table>
                 </div>`;
@@ -1462,14 +1462,12 @@
             if (!tbody) return;
             
             tbody.innerHTML = '';
-            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="10"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
+            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
                 const response = await fetchWithCORS(INSIDER_DATA_URL);
                 const trades = await response.json();
                 
-                // --- MODIFIED CODE START ---
-                // Function to parse name and title from a combined string
                 const parseNameAndTitle = (nameAndTitleString) => {
                     const titleKeywords = [
                         'SVP,', 'SVP', 'President', 'CEO', 'CFO', 'CTO', 'COO', 'CHRO', 
@@ -1494,7 +1492,6 @@
                         title = nameAndTitleString.substring(earliestIndex).trim();
                     }
                     
-                    // If the name ends up empty, it's likely a title-first format, so revert
                     if (insiderName === "") {
                         return { name: nameAndTitleString, title: "N/A" };
                     }
@@ -1502,7 +1499,6 @@
                     return { name: insiderName, title: title };
                 };
 
-                // Map the new data structure to the one our table expects
                 const mappedTrades = trades.map(trade => {
                     const priceStr = (trade['Share Price'] || '0').toString().replace(/[$,]/g, '');
                     const price = parseFloat(priceStr) || 0;
@@ -1510,35 +1506,39 @@
                     const qty = parseInt(qtyStr) || 0;
 
                     const { name, title } = parseNameAndTitle(trade['Name / Title'] || '');
+                    const ticker = trade['Stock'] || 'N/A';
                     
+                    const companyForDisplay = title !== 'N/A' ? ticker : name;
+                    const insiderForDisplay = title !== 'N/A' ? name : 'N/A';
+
                     return {
                         'Filing Date': trade['Disclosed (EST)'] || 'N/A',
                         'Trade Date': trade['Date'] || 'N/A',
-                        'Company Name': name, // The name part is now the company/insider
-                        'Ticker': trade['Stock'] || 'N/A',
-                        'Insider Name': name,
+                        'Company Name': companyForDisplay,
+                        'Ticker': ticker,
+                        'Insider Name': insiderForDisplay,
                         'Title': title,
                         'Price': price,
                         'Qty': qty,
-                        'ΔOwn': 'N/A', // New source doesn't provide this
                         'Value': price * qty,
                         'Purchase / Sale': trade['Purchase / Sale']
                     };
                 });
-                // --- MODIFIED CODE END ---
 
                 const purchasesTrades = mappedTrades.filter(trade => {
                     const tradeAction = (trade['Purchase / Sale'] || '').toString().toLowerCase().trim();
                     return tradeAction === 'purchase';
                 });
                 
+                const finalTrades = purchasesTrades.filter(trade => trade.Title !== 'N/A');
+
                 tbody.innerHTML = '';
-                if (purchasesTrades.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 2rem;">No insider purchases found.</td></tr>`;
+                if (finalTrades.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem;">No insider purchases with titles found.</td></tr>`;
                     return;
                 }
 
-                purchasesTrades.slice(0, 100).forEach(trade => {
+                finalTrades.slice(0, 100).forEach(trade => {
                     const tradeId = `insider-${trade.Ticker || 'UNKNOWN'}-${trade['Trade Date'] || Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
                     const row = document.createElement('tr');
                     row.className = 'trade-row';
@@ -1548,7 +1548,6 @@
                     const filingDateCell = formatDateCell(trade['Filing Date'], true);
                     const tradeDateCell = formatDateCell(trade['Trade Date'], false);
 
-                    // Use the newly parsed and calculated values
                     row.innerHTML = `
                         ${filingDateCell}
                         ${tradeDateCell}
@@ -1557,13 +1556,12 @@
                         <td class="insider-title">${trade.Title}</td>
                         <td>$${trade.Price.toFixed(2)}</td>
                         <td>${trade.Qty.toLocaleString()}</td>
-                        <td>${trade['ΔOwn']}</td>
                         <td>$${trade.Value.toLocaleString()}</td>
                         <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`;
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
-                    detailsRow.innerHTML = `<td colspan="10" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
+                    detailsRow.innerHTML = `<td colspan="9" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
@@ -1574,7 +1572,7 @@
                 log('error', 'Failed to fetch or process insider trades', error);
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="10" style="text-align:center; padding: 2rem; color: var(--error-red);">
+                        <td colspan="9" style="text-align:center; padding: 2rem; color: var(--error-red);">
                             <div>Could not load insider trades feed.</div>
                             <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
                                 Please check your connection and try again.
