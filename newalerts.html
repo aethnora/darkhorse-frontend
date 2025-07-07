@@ -1468,22 +1468,56 @@
                 const response = await fetchWithCORS(INSIDER_DATA_URL);
                 const trades = await response.json();
                 
+                // --- MODIFIED CODE START ---
+                // Function to parse name and title from a combined string
+                const parseNameAndTitle = (nameAndTitleString) => {
+                    const titleKeywords = [
+                        'SVP,', 'SVP', 'President', 'CEO', 'CFO', 'CTO', 'COO', 'CHRO', 
+                        'Director', 'Officer', 'Portfolio Manager', 'General Counsel', 
+                        'Vice President', 'Chairman'
+                    ];
+
+                    let insiderName = nameAndTitleString;
+                    let title = 'N/A';
+                    let earliestIndex = -1;
+
+                    for (const keyword of titleKeywords) {
+                        const regex = new RegExp(`\\b${keyword}(\\b|[,/])`, 'i');
+                        const match = nameAndTitleString.match(regex);
+                        if (match && (earliestIndex === -1 || match.index < earliestIndex)) {
+                            earliestIndex = match.index;
+                        }
+                    }
+
+                    if (earliestIndex !== -1) {
+                        insiderName = nameAndTitleString.substring(0, earliestIndex).trim();
+                        title = nameAndTitleString.substring(earliestIndex).trim();
+                    }
+                    
+                    // If the name ends up empty, it's likely a title-first format, so revert
+                    if (insiderName === "") {
+                        return { name: nameAndTitleString, title: "N/A" };
+                    }
+
+                    return { name: insiderName, title: title };
+                };
+
                 // Map the new data structure to the one our table expects
                 const mappedTrades = trades.map(trade => {
                     const priceStr = (trade['Share Price'] || '0').toString().replace(/[$,]/g, '');
                     const price = parseFloat(priceStr) || 0;
                     const qtyStr = (trade['Shares'] || '0').toString().replace(/[,]/g, '');
                     const qty = parseInt(qtyStr) || 0;
+
+                    const { name, title } = parseNameAndTitle(trade['Name / Title'] || '');
                     
                     return {
                         'Filing Date': trade['Disclosed (EST)'] || 'N/A',
                         'Trade Date': trade['Date'] || 'N/A',
-                        // In the new format, a company can be an insider. We'll use the 'Stock' field for the ticker.
-                        // The 'Name / Title' field seems to sometimes be a company, sometimes a person. We'll treat it as the main name.
-                        'Company Name': trade['Name / Title'] || 'Unknown Company',
+                        'Company Name': name, // The name part is now the company/insider
                         'Ticker': trade['Stock'] || 'N/A',
-                        'Insider Name': trade['Name / Title'] || 'Unknown',
-                        'Title': 'N/A', // New source doesn't provide a separate title
+                        'Insider Name': name,
+                        'Title': title,
                         'Price': price,
                         'Qty': qty,
                         'ΔOwn': 'N/A', // New source doesn't provide this
@@ -1491,6 +1525,7 @@
                         'Purchase / Sale': trade['Purchase / Sale']
                     };
                 });
+                // --- MODIFIED CODE END ---
 
                 const purchasesTrades = mappedTrades.filter(trade => {
                     const tradeAction = (trade['Purchase / Sale'] || '').toString().toLowerCase().trim();
@@ -1513,7 +1548,7 @@
                     const filingDateCell = formatDateCell(trade['Filing Date'], true);
                     const tradeDateCell = formatDateCell(trade['Trade Date'], false);
 
-                    // Use the newly mapped and calculated values
+                    // Use the newly parsed and calculated values
                     row.innerHTML = `
                         ${filingDateCell}
                         ${tradeDateCell}
