@@ -1490,9 +1490,13 @@
                 });
 
                 const purchasesTrades = cleanedTrades.filter(trade => {
-                    const tradeType = (trade['Trade Type'] || '').toString().toLowerCase().trim();
-                    return tradeType.includes('purchase') || tradeType.startsWith('p') || tradeType === 'p - purchase';
-                });
+    // Look for the new key "Purchase / Sale".
+    const tradeAction = (trade['Purchase / Sale'] || '').toString().toLowerCase().trim();
+    // Also check the old key 'Trade Type' for backward compatibility if needed.
+    const tradeType = (trade['Trade Type'] || '').toString().toLowerCase().trim();
+
+    return tradeAction === 'purchase' || tradeType.includes('purchase') || tradeType.startsWith('p');
+});
                 
                 tbody.innerHTML = '';
                 if (purchasesTrades.length === 0) {
