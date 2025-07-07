@@ -1468,35 +1468,34 @@
                 const response = await fetchWithCORS(INSIDER_DATA_URL);
                 const trades = await response.json();
                 
-                const cleanedTrades = trades.map(trade => {
-                    const cleaned = {};
-                    for (const [key, value] of Object.entries(trade)) {
-                        let cleanKey = key.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
-                        if (cleanKey.toLowerCase().includes('filing') && cleanKey.toLowerCase().includes('date')) cleaned['Filing Date'] = value;
-                        else if (cleanKey.toLowerCase().includes('trade') && cleanKey.toLowerCase().includes('date')) cleaned['Trade Date'] = value;
-                        else if (cleanKey.toLowerCase().includes('company') && cleanKey.toLowerCase().includes('name')) cleaned['Company Name'] = value;
-                        else if (cleanKey.toLowerCase() === 'ticker') cleaned['Ticker'] = value;
-                        else if (cleanKey.toLowerCase().includes('insider') && cleanKey.toLowerCase().includes('name')) cleaned['Insider Name'] = value;
-                        else if (cleanKey.toLowerCase() === 'title') cleaned['Title'] = value;
-                        else if (cleanKey.toLowerCase().includes('trade') && cleanKey.toLowerCase().includes('type')) cleaned['Trade Type'] = value;
-                        else if (cleanKey.toLowerCase() === 'price') cleaned['Price'] = value;
-                        else if (cleanKey.toLowerCase() === 'qty') cleaned['Qty'] = value;
-                        else if (cleanKey.toLowerCase() === 'owned') cleaned['Owned'] = value;
-                        else if (cleanKey.includes('Own') || cleanKey.includes('Δ') || cleanKey.includes('Delta')) cleaned['ΔOwn'] = value;
-                        else if (cleanKey.toLowerCase() === 'value') cleaned['Value'] = value;
-                        else cleaned[cleanKey] = value;
-                    }
-                    return cleaned;
+                // Map the new data structure to the one our table expects
+                const mappedTrades = trades.map(trade => {
+                    const priceStr = (trade['Share Price'] || '0').toString().replace(/[$,]/g, '');
+                    const price = parseFloat(priceStr) || 0;
+                    const qtyStr = (trade['Shares'] || '0').toString().replace(/[,]/g, '');
+                    const qty = parseInt(qtyStr) || 0;
+                    
+                    return {
+                        'Filing Date': trade['Disclosed (EST)'] || 'N/A',
+                        'Trade Date': trade['Date'] || 'N/A',
+                        // In the new format, a company can be an insider. We'll use the 'Stock' field for the ticker.
+                        // The 'Name / Title' field seems to sometimes be a company, sometimes a person. We'll treat it as the main name.
+                        'Company Name': trade['Name / Title'] || 'Unknown Company',
+                        'Ticker': trade['Stock'] || 'N/A',
+                        'Insider Name': trade['Name / Title'] || 'Unknown',
+                        'Title': 'N/A', // New source doesn't provide a separate title
+                        'Price': price,
+                        'Qty': qty,
+                        'ΔOwn': 'N/A', // New source doesn't provide this
+                        'Value': price * qty,
+                        'Purchase / Sale': trade['Purchase / Sale']
+                    };
                 });
 
-                const purchasesTrades = cleanedTrades.filter(trade => {
-    // Look for the new key "Purchase / Sale".
-    const tradeAction = (trade['Purchase / Sale'] || '').toString().toLowerCase().trim();
-    // Also check the old key 'Trade Type' for backward compatibility if needed.
-    const tradeType = (trade['Trade Type'] || '').toString().toLowerCase().trim();
-
-    return tradeAction === 'purchase' || tradeType.includes('purchase') || tradeType.startsWith('p');
-});
+                const purchasesTrades = mappedTrades.filter(trade => {
+                    const tradeAction = (trade['Purchase / Sale'] || '').toString().toLowerCase().trim();
+                    return tradeAction === 'purchase';
+                });
                 
                 tbody.innerHTML = '';
                 if (purchasesTrades.length === 0) {
@@ -1511,32 +1510,20 @@
                     row.dataset.ticker = trade.Ticker || 'UNKNOWN';
                     row.dataset.id = tradeId;
                     
-                    const filingDateStr = trade['Filing Date'] || '';
-                    const tradeDateStr = trade['Trade Date'] || '';
-                    const companyName = trade['Company Name'] || 'Unknown Company';
-                    const ticker = trade.Ticker || 'N/A';
-                    const insiderName = trade['Insider Name'] || 'Unknown';
-                    const title = trade.Title || 'N/A';
-                    const priceStr = (trade.Price || '0').toString().replace(/[$,]/g, '');
-                    const price = parseFloat(priceStr) || 0;
-                    const qtyStr = (trade.Qty || '0').toString().replace(/[,]/g, '');
-                    const qty = parseInt(qtyStr) || 0;
-                    const deltaOwn = trade['ΔOwn'] || trade['Î"Own'] || trade['Delta Own'] || 'N/A';
-                    const valueStr = (trade.Value || '0').toString().replace(/[$,]/g, '');
-                    const value = parseInt(valueStr) || 0;
-                    const filingDateCell = formatDateCell(filingDateStr, true);
-                    const tradeDateCell = formatDateCell(tradeDateStr, false);
+                    const filingDateCell = formatDateCell(trade['Filing Date'], true);
+                    const tradeDateCell = formatDateCell(trade['Trade Date'], false);
 
+                    // Use the newly mapped and calculated values
                     row.innerHTML = `
                         ${filingDateCell}
                         ${tradeDateCell}
-                        <td><div class="company-name">${companyName}</div><div class="ticker">${ticker}</div></td>
-                        <td>${insiderName}</td>
-                        <td class="insider-title">${title}</td>
-                        <td>$${price.toFixed(2)}</td>
-                        <td>${qty.toLocaleString()}</td>
-                        <td>${deltaOwn}</td>
-                        <td>$${value.toLocaleString()}</td>
+                        <td><div class="company-name">${trade['Company Name']}</div><div class="ticker">${trade.Ticker}</div></td>
+                        <td>${trade['Insider Name']}</td>
+                        <td class="insider-title">${trade.Title}</td>
+                        <td>$${trade.Price.toFixed(2)}</td>
+                        <td>${trade.Qty.toLocaleString()}</td>
+                        <td>${trade['ΔOwn']}</td>
+                        <td>$${trade.Value.toLocaleString()}</td>
                         <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`;
                     
                     const detailsRow = document.createElement('tr');
@@ -1546,7 +1533,7 @@
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
 
-                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, ticker, companyName));
+                    row.addEventListener('click', () => toggleTradeDetails(row, detailsRow, trade.Ticker, trade['Company Name']));
                 });
             } catch (error) {
                 log('error', 'Failed to fetch or process insider trades', error);
@@ -1779,7 +1766,6 @@
                     if (profileContainer) {
                         profileContainer.innerHTML = ''; 
                         const widgetContainer = document.createElement('div');
-                        widgetContainer.className = 'tradingview-widget-container';
                         widgetContainer.style.height = '100%';
                         widgetContainer.style.width = '100%';
                         widgetContainer.innerHTML = '<div class="tradingview-widget-container__widget" style="height:100%;width:100%;"></div>';
