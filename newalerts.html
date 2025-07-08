@@ -267,6 +267,22 @@
         .tab-content.active { display: block; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* --- NEW: DASHBOARD DISCLAIMER --- */
+        .dashboard-disclaimer {
+            margin-top: 3rem;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            background: rgba(16, 24, 44, 0.5);
+            border-top: 1px solid var(--border-color);
+            border-radius: 0 0 16px 16px;
+            line-height: 1.6;
+        }
+        .dashboard-disclaimer strong {
+            color: var(--text-secondary);
+        }
+
         /* --- SETTINGS REVAMP 3.0 --- */
         .settings-header {
             text-align: center;
@@ -922,6 +938,10 @@
                 <div class="save-settings-container">
                     <button class="btn btn-primary" onclick="saveSettings()">Save All Settings</button>
                 </div>
+                <!-- NEW: Disclaimer for Settings Tab -->
+                <div class="dashboard-disclaimer">
+                    <strong>Disclaimer:</strong> The data and alerts provided on this platform are for informational purposes only and should not be considered investment advice. All trading and investment activities involve substantial risk. While we strive for accuracy, the timeliness and completeness of the data are not guaranteed. Please conduct your own research before making any investment decisions.
+                </div>
             </div>
              <!-- ================================================================= -->
              <!-- ===================== END NEW SETTINGS TAB ====================== -->
@@ -974,7 +994,7 @@
         // --- DOM Elements ---
         const authOverlay = document.getElementById('authOverlay'), authModal = document.getElementById('authModal'), authForm = document.getElementById('authForm'), authError = document.getElementById('authError'), authSubmit = document.getElementById('authSubmit'), authToggleLink = document.getElementById('authToggleLink'), authTitle = document.getElementById('authTitle'), authToggleText = document.getElementById('authToggleText');
         const processingOverlay = document.getElementById('processingOverlay'), processingProgress = document.getElementById('processingProgress');
-        const checkoutRedirectOverlay = document.getElementById('checkoutRedirectOverlay'); // NEW
+        const checkoutRedirectOverlay = document.getElementById('checkoutRedirectOverlay');
         const loggedOutView = document.getElementById('loggedOutView'), loggedInView = document.getElementById('loggedInView'), userEmailDisplay = document.getElementById('userEmailDisplay');
         const pricingSection = document.getElementById('pricingSection'), dashboardSection = document.getElementById('dashboardSection');
         const insiderFeedTabContent = document.getElementById('tab-content-insider-feed'), senatorFeedTabContent = document.getElementById('tab-content-senator-feed'), upgradeTabBtn = document.getElementById('upgrade-tab-btn'), dashboardTitle = document.getElementById('dashboard-title');
@@ -1255,7 +1275,6 @@
 
         googleSignInBtn.addEventListener('click', signInWithGoogle);
 
-        // MODIFIED: selectPlan function to show popup
         window.selectPlan = async (priceId, planName) => {
             if (!appState.currentUser) { 
                 showAuthModal(false); 
@@ -1271,7 +1290,6 @@
             checkoutButton.disabled = true;
             checkoutButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-            // Show the new popup modal
             if (checkoutRedirectOverlay) {
                 checkoutRedirectOverlay.classList.remove('hidden');
                 checkoutRedirectOverlay.classList.add('show');
@@ -1306,7 +1324,6 @@
                 const { sessionId } = await response.json();
                 if (!sessionId) throw new Error('No session ID received from server');
                 
-                // Stripe will handle the redirect from here. The popup will disappear when the page changes.
                 const { error } = await stripe.redirectToCheckout({ sessionId });
                 if (error) throw error;
 
@@ -1314,10 +1331,9 @@
                 log('error', 'Checkout session creation failed', error);
                 displayMessage(`Could not initiate payment: ${error.message}`, 'error');
                 
-                // IMPORTANT: Hide the popup and restore the button if an error occurs
                 if (checkoutRedirectOverlay) {
                     checkoutRedirectOverlay.classList.remove('show');
-                    setTimeout(() => checkoutRedirectOverlay.classList.add('hidden'), 300); // Allow for fade out
+                    setTimeout(() => checkoutRedirectOverlay.classList.add('hidden'), 300);
                 }
                 checkoutButton.disabled = false;
                 checkoutButton.textContent = originalText;
@@ -1416,14 +1432,21 @@
             senatorFeedTabContent.innerHTML = lockedHTML;
         }
         
+        // MODIFIED: renderFullDashboard to include disclaimer
         async function renderFullDashboard() {
+            const disclaimerHTML = `
+                <div class="dashboard-disclaimer">
+                    <strong>Disclaimer:</strong> The data and alerts provided on this platform are for informational purposes only and should not be considered investment advice. All trading and investment activities involve substantial risk. While we strive for accuracy, the timeliness and completeness of the data are not guaranteed. Please conduct your own research before making any investment decisions.
+                </div>`;
+
             insiderFeedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
                         <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>Value</th><th></th></tr></thead>
                         <tbody id="insider-trades-tbody"></tbody>
                     </table>
-                </div>`;
+                </div>
+                ${disclaimerHTML}`;
             
             senatorFeedTabContent.innerHTML = `
                 <div class="feed-container">
@@ -1431,7 +1454,8 @@
                          <thead><tr><th>Filing Date</th><th>Transaction Date</th><th>Senator</th><th>Company</th><th>Ticker</th><th>Transaction Type</th><th>Amount</th><th></th></tr></thead>
                         <tbody id="senator-trades-tbody"></tbody>
                     </table>
-                </div>`;
+                </div>
+                ${disclaimerHTML}`;
 
             await populateTradesTable();
             await populateSenatorTradesTable();
