@@ -793,7 +793,8 @@
                 <div class="plan-details">
                     <h3>Professional</h3>
                     <div class="plan-price">$4.99<span class="period">/month</span></div>
-                    <button class="btn btn-primary plan-button" onclick="selectPlan('price_1RhYUtP1BWtn2d85uXwrZnvF', 'professional')" disabled>Choose Professional</button>
+                    <!-- MODIFICATION: Added id="professional-plan-btn" -->
+                    <button id="professional-plan-btn" class="btn btn-primary plan-button" onclick="selectPlan('price_1RhYUtP1BWtn2d85uXwrZnvF', 'professional')" disabled>Choose Professional</button>
                     <div class="coupon-container">
                         <a id="showCouponLink">Have a coupon code?</a>
                         <div id="couponInputWrapper" class="hidden">
@@ -827,7 +828,6 @@
                 <div>
                     <h1 id="dashboard-title">Dashboard</h1>
                     <div class="dashboard-tabs">
-                        <!-- MODIFIED: Renamed tab -->
                         <button class="tab-btn active" data-tab="insider-feed">Insider Trades</button>
                         <button class="tab-btn" data-tab="senator-feed">Congressional Trades</button>
                         <button class="tab-btn" data-tab="settings">Notification Settings</button>
@@ -1013,6 +1013,7 @@
         const subscriptionInfo = document.getElementById('subscriptionInfo'), userPlanDisplay = document.getElementById('userPlanDisplay');
         const showCouponLink = document.getElementById('showCouponLink');
         const couponInputWrapper = document.getElementById('couponInputWrapper');
+        const couponCodeInput = document.getElementById('couponCodeInput'); // Added for convenience
 
         // --- App State ---
         let appState = {
@@ -1296,7 +1297,7 @@
                 return;
             }
             
-            const checkoutButton = event.target;
+            const checkoutButton = document.getElementById('professional-plan-btn'); // Always target the main button
             const originalText = checkoutButton.textContent;
             checkoutButton.disabled = true;
             checkoutButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -1305,8 +1306,7 @@
                 checkoutRedirectOverlay.classList.remove('hidden');
                 checkoutRedirectOverlay.classList.add('show');
             }
-
-            const couponCodeInput = document.getElementById('couponCodeInput');
+            
             const couponCode = couponCodeInput.value.trim();
 
             try {
@@ -1449,7 +1449,6 @@
                     <strong>Disclaimer:</strong> The data and alerts provided on this platform are for informational purposes only and should not be considered investment advice. All trading and investment activities involve substantial risk. While we strive for accuracy, the timeliness and completeness of the data are not guaranteed. Please conduct your own research before making any investment decisions.
                 </div>`;
 
-            // MODIFIED: Added 'Type' column header
             insiderFeedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
@@ -1521,7 +1520,6 @@
             if (!tbody) return;
             
             tbody.innerHTML = '';
-            // MODIFIED: Colspan updated to 10
             for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="10"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
@@ -1585,12 +1583,10 @@
                     };
                 });
 
-                // MODIFIED: Removed the filter for 'purchase' only
                 const finalTrades = mappedTrades.filter(trade => trade.Title !== 'N/A');
 
                 tbody.innerHTML = '';
                 if (finalTrades.length === 0) {
-                    // MODIFIED: Colspan updated to 10
                     tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 2rem;">No insider trades found in the last hour. Sign up for notification alerts.</td></tr>`;
                     return;
                 }
@@ -1605,7 +1601,6 @@
                     const filingDateCell = formatDateCell(trade['Filing Date'], true);
                     const tradeDateCell = formatDateCell(trade['Trade Date'], false);
 
-                    // MODIFIED: Added trade type cell and color-coding classes
                     const tradeType = trade['Purchase / Sale'] || 'N/A';
                     const typeClass = tradeType.toLowerCase().includes('purchase') ? 'trade-purchase' : 'trade-sale';
 
@@ -1623,7 +1618,6 @@
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
-                    // MODIFIED: Colspan updated to 10
                     detailsRow.innerHTML = `<td colspan="10" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
 
                     tbody.appendChild(row);
@@ -1633,7 +1627,6 @@
                 });
             } catch (error) {
                 log('error', 'Failed to fetch or process insider trades', error);
-                // MODIFIED: Colspan updated to 10
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="10" style="text-align:center; padding: 2rem; color: var(--error-red);">
@@ -1992,7 +1985,18 @@
             e.preventDefault();
             couponInputWrapper.classList.toggle('hidden');
             if (!couponInputWrapper.classList.contains('hidden')) {
-                document.getElementById('couponCodeInput').focus();
+                couponCodeInput.focus();
+            }
+        });
+
+        // MODIFICATION: Added event listener for Enter key on coupon input
+        couponCodeInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevents default form submission behavior
+                const proPlanButton = document.getElementById('professional-plan-btn');
+                if (proPlanButton && !proPlanButton.disabled) {
+                    proPlanButton.click();
+                }
             }
         });
 
