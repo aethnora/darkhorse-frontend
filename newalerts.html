@@ -449,6 +449,16 @@
         .ticker { color: var(--accent-cyan); font-size: 0.9rem; font-weight: 500; }
         .insider-title { color: var(--text-tertiary); font-style: italic; }
         
+        /* --- NEW: Trade Type Color Coding --- */
+        .trade-purchase {
+            color: var(--success-green) !important;
+            font-weight: 600;
+        }
+        .trade-sale {
+            color: var(--error-red) !important;
+            font-weight: 600;
+        }
+
         /* --- ENHANCED DROPDOWN DESIGN --- */
         .trade-details-row { 
             display: none; 
@@ -817,7 +827,8 @@
                 <div>
                     <h1 id="dashboard-title">Dashboard</h1>
                     <div class="dashboard-tabs">
-                        <button class="tab-btn active" data-tab="insider-feed">Insider Purchases</button>
+                        <!-- MODIFIED: Renamed tab -->
+                        <button class="tab-btn active" data-tab="insider-feed">Insider Trades</button>
                         <button class="tab-btn" data-tab="senator-feed">Congressional Trades</button>
                         <button class="tab-btn" data-tab="settings">Notification Settings</button>
                         <button class="tab-btn hidden" id="upgrade-tab-btn" onclick="scrollToPricing()">Upgrade Plan</button>
@@ -1414,10 +1425,10 @@
                     <div class="locked-content">
                         <div class="feed-container">
                         <table class="trades-table">
-                            <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>Value</th></tr></thead>
+                            <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Type</th><th>Price</th><th>Quantity</th><th>Value</th></tr></thead>
                             <tbody>
-                                <tr><td>...</td><td>...</td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson</td><td class="insider-title">CTO</td><td>$45.25</td><td>99,500</td><td>$4,502,500</td></tr>
-                                <tr><td>...</td><td>...</td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts</td><td class="insider-title">CEO</td><td>$8.59</td><td>99,400</td><td>$853,900</td></tr>
+                                <tr><td>...</td><td>...</td><td>Cyberdyne Systems<br><small>CDYNE</small></td><td>Miles Dyson</td><td class="insider-title">CTO</td><td class="trade-purchase">Purchase</td><td>$45.25</td><td>99,500</td><td>$4,502,500</td></tr>
+                                <tr><td>...</td><td>...</td><td>Stark Industries<br><small>STRK</small></td><td>Pepper Potts</td><td class="insider-title">CEO</td><td class="trade-sale">Sale</td><td>$8.59</td><td>99,400</td><td>$853,900</td></tr>
                             </tbody>
                         </table>
                         </div>
@@ -1432,17 +1443,17 @@
             senatorFeedTabContent.innerHTML = lockedHTML;
         }
         
-        // MODIFIED: renderFullDashboard to include disclaimer
         async function renderFullDashboard() {
             const disclaimerHTML = `
                 <div class="dashboard-disclaimer">
                     <strong>Disclaimer:</strong> The data and alerts provided on this platform are for informational purposes only and should not be considered investment advice. All trading and investment activities involve substantial risk. While we strive for accuracy, the timeliness and completeness of the data are not guaranteed. Please conduct your own research before making any investment decisions.
                 </div>`;
 
+            // MODIFIED: Added 'Type' column header
             insiderFeedTabContent.innerHTML = `
                 <div class="feed-container">
                     <table class="trades-table">
-                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Price</th><th>Quantity</th><th>Value</th><th></th></tr></thead>
+                        <thead><tr><th>Filing Date</th><th>Trade Date</th><th>Company</th><th>Insider</th><th>Title</th><th>Type</th><th>Price</th><th>Quantity</th><th>Value</th><th></th></tr></thead>
                         <tbody id="insider-trades-tbody"></tbody>
                     </table>
                 </div>
@@ -1510,7 +1521,8 @@
             if (!tbody) return;
             
             tbody.innerHTML = '';
-            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="9"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
+            // MODIFIED: Colspan updated to 10
+            for(let i=0; i<5; i++) { tbody.innerHTML += `<tr class="skeleton-row"><td colspan="10"><div class="skeleton-loader" style="width: 100%; height: 24px;"></div></td></tr>`; }
 
             try {
                 const response = await fetchWithCORS(INSIDER_DATA_URL);
@@ -1573,16 +1585,13 @@
                     };
                 });
 
-                const purchasesTrades = mappedTrades.filter(trade => {
-                    const tradeAction = (trade['Purchase / Sale'] || '').toString().toLowerCase().trim();
-                    return tradeAction === 'purchase';
-                });
-                
-                const finalTrades = purchasesTrades.filter(trade => trade.Title !== 'N/A');
+                // MODIFIED: Removed the filter for 'purchase' only
+                const finalTrades = mappedTrades.filter(trade => trade.Title !== 'N/A');
 
                 tbody.innerHTML = '';
                 if (finalTrades.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem;">No insider purchases found in the last hour. Sign up for notification alerts.</td></tr>`;
+                    // MODIFIED: Colspan updated to 10
+                    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 2rem;">No insider trades found in the last hour. Sign up for notification alerts.</td></tr>`;
                     return;
                 }
 
@@ -1596,20 +1605,26 @@
                     const filingDateCell = formatDateCell(trade['Filing Date'], true);
                     const tradeDateCell = formatDateCell(trade['Trade Date'], false);
 
+                    // MODIFIED: Added trade type cell and color-coding classes
+                    const tradeType = trade['Purchase / Sale'] || 'N/A';
+                    const typeClass = tradeType.toLowerCase().includes('purchase') ? 'trade-purchase' : 'trade-sale';
+
                     row.innerHTML = `
                         ${filingDateCell}
                         ${tradeDateCell}
                         <td><div class="company-name">${trade['Company Name']}</div><div class="ticker">${trade.Ticker}</div></td>
                         <td>${trade['Insider Name']}</td>
                         <td class="insider-title">${trade.Title}</td>
+                        <td class="${typeClass}">${tradeType}</td>
                         <td>$${trade.Price.toFixed(2)}</td>
                         <td>${trade.Qty.toLocaleString()}</td>
-                        <td>$${trade.Value.toLocaleString()}</td>
+                        <td class="${typeClass}">$${trade.Value.toLocaleString()}</td>
                         <td><i class="fas fa-chevron-down trade-toggle-icon"></i></td>`;
                     
                     const detailsRow = document.createElement('tr');
                     detailsRow.className = 'trade-details-row';
-                    detailsRow.innerHTML = `<td colspan="9" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
+                    // MODIFIED: Colspan updated to 10
+                    detailsRow.innerHTML = `<td colspan="10" class="trade-details-cell"><div class="trade-details-content" id="details-content-${tradeId}"></div></td>`;
 
                     tbody.appendChild(row);
                     tbody.appendChild(detailsRow);
@@ -1618,9 +1633,10 @@
                 });
             } catch (error) {
                 log('error', 'Failed to fetch or process insider trades', error);
+                // MODIFIED: Colspan updated to 10
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9" style="text-align:center; padding: 2rem; color: var(--error-red);">
+                        <td colspan="10" style="text-align:center; padding: 2rem; color: var(--error-red);">
                             <div>Could not load insider trades feed.</div>
                             <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
                                 Please check your connection and try again.
