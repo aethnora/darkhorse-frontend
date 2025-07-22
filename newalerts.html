@@ -1178,6 +1178,7 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 subscription: { planId: null, status: 'none' },
                 settings: {
+                    spotlightEmail: true,
                     insiderEmail: true,
                     senatorEmail: true,
                     filters: { 
@@ -1907,6 +1908,11 @@
             document.querySelectorAll('#tab-content-settings input, #tab-content-settings button').forEach(el => el.disabled = !isCustomizable);
             document.querySelectorAll('.settings-card').forEach(el => el.style.opacity = isCustomizable ? '1' : '0.5');
 
+            // START: ADDED CODE
+            // This line reads the 'spotlightEmail' setting from the user's profile and checks the box accordingly.
+            document.getElementById('spotlightEmailToggle').checked = settings.spotlightEmail !== false;
+            // END: ADDED CODE
+
             document.getElementById('insiderEmailToggle').checked = settings.insiderEmail !== false;
             const stockPrice = filters.stockPrice || 3;
             document.getElementById('stockPrice').value = stockPrice;
@@ -1949,6 +1955,10 @@
             saveButton.textContent = 'Saving...';
 
             const settingsToSave = {
+                // START: ADDED CODE
+                // This line reads the current state of the toggle when the user clicks "Save".
+                spotlightEmail: document.getElementById('spotlightEmailToggle').checked,
+                // END: ADDED CODE
                 insiderEmail: document.getElementById('insiderEmailToggle').checked,
                 senatorEmail: document.getElementById('senatorEmailToggle').checked,
                 filters: {
