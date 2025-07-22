@@ -1178,7 +1178,9 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 subscription: { planId: null, status: 'none' },
                 settings: {
+                    // START: CORRECTED CODE
                     spotlightEmail: true,
+                    // END: CORRECTED CODE
                     insiderEmail: true,
                     senatorEmail: true,
                     filters: { 
